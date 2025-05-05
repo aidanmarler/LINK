@@ -2,7 +2,6 @@
 	import { supabase } from '../../supabaseClient';
 	import type { availableLanguages } from '../../lib/types';
 
-
 	let name: string = '';
 	let email: string = '';
 	let password: string = '';
@@ -43,18 +42,26 @@
 			clinical = false;
 		}
 	}
+
+	function colorEntry(isCorrect: boolean, isIncorrect: boolean = false) {
+		if (isIncorrect) return 'border-red-500 bg-red-950';
+		if (isCorrect) return 'border-emerald-500 bg-emerald-950';
+		return 'border-stone-500 bg-stone-950';
+	}
 </script>
 
-<div class="m-5">
+<div class="p-3">
 	<div
-		class="sm:max-h-full sm:overflow-scroll md:absolute sm:left-[50%] sm:top-[50%] px-3 py-4 shadow-md sm:translate-[-50%] border border-stone-700 rounded-xs w-full bg-stone-800 sm:w-90"
+		class="
+		px-3 py-4 shadow-md border-2 border-stone-700 rounded-lg w-full bg-stone-800 max-w-96 my-5 mx-auto
+		"
 	>
 		<h1 class="text-4xl w-full text-center mb-8 mt-4">Register</h1>
 		<form onsubmit={handleSignUp} class="border border-stone-600 p-3 rounded-xs">
 			<label class="font-medium leading-1.5">
 				User Information
 				<input
-					class=" w-full text-sm rounded-xs mb-1 p-1 bg-stone-950 border border-stone-500"
+					class=" w-full text-sm rounded-xs mb-1 p-1 border {colorEntry(name.length < 0)} "
 					required
 					name="name"
 					autocomplete="name"
