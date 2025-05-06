@@ -82,7 +82,7 @@
 			<label>
 				<button
 					type="submit"
-					class="w-full font-medium rounded-xs mt-6 hover:bg-green-700 cursor-pointer mb-2 p-1 bg-green-800 border border-stone-500"
+					class="w-full font-medium rounded-xs mt-6 hover:bg-teal-700 cursor-pointer mb-2 p-1 bg-teal-800 border border-stone-500"
 				>
 					Login
 				</button>

@@ -43,106 +43,110 @@
 
 <!-- Form Container -->
 {#if originalKey && originalItem}
-	<div class="w-full block text-center font-medium rounded-xs my-28 p-1">
+	<div class="w-full text-center items-center font-medium rounded-xs my-28 p-1">
 		<h3 class="tracking-wider italic text-3xl font-serif mb-10">
 			{originalKey}
 		</h3>
- 
-		<!-- Existing Translation Options -->
-		<fieldset class="mb-6 flex flex-col items-center w-full" role="radiogroup">
-			{#each Object.entries(originalItem) as [option]}
-				<label
-					class="inline-flex items-center p-4 rounded-md cursor-pointer border
-						{selectedTranslationId === originalItem[option].id && !isSuggestingNew
-						? 'bg-green-900 border-green-700 hover:border-green-500'
-						: 'bg-stone-900 border-stone-600 hover:border-stone-400'}"
-				>
-					<input
-						type="radio"
-						name="translation"
-						value={originalItem[option].id}
-						checked={selectedTranslationId === originalItem[option].id && !isSuggestingNew}
-						onclick={() => {
-							if (selectedTranslationId === originalItem[option].id) {
-								selectedTranslationId = null; // Deselect
-							} else {
-								selectedTranslationId = originalItem[option].id;
-								isSuggestingNew = false;
-								suggestedText = originalItem[option].listTranslation.translation;
-							}
-						}}
-						class="accent-green-600 cursor-pointer"
-					/>
-					<p
-						class="ml-3 text-left cursor-text px-3 text-xl italic font-serif tracking-wider hover:bg-stone-500/20 duration-100"
+
+		<div class="w-full justify-around flex">
+			<div class="w-full max-w-[600px]">
+				<!-- Existing Translation Options -->
+				<fieldset class="mb-6 flex-wrap space-x-1 space-y-1 items-center w-full" role="radiogroup">
+					{#each Object.entries(originalItem) as [option]}
+						<label
+							class="inline-flex items-center p-4 rounded-md cursor-pointer border
+								{selectedTranslationId === originalItem[option].id && !isSuggestingNew
+								? 'bg-teal-900 border-teal-700 hover:border-teal-500'
+								: 'bg-stone-900 border-stone-600 hover:border-stone-400'}"
+						>
+							<input
+								type="radio"
+								name="translation"
+								value={originalItem[option].id}
+								checked={selectedTranslationId === originalItem[option].id && !isSuggestingNew}
+								onclick={() => {
+									if (selectedTranslationId === originalItem[option].id) {
+										selectedTranslationId = null; // Deselect
+									} else {
+										selectedTranslationId = originalItem[option].id;
+										isSuggestingNew = false;
+										suggestedText = originalItem[option].listTranslation.translation;
+									}
+								}}
+								class="accent-teal-600 cursor-pointer"
+							/>
+							<p
+								class="ml-3 text-left cursor-text px-3 text-lg italic font-serif tracking-wider hover:bg-stone-500/20 duration-100"
+							>
+								{originalItem[option].listTranslation.translation}
+							</p>
+						</label>
+					{/each}
+				</fieldset>
+
+				<!-- Suggest New Translation -->
+				<div class="flex flex-col items-center w-full">
+					<label
+						class=" w-full font-thin text-xl p-3 rounded-md cursor-pointer border
+				{isSuggestingNew
+							? 'bg-teal-900 border-teal-700 hover:border-teal-500'
+							: 'bg-stone-900 border-stone-600 hover:border-stone-400'}"
 					>
-						{originalItem[option].listTranslation.translation}
-					</p>
-				</label>
-			{/each}
-		</fieldset>
+						<input
+							type="radio"
+							name="translation"
+							checked={selectedTranslationId === null && isSuggestingNew}
+							onclick={() => {
+								if (isSuggestingNew) {
+									isSuggestingNew = false; // Deselect
+								} else {
+									selectedTranslationId = null;
+									isSuggestingNew = true;
+									suggestedText = newSuggestionText;
+								}
+							}}
+							class="accent-teal-600 mr-3 cursor-pointer"
+						/>
+						Suggest a new translation
+						<textarea
+							class="w-full mt-3 p-4 rounded-md text-xl font-serif tracking-wide
+				{isSuggestingNew ? 'border-teal-600 bg-stone-900' : ' bg-stone-950'}"
+							placeholder="Write your own translation..."
+							bind:value={newSuggestionText}
+							oninput={() => {
+								isSuggestingNew = newSuggestionText.trim().length > 0;
+								if (isSuggestingNew) selectedTranslationId = null;
+								suggestedText = newSuggestionText;
+							}}
+							rows={3}
+						></textarea>
+					</label>
+				</div>
 
-		<!-- Suggest New Translation -->
-		<div class="flex flex-col items-center w-full">
-			<label
-				class=" w-auto font-thin text-xl p-3 rounded-md cursor-pointer border
-						{isSuggestingNew
-					? 'bg-green-900 border-green-700 hover:border-green-500'
-					: 'bg-stone-900 border-stone-600 hover:border-stone-400'}"
-			>
-				<input
-					type="radio"
-					name="translation"
-					checked={selectedTranslationId === null && isSuggestingNew}
-					onclick={() => {
-						if (isSuggestingNew) {
-							isSuggestingNew = false; // Deselect
-						} else {
-							selectedTranslationId = null;
-							isSuggestingNew = true;
-							suggestedText = newSuggestionText;
-						}
-					}}
-					class="accent-green-600 mr-3 cursor-pointer"
-				/>
-				Suggest a new translation
-				<textarea
-					class="w-full mt-3 p-4 rounded-md text-xl font-serif tracking-wide
-						{isSuggestingNew ? 'border-green-600 bg-stone-900' : ' bg-stone-950'}"
-					placeholder="Write your own translation..."
-					bind:value={newSuggestionText}
-					oninput={() => {
-						isSuggestingNew = newSuggestionText.trim().length > 0;
-						if (isSuggestingNew) selectedTranslationId = null;
-						suggestedText = newSuggestionText;
-					}}
-					rows={3}
-				></textarea>
-			</label>
-		</div>
-
-		<!-- Bottom Buttons -->
-		<div class="w-full max-w-96 mt-10 text-xl space-x-5 font-semibold flex justify-around">
-			<button
-				disabled={!selectedTranslationId && !isSuggestingNew}
-				class="block bg-red-700/50 border-2 border-red-700 h-15 w-full px-6 py-1 rounded-lg justify-around
-				{selectedTranslationId || isSuggestingNew
-					? 'cursor-pointer opacity-80 hover:opacity-100'
-					: 'opacity-30'}"
-				onclick={clearSelection}
-			>
-				Clear Selection
-			</button>
-			<button
-				disabled={!canSubmit}
-				class="block bg-green-700/50 border-2 border-green-700 h-15 w-full px-6 p-1 rounded-lg justify-around
-				{canSubmit ? 'cursor-pointer opacity-80 hover:opacity-100' : 'opacity-30'}"
-				onclick={() => {
-					openConfirmationModal = true;
-				}}
-			>
-				Submit
-			</button>
+				<!-- Bottom Buttons -->
+				<div class="w-full mt-10 text-xl space-x-5 font-semibold flex justify-around">
+					<button
+						disabled={!selectedTranslationId && !isSuggestingNew}
+						class="block bg-rose-900 border-2 border-rose-600 h-15 w-64 px-3 py-1 rounded-lg justify-around
+		{selectedTranslationId || isSuggestingNew
+							? 'cursor-pointer hover:bg-rose-800 opacity-80 hover:opacity-100'
+							: 'opacity-30'}"
+						onclick={clearSelection}
+					>
+						Clear Selection
+					</button>
+					<button
+						disabled={!canSubmit}
+						class="block bg-teal-900 border-2 border-teal-600 h-15 w-full px-6 p-1 rounded-lg justify-around
+							{canSubmit ? 'cursor-pointer opacity-80 hover:bg-teal-800 hover:opacity-100' : 'opacity-30'}"
+						onclick={() => {
+							openConfirmationModal = true;
+						}}
+					>
+						Submit
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 {/if}

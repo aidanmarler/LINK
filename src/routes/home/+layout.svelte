@@ -67,10 +67,10 @@
 					{/if}
 				{/each}
 			</div>
-			<div>
+			<div class="w-full md:w-auto block">
 				<select
-					class="mr-2 h-full bg-blue-900/50 border-2 border-blue-600/50 px-3 py-0.5 font-semibold rounded-md cursor-pointer
-						hover:bg-blue-900 hover:border-blue-600"
+					class="mr-2 h-full bg-stone-900/50 border-2 border-stone-600/50 px-3 py-0.5 font-semibold rounded-md cursor-pointer
+						hover:bg-stone-900 hover:border-stone-600"
 					>CRF: <option>Dengue</option><option>All Questions</option><option>All Questions</option
 					></select
 				>

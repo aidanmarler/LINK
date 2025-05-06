@@ -132,10 +132,78 @@ export async function lists_newTranslation(userId: string) { }
 
 // Function adds user to all seen rows, if not already in it.
 export async function lists_addSeenToAll(userId: string, translationIds: string[]) {
+	console.log("translationIds", translationIds)
+	for (const translationId of translationIds) {
+		console.log("translationId", translationId)
+		// Step 1: Get the translation's row
+		const { data, error: fetchError } = await supabase
+			.from('lists')
+			.select('users_seen')
+			.eq('id', translationId)
+			.single();
 
+		if (fetchError) {
+			console.error('Error fetching list:', fetchError.message);
+			return { success: false, error: fetchError };
+		}
+
+		// Step 2: Prepare updated users_seen array
+		const usersSeen: string[] = data.users_seen || [];
+		if (!usersSeen.includes(userId)) {
+			usersSeen.push(userId);
+
+			// Step 3: Update the row
+			const { error: updateError } = await supabase
+				.from('lists')
+				.update({ users_seen: usersSeen })
+				.eq('id', translationId);
+
+			if (updateError) {
+				console.error('Error updating users_seen:', updateError.message);
+				return { success: false, error: updateError };
+			}
+		}
+		console.log("successfully updated users_seen!")
+	}
+
+	return { success: true };
 }
 // Function removes user's votes from all seen rows, if their vote is present
 export async function lists_removeVotesFromAll(userId: string, translationIds: string[]) {
+	for (const translationId of translationIds) {
+		// Step 1: Get the translation's row
+		const { data, error: fetchError } = await supabase
+			.from('lists')
+			.select('users_voted')
+			.eq('id', translationId)
+			.single();
+
+		if (fetchError) {
+			console.error('Error fetching list:', fetchError.message);
+			return { success: false, error: fetchError };
+		}
+
+		// Step 2: Prepare updated users_seen array
+		const usersVoted: string[] = data.users_voted || [];
+		if (usersVoted.includes(userId)) {
+			const filteredUsersVoted: string[] = usersVoted.filter((id) => id !== userId);
+
+			console.log("user found to have voted!", usersVoted, filteredUsersVoted)
+			// Step 3: Update the row
+			const { error: updateError } = await supabase
+				.from('lists')
+				.update({ users_voted: filteredUsersVoted })
+				.eq('id', translationId);
+
+			if (updateError) {
+				console.error('Error updating users_seen:', updateError.message);
+				return { success: false, error: updateError };
+			}
+
+			console.log('user successfully removed from voted!')
+		}
+	}
+	return { success: true };
 
 }
 // Function handles to add user id to given rows "users_voted" column
@@ -170,5 +238,35 @@ export async function lists_addVote(userId: string, translationId: string) {
 	}
 
 	console.log("successfully added vote!")
+	return { success: true };
+}
+
+// Function handles adding a single list item by a user
+export async function lists_addOption(
+	userId: string,
+	language: TranslationLanguage,
+	list: string,
+	sublist: string,
+	original: string,
+	translation: string,
+
+) {
+	const { error } = await supabase.from('lists').insert({
+		language: language,
+		list: list,
+		sublist: sublist,
+		original: original,
+		translation: translation,
+		users_seen: [userId],
+		users_voted: [userId],
+		user_created: userId
+	});
+
+	if (error) {
+		console.error("Error adding new translation")
+		return { success: false, error };
+	}
+	console.log("Item Added!")
+
 	return { success: true };
 }
