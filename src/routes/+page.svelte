@@ -82,7 +82,7 @@
 			<label>
 				<button
 					type="submit"
-					class="w-full font-medium rounded-xs mt-6 hover:bg-teal-700 cursor-pointer mb-2 p-1 bg-teal-800 border border-stone-500"
+					class="w-full font-medium rounded-md mt-6 hover:bg-green-800 cursor-pointer mb-2 p-1 bg-green-900 border-2 border-green-700"
 				>
 					Login
 				</button>
@@ -94,7 +94,7 @@
 			<p class="font-medium w-full text-center mb-2">New User?</p>
 			<a
 				data-sveltekit-preload-code="eager"
-				class="w-full block text-center font-medium rounded-xs hover:bg-stone-700 cursor-pointer mb-2 p-1 bg-stone-800 border border-stone-500"
+				class="w-full block text-center font-medium rounded-md hover:bg-stone-700 cursor-pointer mb-2 p-1 bg-stone-800 border-2 border-stone-500"
 				href="/register"
 			>
 				Register Here

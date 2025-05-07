@@ -23,7 +23,7 @@
 		{/if}
 		{#if completionReport.incomplete > 0}
 			<div
-				class="bg-red-500 opacity-30 rounded-r-full border-red-400"
+				class="bg-pink-500 opacity-30 rounded-r-full border-pink-400"
 				style="width: {(completionReport.incomplete / total) * 100}%;"
 			></div>
 		{/if}

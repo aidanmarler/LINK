@@ -45,7 +45,7 @@
 
 	function colorEntry(isCorrect: boolean, isIncorrect: boolean = false) {
 		if (isIncorrect) return 'border-red-500 bg-red-950';
-		if (isCorrect) return 'border-emerald-500 bg-emerald-950';
+		if (isCorrect) return 'border-green-500 bg-green-950';
 		return 'border-stone-500 bg-stone-950';
 	}
 </script>

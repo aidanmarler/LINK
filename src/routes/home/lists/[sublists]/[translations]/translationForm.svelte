@@ -56,7 +56,7 @@
 						<label
 							class="inline-flex items-center p-4 rounded-md cursor-pointer border
 								{selectedTranslationId === originalItem[option].id && !isSuggestingNew
-								? 'bg-teal-900 border-teal-700 hover:border-teal-500'
+								? 'bg-green-900 border-green-700 hover:border-green-500'
 								: 'bg-stone-900 border-stone-600 hover:border-stone-400'}"
 						>
 							<input
@@ -73,7 +73,7 @@
 										suggestedText = originalItem[option].listTranslation.translation;
 									}
 								}}
-								class="accent-teal-600 cursor-pointer"
+								class="accent-green-600 cursor-pointer"
 							/>
 							<p
 								class="ml-3 text-left cursor-text px-3 text-lg italic font-serif tracking-wider hover:bg-stone-500/20 duration-100"
@@ -89,7 +89,7 @@
 					<label
 						class=" w-full font-thin text-xl p-3 rounded-md cursor-pointer border
 				{isSuggestingNew
-							? 'bg-teal-900 border-teal-700 hover:border-teal-500'
+							? 'bg-green-900 border-green-700 hover:border-green-500'
 							: 'bg-stone-900 border-stone-600 hover:border-stone-400'}"
 					>
 						<input
@@ -105,12 +105,12 @@
 									suggestedText = newSuggestionText;
 								}
 							}}
-							class="accent-teal-600 mr-3 cursor-pointer"
+							class="accent-green-600 mr-3 cursor-pointer"
 						/>
 						Suggest a new translation
 						<textarea
 							class="w-full mt-3 p-4 rounded-md text-xl font-serif tracking-wide
-				{isSuggestingNew ? 'border-teal-600 bg-stone-900' : ' bg-stone-950'}"
+				{isSuggestingNew ? 'border-green-600 bg-stone-900' : ' bg-stone-950'}"
 							placeholder="Write your own translation..."
 							bind:value={newSuggestionText}
 							oninput={() => {
@@ -127,9 +127,9 @@
 				<div class="w-full mt-10 text-xl space-x-5 font-semibold flex justify-around">
 					<button
 						disabled={!selectedTranslationId && !isSuggestingNew}
-						class="block bg-rose-900 border-2 border-rose-600 h-15 w-64 px-3 py-1 rounded-lg justify-around
+						class="block bg-pink-900 border-2 border-pink-600 h-15 w-64 px-3 py-1 rounded-lg justify-around
 		{selectedTranslationId || isSuggestingNew
-							? 'cursor-pointer hover:bg-rose-800 opacity-80 hover:opacity-100'
+							? 'cursor-pointer hover:bg-pink-800 opacity-80 hover:opacity-100'
 							: 'opacity-30'}"
 						onclick={clearSelection}
 					>
@@ -137,8 +137,8 @@
 					</button>
 					<button
 						disabled={!canSubmit}
-						class="block bg-teal-900 border-2 border-teal-600 h-15 w-full px-6 p-1 rounded-lg justify-around
-							{canSubmit ? 'cursor-pointer opacity-80 hover:bg-teal-800 hover:opacity-100' : 'opacity-30'}"
+						class="block bg-green-900 border-2 border-green-600 h-15 w-full px-6 p-1 rounded-lg justify-around
+							{canSubmit ? 'cursor-pointer opacity-80 hover:bg-green-800 hover:opacity-100' : 'opacity-30'}"
 						onclick={() => {
 							openConfirmationModal = true;
 						}}

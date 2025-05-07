@@ -158,7 +158,7 @@
 							Cancel
 						</button>
 						<button
-							class="block w-full cursor-pointer opacity-70 hover:opacity-100 font-semibold bg-teal-700/50 border-2 border-teal-700 px-3 p-1 rounded-lg justify-around"
+							class="block w-full cursor-pointer opacity-70 hover:opacity-100 font-semibold bg-emerald-700/50 border-2 border-emerald-700 px-3 p-1 rounded-lg justify-around"
 							onclick={() => {
 								confirmTranslation(
 									originalText,
