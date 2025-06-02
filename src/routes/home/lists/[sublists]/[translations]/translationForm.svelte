@@ -129,7 +129,7 @@
 						disabled={!selectedTranslationId && !isSuggestingNew}
 						class="block bg-pink-900 border-2 border-pink-600 h-15 w-64 px-3 py-1 rounded-lg justify-around
 		{selectedTranslationId || isSuggestingNew
-							? 'cursor-pointer hover:bg-pink-800 opacity-80 hover:opacity-100'
+							? 'cursor-pointer hover:border-pink-500 bg-opacity-10 hover:opacity-80'
 							: 'opacity-30'}"
 						onclick={clearSelection}
 					>
@@ -137,7 +137,7 @@
 					</button>
 					<button
 						disabled={!canSubmit}
-						class="block bg-green-900 border-2 border-green-600 h-15 w-full px-6 p-1 rounded-lg justify-around
+						class="block bg-green-800 border-2 border-green-500 h-15 w-full px-6 p-1 rounded-lg justify-around
 							{canSubmit ? 'cursor-pointer opacity-80 hover:bg-green-800 hover:opacity-100' : 'opacity-30'}"
 						onclick={() => {
 							openConfirmationModal = true;

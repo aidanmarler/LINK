@@ -5,13 +5,20 @@
 	let total = $derived(
 		completionReport.complete + completionReport.incomplete + completionReport.needsReview
 	);
+	let ratio = $derived(
+		(( completionReport.complete / total ) * 100 ).toFixed(1)
+	);
 </script>
 
-<div class="w-full space-y-0.5 p-1 rounded-full shadow-inner h-auto bg-stone-950">
+<div class="flex text-xs italic">
+	{ratio}% complete ({completionReport.complete} / {total})
+</div>
+
+<div class="w-full space-y-0.5 p-1 rounded-full h-auto dark:bg-stone-950">
 	<div class="flex w-auto space-x-1 h-1.5">
 		{#if completionReport.complete > 0}
 			<div
-				class="bg-green-500 rounded-l-full opacity-70"
+				class="bg-green-700 dark:bg-green-500 rounded-l-full opacity-90"
 				style="width: {(completionReport.complete / total) * 100}%;"
 			></div>
 		{/if}
@@ -23,7 +30,7 @@
 		{/if}
 		{#if completionReport.incomplete > 0}
 			<div
-				class="bg-pink-500 opacity-30 rounded-r-full border-pink-400"
+				class="bg-pink-900/40 dark:bg-pink-700/30 rounded-r-full"
 				style="width: {(completionReport.incomplete / total) * 100}%;"
 			></div>
 		{/if}

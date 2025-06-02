@@ -30,7 +30,9 @@
 		{#each Object.entries(global_lists) as [listKey], i (listKey)}
 			<a
 				data-sveltekit-preload-code="eager"
-				class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col text-center rounded-sm hover:bg-stone-700 cursor-pointer bg-stone-800 border border-stone-500"
+				class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col text-center rounded-sm cursor-pointer border
+				border-stone-500 bg-stone-200 hover:bg-stone-50 hover:shadow-sm
+				dark:border-stone-500 dark:bg-stone-800 dark:hover:bg-stone-700"
 				href="{page.url.pathname}/{listKey}"
 			>
 				<h3 class="text-xl mb-2">{capitalizeFirstLetter(listKey)}</h3>

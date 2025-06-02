@@ -15,6 +15,7 @@
 	import Logout from '../components/logout.svelte';
 	import { fade, fly, scale } from 'svelte/transition';
 	import { capitalizeFirstLetter } from '$lib/utils';
+	import ThemeManager from '../components/themeManager.svelte';
 
 	let { children } = $props();
 
@@ -68,6 +69,7 @@
 				{/each}
 			</div>
 			<div class="w-full md:w-auto block">
+				<ThemeManager/>
 				<select
 					class="mr-2 h-full bg-stone-900/50 border-2 border-stone-600/50 px-3 py-0.5 font-semibold rounded-md cursor-pointer
 						hover:bg-stone-900 hover:border-stone-600"
