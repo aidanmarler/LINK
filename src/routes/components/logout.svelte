@@ -5,8 +5,9 @@
 </script>
 
 <button
-	class="bg-rose-900/50 border-2 border-rose-600/50 px-3 py-0.5 font-semibold rounded-md cursor-pointer
-						hover:bg-rose-900 hover:border-rose-600"
+	class="border-2 px-3 py-0.5 font-semibold rounded-md cursor-pointer
+	bg-rose-500/50 hover:bg-rose-500 border-rose-800/50 hover:border-rose-800
+	dark:bg-rose-900/50 dark:border-rose-600/50 dark:hover:bg-rose-900 dark:hover:border-rose-600"
 	onclick={() => {
 		userProfile.user = null;
 		supabase.auth.signOut();

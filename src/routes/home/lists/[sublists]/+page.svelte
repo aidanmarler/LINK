@@ -11,6 +11,7 @@
 	import { capitalizeFirstLetter } from '$lib/utils';
 	import DataView from '../../dataView.svelte';
 	import { onMount } from 'svelte';
+	import { card_dynamic } from '$lib/styles';
 
 	let pathSegments = $derived(page.url.pathname.split('/').filter(Boolean));
 	let crumb = $derived(pathSegments[pathSegments.length - 1]);
@@ -35,7 +36,7 @@
 			{#each Object.entries(global_lists[crumb]) as [sublistKey]}
 				<a
 					data-sveltekit-preload-code="eager"
-					class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col text-center rounded-sm hover:bg-stone-700 cursor-pointer bg-stone-800 border border-stone-500"
+					class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col text-center {card_dynamic}"
 					href="{page.url.pathname}/{sublistKey}"
 				>
 					<h3 class="text-xl mb-2">{capitalizeFirstLetter(sublistKey)}</h3>

@@ -5,10 +5,12 @@
 	import { checkAdminStatus } from '$lib/supabase/supabaseHelpers';
 	import type { Category, Language } from '$lib/types';
 	import { PullCategory } from './retrieve_ARCTranslations';
+	import Logout from '../components/logout.svelte';
+	import { card_static } from '$lib/styles';
 
 	let session: AuthSession | null;
 	let isAdmin: boolean = false;
-	let activeLanguages: Language[] = ['French', 'Portuguese', 'Spanish'] // Languages to check and have in the app.
+	let activeLanguages: Language[] = ['Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
 
 	async function handleSessionCheck() {
 		const { data, error } = await supabase.auth.getSession();
@@ -92,11 +94,12 @@
 
 {#snippet CategoryControls(category: Category)}
 	<div class="w-full mt-5">
-		<div class="mt-1 w-full bg-stone-950 border-2 border-stone-800 rounded-lg">
-			<div class="flex justify-between items-end p-2 border-b-2 border-stone-800">
+		<div class="mt-1 w-full rounded-lg {card_static}">
+			<div class="flex justify-between items-end p-2 border-b border-inherit">
 				<h1 class="text-3xl font-semibold">{category}</h1>
 				<div class="space-x-1">
-					<button
+					<!--
+										<button
 						title="Pull Lists from GitHub"
 						class="bg-blue-900 border-2 border-blue-600 px-3 font-semibold rounded-lg cursor-pointer
 						hover:bg-blue-700 hover:border-blue-400"
@@ -108,6 +111,8 @@
 					>
 						Pull Lists
 					</button>
+
+					-->
 				</div>
 			</div>
 
@@ -117,23 +122,32 @@
 	</div>
 {/snippet}
 
-{#if session && isAdmin}
-	<div class="w-full p-4 md:max-w-3xl md:mx-auto">
-		<h1 class="text-3xl my-3 font-bold">Admin</h1>
-		<div class=" px-2 w-full flex justify-between items-center">
-			<h2>{session.user.email}</h2>
-			<button
-				title="Logout"
-				class="bg-red-900/50 border-2 border-red-600/50 px-3 py-0.5 font-semibold rounded-md cursor-pointer
-						hover:bg-red-900 hover:border-red-600"
-				onclick={() => supabase.auth.signOut()}
-			>
-				Logout
-			</button>
-		</div>
+<div class="max-w-96 p-2 rounded-lg {card_static}">
+	<button
+		title="Pull Lists from GitHub"
+		class="bg-blue-900 border-2 border-blue-600 px-3 font-semibold rounded-lg cursor-pointer
+						hover:bg-blue-700 hover:border-blue-400"
+		onclick={async () => {
+			for (const language of activeLanguages) {
+				await PullCategory('Lists', language);
+			}
+		}}
+	>
+		Pull Lists
+	</button>
 
-		<div class="w-full bg-amber-50 h-0.5 my-3"></div>
+	<button
+		title="Pull ARCH from GitHub"
+		class="bg-blue-900 border-2 border-blue-600 px-3 font-semibold rounded-lg cursor-pointer
+						hover:bg-blue-700 hover:border-blue-400"
+		onclick={async () => {
+			for (const language of activeLanguages) {
+				await PullCategory('Lists', language);
+			}
+		}}
+	>
+		Pull ARCH
+	</button>
+</div>
 
-		{@render CategoryControls('Lists')}
-	</div>
-{/if}
+{@render CategoryControls('Lists')}

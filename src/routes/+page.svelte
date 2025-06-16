@@ -4,6 +4,7 @@
 	import type { AuthSession, User, WeakPassword } from '@supabase/supabase-js';
 	import { checkAdminStatus } from '$lib/supabase/supabaseHelpers';
 	import DataView from './home/dataView.svelte';
+	import ThemeManager from './components/themeManager.svelte';
 
 	let session: AuthSession | null;
 	let email: string = '';
@@ -44,13 +45,16 @@
 	}
 </script>
 
+<ThemeManager />
+
 <div class="p-5">
 	<div class="mx-auto w-full text-center my-20">
 		<h1 class="font-bold text-6xl">LINK</h1>
 		<h4 class="italic my-3">Language Integration Network Kit</h4>
 	</div>
 	<div
-		class="px-3 py-4 shadow-md border-2 border-stone-700 rounded-lg w-full bg-stone-800 max-w-96 my-auto mx-auto
+		class="px-3 py-4 shadow-md border-2 rounded-lg w-full max-w-96 my-auto mx-auto
+		dark:bg-stone-800 dark:border-stone-700
 		"
 	>
 		<h1 class="text-4xl w-full text-center mb-5 mt-2">Login</h1>
@@ -94,7 +98,8 @@
 			<p class="font-medium w-full text-center mb-2">New User?</p>
 			<a
 				data-sveltekit-preload-code="eager"
-				class="w-full block text-center font-medium rounded-md hover:bg-stone-700 cursor-pointer mb-2 p-1 bg-stone-800 border-2 border-stone-500"
+				class="w-full block text-center font-medium rounded-md cursor-pointer mb-2 p-1 border-2
+				bg-stone-200 dark:bg-stone-800 border-stone-500 dark:hover:bg-stone-700"
 				href="/register"
 			>
 				Register Here
