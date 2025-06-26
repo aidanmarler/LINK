@@ -31,11 +31,12 @@
 		{#each Object.entries(global_lists) as [listKey], i (listKey)}
 			<a
 				data-sveltekit-preload-code="eager"
-				class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col text-center {card_dynamic}"
+				class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col rounded-md text-center {card_dynamic}"
 				href="{page.url.pathname}/{listKey}"
 			>
 				<h3 class="text-xl mb-2">{capitalizeFirstLetter(listKey)}</h3>
-				<DataView completionReport={global_lists_report.lists[listKey].listReport} />
+				<DataView completionReport={global_lists_report.lists[listKey].listReport}
+				options={{showKey: true}} />
 			</a>
 		{/each}
 	</div>

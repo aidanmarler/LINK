@@ -12,7 +12,7 @@
 		lists_addVote,
 		lists_removeVotesFromAll
 	} from '$lib/supabase/supabaseHelpers';
-	import type { availableLanguages, TranslationLanguage } from '$lib/types';
+	import type { AvailableLanguages, TranslationLanguage } from '$lib/types';
 	import { tick } from 'svelte';
 	import { quintOut } from 'svelte/easing';
 	import { draw, fly } from 'svelte/transition';
@@ -69,10 +69,12 @@
 			);
 			// 1) add user to seen for all options
 			const result_addSeen = await lists_addSeenToAll(userId, transitionOptions);
+			console.log('result_addSeen', result_addSeen);
 			if (result_addSeen.success == false) return;
 			loading.addSeen = true;
 			// 2) remove users other votes from all options
 			const result_removeVotes = await lists_removeVotesFromAll(userId, transitionOptions);
+			console.log('result_removeVotes', result_removeVotes);
 			if (result_removeVotes.success == false) return;
 			loading.removeVotes = true;
 			// Supabase call - add item to table
@@ -85,6 +87,7 @@
 				newTranslationText
 			);
 			if (result_addOption.success == false) return;
+			console.log('result_addOption', result_addOption);
 			loading.addVote = true;
 			// Once complete, reload dataset
 			await updateGlobalTables(userLanguage);
@@ -153,12 +156,12 @@
 							onclick={() => {
 								openConfirmationModal = false;
 							}}
-							class="block w-full cursor-pointer opacity-70 hover:opacity-100 font-semibold bg-rose-600/50 border-2 border-rose-600 px-3 p-1 rounded-lg justify-around"
+							class="block w-full cursor-pointer opacity-70 hover:opacity-100 font-semibold bg-pink-600/50 border-2 border-pink-600 px-3 p-1 rounded-lg justify-around"
 						>
 							Cancel
 						</button>
 						<button
-							class="block w-full cursor-pointer opacity-70 hover:opacity-100 font-semibold bg-emerald-700/50 border-2 border-emerald-700 px-3 p-1 rounded-lg justify-around"
+							class="block w-full cursor-pointer opacity-70 hover:opacity-100 font-semibold bg-green-700/50 border-2 border-green-700 px-3 p-1 rounded-lg justify-around"
 							onclick={() => {
 								confirmTranslation(
 									originalText,

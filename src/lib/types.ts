@@ -1,5 +1,5 @@
 // For user creation - what are you an expert in...
-export type availableLanguages = 'none' | 'spanish' | 'french' | 'portuguese';
+export type AvailableLanguages = 'none' | 'spanish' | 'french' | 'portuguese';
 
 // List of languages that are used in both front end and the ARC-Translations repo
 export type Language = 'English' | 'Spanish' | 'French' | 'Portuguese';
@@ -32,7 +32,7 @@ export type Translation_Address = {
 
 
 // Indicates if an original text has been translated or not, or possibly needs review.
-export type CompletionIndicator = 'complete' | 'incomplete' | 'needsReview'
+export type CompletionStatus = 'complete' | 'incomplete' | 'needsReview'
 
 // Number of items for user to complete and review in a given section
 export type CompletionReport = {
@@ -41,6 +41,19 @@ export type CompletionReport = {
 	needsReview: number
 }
 
+export const CompletionStatus_Names: Record<CompletionStatus, string> = {
+	complete : "Complete",
+	incomplete: "Incomplete",
+	needsReview: "Review"
+}
+
+/*
+export const CompletionStatus_Icons: Record<CompletionStatus, SVGElement> = {
+	complete : "",
+	incomplete: "Incomplete",
+	needsReview: "Review"
+}
+*/
 
 // Holds the information needed to push a transaltions to the Lists Supabase Table
 export type Translation_Lists = {
@@ -86,7 +99,7 @@ export type CompletionReports_Lists = {
 					sublistReport: CompletionReport, // CompletionReport for this sublist
 					originalItems: Record<
 						string, // original textual items (ie: United States)
-						CompletionIndicator // 'complete' | 'incomplete' | 'needsReview'
+						CompletionStatus // 'complete' | 'incomplete' | 'needsReview'
 					>
 				}
 			>
@@ -94,25 +107,11 @@ export type CompletionReports_Lists = {
 	>
 };
 
-type TranslationOption = {
-	translation: string,
-	usersAgree: string[],
-	usersSeen: string[]
-}
-
-// This is 
-type localStorage = {
-	original: string,
-	translationLanguage: TranslationLanguage,
-	translationOptions: TranslationOption[],
-	translationFinal: TranslationOption
-}
-
 export type Profile = {
 	clinical_expertise: boolean,
 	created_at: "2025-02-26T14:48:01.319251+00:00",
 	id: string,
 	is_admin: false,
-	language: availableLanguages,
+	language: AvailableLanguages,
 	name: string
 }

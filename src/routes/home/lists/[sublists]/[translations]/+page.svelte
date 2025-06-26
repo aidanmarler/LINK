@@ -23,7 +23,6 @@
 		global_address.category = 'Lists';
 		global_address.listKey = $state.snapshot(pathSegments[pathSegments.length - 2]);
 		global_address.sublistKey = $state.snapshot(pathSegments[pathSegments.length - 1]);
-		console.log($state.snapshot(global_address));
 	});
 
 	function submitForm() {
@@ -61,6 +60,7 @@
 					<TranslationForm
 						originalKey={translation}
 						originalItem={global_lists[pathSegments[2]][pathSegments[3]][translation]}
+						completionStatus={global_lists_report.lists[pathSegments[2]].sublists[pathSegments[3]].originalItems[translation]}
 					/>
 				{/if}
 				{#if i < Object.entries(global_lists[pathSegments[2]][pathSegments[3]]).length - 1}
@@ -76,12 +76,13 @@
 		out:fly={{ y: 20, duration: 100 }}
 		class="bg-stone-800/50 border-t-2 border-stone-800 fixed bottom-0 left-0 backdrop-blur-md w-full h-auto p-2 flex justify-between"
 	>
-		<div class="flex w-1/2 items-center space-x-2">
+		<div class="flex w-full items-center space-x-2">
 			<p class="text-3xl italic p-2">{crumb}</p>
-			<div class="w-full px-2 pr-32">
+			<div class="w-full px-2 md:pr-20 lg:pr-32">
 				<DataView
 					completionReport={global_lists_report.lists[pathSegments[2]].sublists[crumb]
 						.sublistReport}
+					options={{}}
 				/>
 			</div>
 		</div>

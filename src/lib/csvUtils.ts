@@ -1,6 +1,6 @@
 import Papa from 'papaparse';
 
-export async function parseCSV(url: string): Promise<any[]> {
+export async function parseCSV(url: string): Promise<unknown[]> {
 	const response = await fetch(url);
 	const text = await response.text();
 	return new Promise((resolve, reject) => {

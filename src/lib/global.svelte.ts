@@ -1,14 +1,14 @@
 import { tick } from "svelte";
 import { retrieveTable_lists } from "./supabase/supabaseHelpers";
-import type { CompletionIndicator, CompletionReport, CompletionReports_Lists, TranslationItem_Lists, Profile, TranslationLanguage, TreeStructure_Lists, OriginalItem_Lists, Translation_Address } from "./types";
+import type { CompletionStatus, CompletionReport, CompletionReports_Lists, TranslationItem_Lists, Profile, TranslationLanguage, TreeStructure_Lists, OriginalItem_Lists, Translation_Address } from "./types";
 
 
 
-export let userProfile: { "user": Profile | null } = $state({ user: null });
+export const userProfile: { "user": Profile | null } = $state({ user: null });
 
-export let loadedStatus = $state({ lists: false })
+export const loadedStatus = $state({ lists: false })
 
-export let global_address: Translation_Address = $state({})
+export const global_address: Translation_Address = $state({})
 
 export const reset_address = () => {
     for (const key in global_address) {
@@ -17,7 +17,7 @@ export const reset_address = () => {
 };
 
 // Global Lists data structure - each translation of each item
-export let global_lists: TreeStructure_Lists = $state({})
+export const global_lists: TreeStructure_Lists = $state({})
 
 // Helper function to initalize empty report
 const createEmptyReport = (): CompletionReport => ({
@@ -27,7 +27,7 @@ const createEmptyReport = (): CompletionReport => ({
 });
 
 // Global Lists completion reports - a report for all lists, each list, and each sublist
-export let global_lists_report: CompletionReports_Lists = $state({
+export const global_lists_report: CompletionReports_Lists = $state({
     summaryReport: createEmptyReport(),
     lists: {}
 })
@@ -35,7 +35,7 @@ export let global_lists_report: CompletionReports_Lists = $state({
 
 
 // Helper function to get if originalItem has been translated by the original user or not.
-export function determineCompletionIndicator(userId: string, originalItem: OriginalItem_Lists): CompletionIndicator {
+export function determineCompletionIndicator(userId: string, originalItem: OriginalItem_Lists): CompletionStatus {
     let seenOne = false; // user has seen at least one translation
     let seenAll = true; // user has seen all translations
     for (const translationKey in originalItem) {
@@ -74,6 +74,7 @@ function setGlobalLists(listTranslationsItems: TranslationItem_Lists[]) {
 
 // Using userId, for each ListTranslationItem, see if user has seen it.  If each 
 function setListsCompletionReport(userId: string, treeStructure_Lists: TreeStructure_Lists) {
+    console.log("Setting Completion Report")
     // Step 1) Create empty table with empty completion reports
     // Step 2) Fill in low level items
     // Step 3) based on low level items, calcualte new correct completion reports
@@ -98,7 +99,7 @@ function setListsCompletionReport(userId: string, treeStructure_Lists: TreeStruc
             // If a missing original item, add it -> then, 
             for (const originalItemKey in treeStructure_Lists[listKey][sublistKey]) {
                 // Step 2: actually fill in the low level items
-                const completionIndicator: CompletionIndicator = determineCompletionIndicator(userId, treeStructure_Lists[listKey][sublistKey][originalItemKey])
+                const completionIndicator: CompletionStatus = determineCompletionIndicator(userId, treeStructure_Lists[listKey][sublistKey][originalItemKey])
                 global_lists_report.lists[listKey].sublists[sublistKey].originalItems[originalItemKey] = completionIndicator
             }
         }

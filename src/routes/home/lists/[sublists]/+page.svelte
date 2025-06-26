@@ -23,7 +23,11 @@
 		global_address.category = 'Lists';
 		global_address.listKey = crumb;
 		console.log($state.snapshot(global_address));
+
+		console.log(global_lists_report.lists[crumb])
 	});
+
+
 </script>
 
 {#if loadedStatus.lists}
@@ -36,12 +40,13 @@
 			{#each Object.entries(global_lists[crumb]) as [sublistKey]}
 				<a
 					data-sveltekit-preload-code="eager"
-					class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col text-center {card_dynamic}"
+					class="min-w-1/2 bg-center object-center items-center p-3 flex flex-col rounded-md text-center {card_dynamic}"
 					href="{page.url.pathname}/{sublistKey}"
 				>
 					<h3 class="text-xl mb-2">{capitalizeFirstLetter(sublistKey)}</h3>
 					<DataView
 						completionReport={global_lists_report.lists[crumb].sublists[sublistKey].sublistReport}
+						options={{showKey: true}}
 					/>
 					<!--<DataView completionReport={{ complete: 3, incomplete: 10, needsReview: 1 }} />-->
 				</a>

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
-	import type { availableLanguages } from '../../lib/types';
+	import type { AvailableLanguages } from '../../lib/types';
 
 	let name: string = '';
 	let email: string = '';
 	let password: string = '';
 	let confirmPassword: string = '';
-	let language: availableLanguages = 'none';
+	let language: AvailableLanguages = 'none';
 	let clinical = false;
 
 	async function handleSignUp(event: Event) {
@@ -117,11 +117,46 @@
 					<option value="portuguese">Português</option>
 				</select>
 			</label>
+			<label class="font-medium leading-1.5">
+				Country
+				<select
+					class="w-full text-sm font-medium rounded-xs mb-3 p-1 bg-stone-950 border border-stone-500"
+					name="questions"
+					required
+				>
+					<option value="All">All</option>
+					<option value="Covid">Covid</option>
+					<option value="Dengue">Dengue</option>
+					<option value="MPox">MPox</option>
+					<option value="H5Nx">H5Nx</option>
+					<option value="ARI">ARI</option>
+					<option value="Oropouche">Oropouche</option>
+					<option value="CharlsonCI">CharlsonCI</option>
+				</select>
+			</label>
+			<br />
+			<label class="font-medium leading-1.5">
+				Question Preference
+				<select
+					class="w-full text-sm font-medium rounded-xs mb-3 p-1 bg-stone-950 border border-stone-500"
+					name="questions"
+					required
+				>
+					<option value="All">All</option>
+					<option value="Covid">Covid</option>
+					<option value="Dengue">Dengue</option>
+					<option value="MPox">MPox</option>
+					<option value="H5Nx">H5Nx</option>
+					<option value="ARI">ARI</option>
+					<option value="Oropouche">Oropouche</option>
+					<option value="CharlsonCI">CharlsonCI</option>
+				</select>
+			</label>
 			<label class="font-medium leading-1.5 content-center text-center items-center h-10">
-				Clinical Expertise
+				Clinical Expertise?
 				<input
 					type="checkbox"
-					class="font-medium accent-green-500/70 mb-3 rounded-xs h-4 w-4 cursor-pointer p-1 bg-stone-950 border border-stone-500"
+					class="font-medium accent-green-500/70 mb-4 rounded-xs h-4 w-4 cursor-pointer p-1 bg-stone-950 border border-stone-500"
 					name="clinical"
 					bind:checked={clinical}
 				/>
