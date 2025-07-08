@@ -10,40 +10,7 @@
 
 	let session: AuthSession | null;
 	let isAdmin: boolean = false;
-	let activeLanguages: Language[] = ['Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
-
-	async function handleSessionCheck() {
-		const { data, error } = await supabase.auth.getSession();
-		session = data.session;
-
-		if (error || !session) {
-			window.location.href = '/';
-			return;
-		}
-
-		isAdmin = await checkAdminStatus(session.user.id);
-		if (!isAdmin && window.location.pathname === '/admin') {
-			window.location.href = '/404';
-		}
-	}
-
-	onMount(() => {
-		handleSessionCheck();
-
-		supabase.auth.onAuthStateChange((_event, _session) => {
-			session = _session;
-			if (!session) {
-				window.location.href = '/';
-			} else {
-				checkAdminStatus(session.user.id).then((adminStatus) => {
-					isAdmin = adminStatus;
-					if (!isAdmin && window.location.pathname === '/admin') {
-						window.location.href = '/404';
-					}
-				});
-			}
-		});
-	});
+	let activeLanguages: Language[] = ['French', 'Portuguese', 'Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
 </script>
 
 {#snippet LanguageCategoryControls(language: Language)}

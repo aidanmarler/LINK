@@ -9,6 +9,8 @@ async function fetchAndParseCSV(
 	repo: string,
 	path: string
 ): Promise<{ [sublist: string]: string[][] }> {
+	console.log('fetchAndParseCSV at ' + path);
+
 	const response = await fetch('https://api.github.com/graphql', {
 		method: 'POST',
 		headers: {
@@ -44,101 +46,17 @@ async function fetchAndParseCSV(
 
 	const data = await response.json();
 	const entries = data.data.repository.object.entries;
-
 	const csvData: { [sublist: string]: string[][] } = {};
+
 	for (const entry of entries) {
 		const sublist = entry.name.replace('.csv', ''); // Remove .csv extension
 		const csvText = entry.object.text;
 		const parsedData = Papa.parse(csvText, { header: false }).data as string[][];
-		csvData[sublist] = parsedData;
+		csvData[sublist] = parsedData.slice(1);
 	}
 
 	return csvData;
 }
-
-/*
-// Function to organize data into listTranslation objects
-export async function collectLists(owner: string, repo: string) {
-	const languages = ['English', 'Spanish', 'French', 'Portuguese'];
-	const lists = ['conditions', 'demographics', 'drugs', 'inclusion', 'outcome', 'pathogens'];
-	let ListTranslations: listTranslation[] = [];
-
-	// Step 1: Fetch all CSVs for each list and language
-	const listData: { [list: string]: { [language: string]: { [sublist: string]: string[][] } } } =
-		{};
-
-	for (const list of lists) {
-		listData[list] = {};
-
-		for (const language of languages) {
-			const path = `main:ARCH1.0.3/${language}/Lists/${list}`;
-			const csvData = await fetchAndParseCSV(owner, repo, path);
-			listData[list][language] = csvData;
-		}
-	}
-
-	// Step 2: Build the ListTranslations array
-	for (const list of lists) {
-		const englishData = listData[list]['English'];
-
-		for (const sublist in englishData) {
-			const englishRows = englishData[sublist];
-
-			for (let rowIndex = 1; rowIndex < englishRows.length; rowIndex++) {
-				const englishRow = englishRows[rowIndex];
-
-				const translationObject: listTranslation = {
-					List: list,
-					Sublist: sublist,
-					English: englishRow[0], // First column is the English translation
-					Spanish: '',
-					French: '',
-					Portuguese: ''
-				};
-
-				// Add translations from other languages
-				for (const language of languages) {
-					if (language === 'English') continue; // Skip English (already added)
-
-					const languageData = listData[list][language];
-					if (languageData[sublist] && languageData[sublist][rowIndex]) {
-						const retypedLanguage: Language = language as Language;
-						translationObject[retypedLanguage] = languageData[sublist][rowIndex][0]; // First column is the translation
-					}
-				}
-
-				ListTranslations.push(translationObject);
-			}
-		}
-	}
-
-	return ListTranslations;
-}
-
-export async function fillSupabase() {
-	const owner = 'ISARICResearch';
-	const repo = 'ARC-Translations';
-
-	collectLists(owner, repo).then((ListTranslations) => {
-		console.log(ListTranslations); // Output: Next operation
-		for (const translation of ListTranslations) {
-			if (translation.English == '') continue;
-			//insertDataIntoSupabase(csvData, language.toLowerCase(), list, sublist);
-			for (const language of languages) {
-				type languageTypes = 'Spanish' | 'French' | 'Portuguese';
-
-				insertDataIntoSupabase(
-					language.toLowerCase(),
-					translation.List,
-					translation.Sublist,
-					translation.English,
-					translation[language as languageTypes]
-				);
-			}
-		}
-	});
-}
-*/
 
 // Function to update category repository for specified language
 export async function PullCategory(
@@ -155,12 +73,15 @@ export async function PullCategory(
 }
 
 async function PullLists(language: Language, version: string, owner: string, repo: string) {
-	async function verifyListTranslations(listTranslations: Translation_Lists[]) {
+	async function verifyListTranslations(
+		listTranslations: Translation_Lists[],
+		translationLanguage: TranslationLanguage
+	) {
 		// if nothing to check, don't do anything
 		if (listTranslations.length === 0) return [];
 
 		// Pull all existing translations from Supabase
-		const currentListsTable = await getCurrentEntries_lists();
+		const currentListsTable = await getCurrentEntries_lists(translationLanguage);
 
 		// Get set of listTranslations not in currentListsTable
 
@@ -174,14 +95,29 @@ async function PullLists(language: Language, version: string, owner: string, rep
 			(item) => !isObjectInList(item, currentListsTable)
 		);
 
-		console.log(listTranslations.length, currentListsTable.length, newTranslations.length);
+		/*
+		console.log(
+			'Github Items:' + listTranslations,
+			'Supabase Items:' + currentListsTable,
+			'Items to Add:' + newTranslations
+		);*/
+
 		console.log('newTranslations', newTranslations);
 
 		return newTranslations;
 	}
 
 	console.log('Pull Lists; ' + language);
-	const lists = ['conditions', 'demographics', 'drugs', 'inclusion', 'outcome', 'pathogens'];
+	const translationLanguage: TranslationLanguage = language.toLowerCase() as TranslationLanguage;
+	const lists = [
+		'conditions',
+		'demographics',
+		'drugs',
+		'followup',
+		'inclusion',
+		'outcome',
+		'pathogens'
+	];
 
 	//  1.  Start list of empty list-translation objects, directly what goes into Supabase
 	//  2.  Then, pull english and the translation of each and build a list-translation object, and add it to the list
@@ -198,22 +134,12 @@ async function PullLists(language: Language, version: string, owner: string, rep
 		const csvDataTranslation = await fetchAndParseCSV(owner, repo, pathTranslation);
 
 		for (const sublist in csvDataEnglish) {
+			if (csvDataTranslation[sublist] == undefined) continue;
 			for (const index in csvDataEnglish[sublist]) {
-				/*
-				// Here I am getting and saving how many times it has been reviewed, but this doesn't really matter yet...
-				const ClinicalLanguageSpeakerReviewed =
-					csvDataTranslation[sublist][index].at(-1) == ''
-						? '0'
-						: Number(csvDataTranslation[sublist][index].at(-1));*/
-				//const LanguageSpeakerReviewed = csvDataTranslation[sublist][index].at(-2) == '' ? "0" : Number(csvDataTranslation[sublist][index].at(-2))
-
-				if (csvDataTranslation[sublist] == undefined) continue;
 				if (csvDataTranslation[sublist][index] == undefined) continue;
 
 				const original: string = csvDataEnglish[sublist][index][0];
 				const translation: string = csvDataTranslation[sublist][index][0];
-				const translationLanguage: TranslationLanguage =
-					language.toLowerCase() as TranslationLanguage;
 
 				//if (Number.isNaN(ClinicalLanguageSpeakerReviewed)) continue;
 				if (original == '' || translation == '') continue;
@@ -232,8 +158,10 @@ async function PullLists(language: Language, version: string, owner: string, rep
 	}
 
 	// Check listTranslations
-	const verifiedListTranslations: Translation_Lists[] =
-		await verifyListTranslations(listTranslations);
+	const verifiedListTranslations: Translation_Lists[] = await verifyListTranslations(
+		listTranslations,
+		translationLanguage
+	);
 
 	// Update supabase with new translations
 	await insertListItems(
@@ -246,5 +174,5 @@ async function PullLists(language: Language, version: string, owner: string, rep
 		}))
 	);
 
-	console.log('complete!');
+	console.log(' -- Complete!', language, version);
 }

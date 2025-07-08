@@ -1,6 +1,13 @@
 import type { AuthSession } from '@supabase/supabase-js';
 import { supabase } from '../../supabaseClient';
-import type { Translation_Lists, TranslationItem_Lists, Profile, TranslationLanguage } from '../types';
+import type {
+	Translation_Lists,
+	TranslationItem_Lists,
+	Profile,
+	TranslationLanguage,
+	Language,
+	AvailableLanguages
+} from '../types';
 
 /* Profile */
 // Get Profile from UserID
@@ -40,37 +47,61 @@ export async function checkAdminStatus(userId: string): Promise<boolean> {
 	return profile?.is_admin ?? false;
 }
 
-
 /* Lists Initialize */
-// retrieve entire table of lists with only needed columns 
+// retrieve entire table of lists with only needed columns
 // specifically for verifying what needs to be uploaded to SupaBase and what we can leave
-export async function getCurrentEntries_lists() {
-	const { data, error } = await supabase.from('lists').select('language, list, sublist, original, translation');
+export async function getCurrentEntries_lists(language: TranslationLanguage) {
+	async function pullRange(page: number, pageSize: number) {
+		const { data, error } = await supabase
+			.from('lists')
+			.select('language, list, sublist, original, translation')
+			.eq('language', language)
+			.range((page - 1) * pageSize, page * pageSize - 1);
 
-	if (error) {
-		console.error('Error fetching table', error);
-		return [];
+		if (error) {
+			console.error('Error fetching table', error);
+			return [];
+		}
+
+		return data.map((translation) => ({
+			translationLanguage: translation.language,
+			list: translation.list,
+			sublist: translation.sublist,
+			original: translation.original,
+			translation: translation.translation
+		})) as Translation_Lists[];
 	}
 
-	return data.map(translation => ({
-		translationLanguage: translation.language,
-		list: translation.list,
-		sublist: translation.sublist,
-		original: translation.original,
-		translation: translation.translation
-	})) as Translation_Lists[];
+	let totalData: Translation_Lists[] = [];
+	let page = 1;
+	const pageSize = 1000;
+
+	while (true) {
+		console.log(page);
+		if (page > 20) break;
+		const rangeData = await pullRange(page, pageSize);
+		console.log(rangeData.length);
+		if (!rangeData || rangeData.length === 0) break; 
+		totalData = totalData.concat(rangeData); // Combine results
+		page++; // Go to next page
+	}
+
+	console.log('Got translations!', totalData);
+
+	return totalData;
 }
 
 // Insert new items from ARC-Translations into supabase Lists table
-export async function insertListItems(items: {
-	language: string;
-	list: string;
-	sublist: string;
-	original: string;
-	translation: string;
-}[]) {
-
-	console.log("insterting " + items.length + " items to supabase");
+export async function insertListItems(
+	items: {
+		language: string;
+		list: string;
+		sublist: string;
+		original: string;
+		translation: string;
+	}[]
+) {
+	console.log('insterting ' + items.length + ' items to supabase');
 	if (items.length === 0) return; // Avoid making an unnecessary request
 
 	const { error } = await supabase.from('lists').insert(items);
@@ -96,11 +127,12 @@ export async function pullTable(tableName: string) {
 
 // retrieve entire table of lists to be stored for the user
 export async function retrieveTable_lists(language?: TranslationLanguage) {
-
-	let query = supabase.from('lists').select('id, language, list, sublist, original, translation, users_seen, users_voted')
+	let query = supabase
+		.from('lists')
+		.select('id, language, list, sublist, original, translation, users_seen, users_voted');
 
 	if (language) {
-		query = query.eq('language', language)
+		query = query.eq('language', language);
 	}
 
 	const { data, error } = await query;
@@ -110,14 +142,14 @@ export async function retrieveTable_lists(language?: TranslationLanguage) {
 		return [];
 	}
 
-	return data.map(translation => ({
+	return data.map((translation) => ({
 		id: translation.id,
 		listTranslation: {
 			translationLanguage: translation.language,
 			list: translation.list,
 			sublist: translation.sublist,
 			original: translation.original,
-			translation: translation.translation,
+			translation: translation.translation
 		},
 		viewReport: {
 			users_seen: translation.users_seen,
@@ -127,14 +159,11 @@ export async function retrieveTable_lists(language?: TranslationLanguage) {
 }
 
 /* Lists Upload Changes */
-// Function handles if a user adds a new translation to the options
-export async function lists_newTranslation(userId: string) { }
-
 // Function adds user to all seen rows, if not already in it.
 export async function lists_addSeenToAll(userId: string, translationIds: string[]) {
-	console.log("translationIds", translationIds)
+	console.log('translationIds', translationIds);
 	for (const translationId of translationIds) {
-		console.log("translationId", translationId)
+		console.log('translationId', translationId);
 		// Step 1: Get the translation's row
 		const { data, error: fetchError } = await supabase
 			.from('lists')
@@ -163,7 +192,7 @@ export async function lists_addSeenToAll(userId: string, translationIds: string[
 				return { success: false, error: updateError };
 			}
 		}
-		console.log("successfully updated users_seen!")
+		console.log('successfully updated users_seen!');
 	}
 
 	return { success: true };
@@ -188,7 +217,7 @@ export async function lists_removeVotesFromAll(userId: string, translationIds: s
 		if (usersVoted.includes(userId)) {
 			const filteredUsersVoted: string[] = usersVoted.filter((id) => id !== userId);
 
-			console.log("user found to have voted!", usersVoted, filteredUsersVoted)
+			console.log('user found to have voted!', usersVoted, filteredUsersVoted);
 			// Step 3: Update the row
 			const { error: updateError } = await supabase
 				.from('lists')
@@ -200,11 +229,10 @@ export async function lists_removeVotesFromAll(userId: string, translationIds: s
 				return { success: false, error: updateError };
 			}
 
-			console.log('user successfully removed from voted!')
+			console.log('user successfully removed from voted!');
 		}
 	}
 	return { success: true };
-
 }
 // Function handles to add user id to given rows "users_voted" column
 export async function lists_addVote(userId: string, translationId: string) {
@@ -237,7 +265,7 @@ export async function lists_addVote(userId: string, translationId: string) {
 		}
 	}
 
-	console.log("successfully added vote!")
+	console.log('successfully added vote!');
 	return { success: true };
 }
 
@@ -248,8 +276,7 @@ export async function lists_addOption(
 	list: string,
 	sublist: string,
 	original: string,
-	translation: string,
-
+	translation: string
 ) {
 	const { error } = await supabase.from('lists').insert({
 		language: language,
@@ -263,10 +290,10 @@ export async function lists_addOption(
 	});
 
 	if (error) {
-		console.error("Error adding new translation")
+		console.error('Error adding new translation');
 		return { success: false, error };
 	}
-	console.log("Item Added!")
+	console.log('Item Added!');
 
 	return { success: true };
 }
