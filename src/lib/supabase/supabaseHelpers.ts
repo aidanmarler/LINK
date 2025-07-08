@@ -4,9 +4,7 @@ import type {
 	Translation_Lists,
 	TranslationItem_Lists,
 	Profile,
-	TranslationLanguage,
-	Language,
-	AvailableLanguages
+	TranslationLanguage
 } from '../types';
 
 /* Profile */

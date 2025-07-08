@@ -1,10 +1,17 @@
 import { insertListItems, getCurrentEntries_lists } from '$lib/supabase/supabaseHelpers';
-import type { Category, Language, Translation_Lists, TranslationLanguage } from '$lib/types';
+import type {
+	AnswerOption,
+	ARCHEntry,
+	Category,
+	Language,
+	Translation_Lists,
+	TranslationLanguage
+} from '$lib/types';
 import Papa from 'papaparse';
 const githubToken = import.meta.env.VITE_GITHUB_TOKEN;
 
 // Function to fetch and parse CSV data
-async function fetchAndParseCSV(
+async function fetchAndParseListCSV(
 	owner: string,
 	repo: string,
 	path: string
@@ -58,6 +65,76 @@ async function fetchAndParseCSV(
 	return csvData;
 }
 
+async function fetchAndParseARCHCSV(
+	owner: string,
+	repo: string,
+	path: string
+): Promise<ARCHEntry[]> {
+	console.log('fetchAndParseARCHCSV; ' + path);
+
+	const response = await fetch('https://api.github.com/graphql', {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${githubToken}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			query: `
+          query GetCSVContents($owner: String!, $repo: String!, $path: String!) {
+            repository(owner: $owner, name: $repo) {
+              object(expression: $path) {
+                ... on Blob {
+                  text
+                }
+              }
+            }
+          }
+        `,
+			variables: {
+				owner,
+				repo,
+				path
+			}
+		})
+	});
+
+	const data = await response.json();
+	const csvText = data.data.repository.object.text;
+	const parsedData = Papa.parse(csvText, { header: true }).data as Record<string, string>[];
+
+	const ARCHData: ARCHEntry[] = parsedData.map((row) => {
+		const variable = row['Variable']?.trim() || '';
+		const question = row['Question']?.trim() || '';
+		const definition = row['Definition']?.trim() || '';
+		const completionGuideline = row['Completion Guideline']?.trim() || '';
+		const section = row['Section']?.trim() || '';
+		const form = row['Form']?.trim() || '';
+		const rawAnswerOptions = row['Answer Options']?.trim() || null;
+
+		const answerOptions: AnswerOption[] | null = rawAnswerOptions
+			? rawAnswerOptions.split('|').map((optionStr) => {
+					const [codeStr, text] = optionStr.split(',').map((s) => s.trim());
+					return {
+						code: parseInt(codeStr),
+						text: text
+					};
+				})
+			: null;
+
+		return {
+			variable,
+			question,
+			definition,
+			completionGuideline,
+			section,
+			form,
+			answerOptions
+		};
+	});
+
+	return ARCHData;
+}
+
 // Function to update category repository for specified language
 export async function PullCategory(
 	category: Category,
@@ -69,6 +146,10 @@ export async function PullCategory(
 
 	if (category == 'Lists') {
 		PullLists(language, version, owner, repo);
+	}
+
+	if (category == 'Questions') {
+		PullARCH(language, version, owner, repo);
 	}
 }
 
@@ -86,21 +167,18 @@ async function PullLists(language: Language, version: string, owner: string, rep
 		// Get set of listTranslations not in currentListsTable
 
 		// Function to compare objects based on key-value pairs
-		function isObjectInList(object: any, list: any[]): boolean {
-			return list.some((item) => Object.keys(item).every((key) => item[key] === object[key]));
+		function isObjectInList(object: Translation_Lists, list: Translation_Lists[]): boolean {
+			return list.some((item) =>
+				Object.keys(item).every(
+					(key) => item[key as keyof Translation_Lists] === object[key as keyof Translation_Lists]
+				)
+			);
 		}
 
 		// Filter listOne to get objects not in listTwo
 		const newTranslations = listTranslations.filter(
 			(item) => !isObjectInList(item, currentListsTable)
 		);
-
-		/*
-		console.log(
-			'Github Items:' + listTranslations,
-			'Supabase Items:' + currentListsTable,
-			'Items to Add:' + newTranslations
-		);*/
 
 		console.log('newTranslations', newTranslations);
 
@@ -128,10 +206,10 @@ async function PullLists(language: Language, version: string, owner: string, rep
 
 	for (const list of lists) {
 		const pathEnglish = `main:ARCH${version}/English/Lists/${list}`;
-		const csvDataEnglish = await fetchAndParseCSV(owner, repo, pathEnglish);
+		const csvDataEnglish = await fetchAndParseListCSV(owner, repo, pathEnglish);
 
 		const pathTranslation = `main:ARCH${version}/${language}/Lists/${list}`;
-		const csvDataTranslation = await fetchAndParseCSV(owner, repo, pathTranslation);
+		const csvDataTranslation = await fetchAndParseListCSV(owner, repo, pathTranslation);
 
 		for (const sublist in csvDataEnglish) {
 			if (csvDataTranslation[sublist] == undefined) continue;
@@ -175,4 +253,11 @@ async function PullLists(language: Language, version: string, owner: string, rep
 	);
 
 	console.log(' -- Complete!', language, version);
+}
+
+async function PullARCH(language: Language, version: string, owner: string, repo: string) {
+	const pathEnglish = `main:ARCH${version}/English/ARCH.csv`;
+	const csvEnglish = await fetchAndParseARCHCSV(owner, repo, pathEnglish);
+
+	console.log(csvEnglish);
 }

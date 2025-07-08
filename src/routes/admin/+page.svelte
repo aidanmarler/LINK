@@ -4,13 +4,13 @@
 	import type { AuthSession } from '@supabase/supabase-js';
 	import { checkAdminStatus } from '$lib/supabase/supabaseHelpers';
 	import type { Category, Language } from '$lib/types';
-	import { PullCategory } from './retrieve_ARCTranslations';
+	import { PullCategory } from './retrieve_Lists';
 	import Logout from '../components/logout.svelte';
 	import { card_static } from '$lib/styles';
 
 	let session: AuthSession | null;
 	let isAdmin: boolean = false;
-	let activeLanguages: Language[] = ['French', 'Portuguese', 'Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
+	let activeLanguages: Language[] = ['Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
 </script>
 
 {#snippet LanguageCategoryControls(language: Language)}
@@ -109,7 +109,7 @@
 						hover:bg-blue-700 hover:border-blue-400"
 		onclick={async () => {
 			for (const language of activeLanguages) {
-				await PullCategory('Lists', language);
+				await PullCategory('Questions', language);
 			}
 		}}
 	>
