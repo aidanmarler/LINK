@@ -91,7 +91,7 @@
 								<img src="/checkmark.svg" alt="Voted" class="w-6 h-6 ml-2" />
 							{/if}
 							<p
-								class="ml-3 text-left cursor-text px-3 text-lg italic font-serif tracking-wider hover:bg-stone-500/20 duration-100"
+								class="ml-3 text-left cursor-text px-3 text-lg italic font-serif tracking-wider hover:bg-stone-500/20 "
 							>
 								{originalItem[option].listTranslation.translation}
 							</p>

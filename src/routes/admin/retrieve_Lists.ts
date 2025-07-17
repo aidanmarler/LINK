@@ -1,12 +1,22 @@
-import { insertListItems, getCurrentEntries_lists } from '$lib/supabase/supabaseHelpers';
-import type {
-	AnswerOption,
-	ARCHEntry,
-	Category,
-	Language,
-	Translation_Lists,
-	TranslationLanguage
+import {
+	insertListItems,
+	getCurrentEntries_lists,
+	getExistingSimpleTranslations,
+	insertTranslations,
+	getExistingVariableTranslations
+} from '$lib/supabase/supabaseHelpers';
+import {
+	type ARCHData,
+	type Category,
+	type Language,
+	type ListTranslation,
+	type SimpleTranslation,
+	type Table,
+	type TranslationLanguage,
+	type VariableTranslation,
+	type VariableTranslationTable
 } from '$lib/types';
+import { generateKey } from '$lib/utils';
 import Papa from 'papaparse';
 const githubToken = import.meta.env.VITE_GITHUB_TOKEN;
 
@@ -65,13 +75,8 @@ async function fetchAndParseListCSV(
 	return csvData;
 }
 
-async function fetchAndParseARCHCSV(
-	owner: string,
-	repo: string,
-	path: string
-): Promise<ARCHEntry[]> {
-	console.log('fetchAndParseARCHCSV; ' + path);
-
+async function fetchAndParseARCHCSV(owner: string, repo: string, path: string): Promise<ARCHData> {
+	console.log('Fetching ARCH at ' + path);
 	const response = await fetch('https://api.github.com/graphql', {
 		method: 'POST',
 		headers: {
@@ -100,9 +105,24 @@ async function fetchAndParseARCHCSV(
 
 	const data = await response.json();
 	const csvText = data.data.repository.object.text;
-	const parsedData = Papa.parse(csvText, { header: true }).data as Record<string, string>[];
+	//console.log(csvText.length);
 
-	const ARCHData: ARCHEntry[] = parsedData.map((row) => {
+	const parseConfig: Papa.ParseConfig = {
+		header: true,
+		skipEmptyLines: true,
+		delimiter: ',',
+		quoteChar: '"',
+		escapeChar: '"',
+		dynamicTyping: false // Keep everything as strings
+	};
+	const papaParsed = Papa.parse(csvText, parseConfig);
+	const parsedError = papaParsed.errors;
+	if (parsedError.length > 0) console.log('   ARCH parse errors', parsedError);
+	const parsedData = papaParsed.data as Record<string, string>[];
+	//console.log(parsedData.length);
+	const ARCHData: ARCHData = {};
+
+	parsedData.forEach((row) => {
 		const variable = row['Variable']?.trim() || '';
 		const question = row['Question']?.trim() || '';
 		const definition = row['Definition']?.trim() || '';
@@ -111,21 +131,19 @@ async function fetchAndParseARCHCSV(
 		const form = row['Form']?.trim() || '';
 		const rawAnswerOptions = row['Answer Options']?.trim() || null;
 
-		const answerOptions: AnswerOption[] | null = rawAnswerOptions
-			? rawAnswerOptions.split('|').map((optionStr) => {
-					const [codeStr, text] = optionStr.split(',').map((s) => s.trim());
-					return {
-						code: parseInt(codeStr),
-						text: text
-					};
-				})
+		const answerOptions: Record<string, string> | null = rawAnswerOptions
+			? Object.fromEntries(
+					rawAnswerOptions.split('|').map((optionString) => {
+						const [codeStr, text] = optionString.split(',').map((s) => s.trim());
+						return [codeStr, text]; // returns a tuple [key, value]
+					})
+				)
 			: null;
 
-		return {
-			variable,
+		ARCHData[variable] = {
 			question,
 			definition,
-			completionGuideline,
+			completionGuide: completionGuideline,
 			section,
 			form,
 			answerOptions
@@ -155,7 +173,7 @@ export async function PullCategory(
 
 async function PullLists(language: Language, version: string, owner: string, repo: string) {
 	async function verifyListTranslations(
-		listTranslations: Translation_Lists[],
+		listTranslations: ListTranslation[],
 		translationLanguage: TranslationLanguage
 	) {
 		// if nothing to check, don't do anything
@@ -167,10 +185,10 @@ async function PullLists(language: Language, version: string, owner: string, rep
 		// Get set of listTranslations not in currentListsTable
 
 		// Function to compare objects based on key-value pairs
-		function isObjectInList(object: Translation_Lists, list: Translation_Lists[]): boolean {
+		function isObjectInList(object: ListTranslation, list: ListTranslation[]): boolean {
 			return list.some((item) =>
 				Object.keys(item).every(
-					(key) => item[key as keyof Translation_Lists] === object[key as keyof Translation_Lists]
+					(key) => item[key as keyof ListTranslation] === object[key as keyof ListTranslation]
 				)
 			);
 		}
@@ -202,7 +220,7 @@ async function PullLists(language: Language, version: string, owner: string, rep
 	//  3.  Pull all of supabases Lists
 	//  4.  Finally, go through each list-translation, check if it is supabase.  If it is, don't push it, if it isn't, push it. (check if english and translation are in the database)
 
-	const listTranslations: Translation_Lists[] = [];
+	const listTranslations: ListTranslation[] = [];
 
 	for (const list of lists) {
 		const pathEnglish = `main:ARCH${version}/English/Lists/${list}`;
@@ -218,11 +236,9 @@ async function PullLists(language: Language, version: string, owner: string, rep
 
 				const original: string = csvDataEnglish[sublist][index][0];
 				const translation: string = csvDataTranslation[sublist][index][0];
-
-				//if (Number.isNaN(ClinicalLanguageSpeakerReviewed)) continue;
 				if (original == '' || translation == '') continue;
 
-				const listTranslation: Translation_Lists = {
+				const listTranslation: ListTranslation = {
 					translationLanguage,
 					list,
 					sublist,
@@ -236,28 +252,160 @@ async function PullLists(language: Language, version: string, owner: string, rep
 	}
 
 	// Check listTranslations
-	const verifiedListTranslations: Translation_Lists[] = await verifyListTranslations(
+	const verifiedListTranslations: ListTranslation[] = await verifyListTranslations(
 		listTranslations,
 		translationLanguage
 	);
 
 	// Update supabase with new translations
-	await insertListItems(
-		verifiedListTranslations.map((item) => ({
-			language: item.translationLanguage,
-			list: item.list,
-			sublist: item.sublist,
-			original: item.original,
-			translation: item.translation
-		}))
-	);
+	await insertListItems(verifiedListTranslations);
 
 	console.log(' -- Complete!', language, version);
 }
 
-async function PullARCH(language: Language, version: string, owner: string, repo: string) {
+async function PullARCH(ARCHlanguage: Language, version: string, owner: string, repo: string) {
+	console.log('Pulling ARCH...');
+	// 1. Get ARCH for language and version
 	const pathEnglish = `main:ARCH${version}/English/ARCH.csv`;
-	const csvEnglish = await fetchAndParseARCHCSV(owner, repo, pathEnglish);
+	const pathTranslation = `main:ARCH${version}/${ARCHlanguage}/ARCH.csv`;
+	const csvTranslation: ARCHData = await fetchAndParseARCHCSV(owner, repo, pathTranslation);
+	const csvEnglish: ARCHData = await fetchAndParseARCHCSV(owner, repo, pathEnglish);
 
-	console.log(csvEnglish);
+	const language: TranslationLanguage = ARCHlanguage.toLowerCase() as TranslationLanguage;
+
+	// 2. Get Supabase existing Translations
+	const existingTranslations: Record<
+		Table,
+		Map<string, SimpleTranslation | VariableTranslation>
+	> = {
+		forms: await getExistingSimpleTranslations('forms', language),
+		sections: await getExistingSimpleTranslations('sections', language),
+		answer_options: await getExistingSimpleTranslations('answer_options', language),
+		questions: await getExistingVariableTranslations('questions', language),
+		definitions: await getExistingVariableTranslations('definitions', language),
+		completion_guides: await getExistingVariableTranslations('completion_guides', language)
+	};
+
+	// 3. Define new translation sets
+	const newTranslations: Record<Table, Map<string, SimpleTranslation | VariableTranslation>> = {
+		forms: new Map<string, SimpleTranslation>(),
+		sections: new Map<string, SimpleTranslation>(),
+		answer_options: new Map<string, SimpleTranslation>(),
+		questions: new Map<string, VariableTranslation>(),
+		definitions: new Map<string, VariableTranslation>(),
+		completion_guides: new Map<string, VariableTranslation>()
+	};
+
+	// Helper function to add translation if not exists
+	const addTranslationIfNew = (
+		table: Table,
+		key: string,
+		translation: SimpleTranslation | VariableTranslation
+	) => {
+		if (!existingTranslations[table].has(key) && !newTranslations[table].has(key)) {
+			(newTranslations[table] as Map<string, SimpleTranslation | VariableTranslation>).set(
+				key,
+				translation
+			);
+		}
+	};
+
+	// 4. Check if translation in existing translations
+	for (const variable in csvEnglish) {
+		if (variable == '') continue;
+		if (!(variable in csvTranslation)) continue;
+
+		const csvEng = csvEnglish[variable];
+		const csvTrans = csvTranslation[variable];
+
+		// Form
+		addTranslationIfNew('forms', generateKey([language, csvEng.form, csvTrans.form]), {
+			language: language,
+			original: csvEng.form,
+			translation: csvTrans.form
+		});
+
+		addTranslationIfNew('sections', generateKey([language, csvEng.section, csvTrans.section]), {
+			language: language,
+			original: csvEng.section,
+			translation: csvTrans.section
+		});
+
+		addTranslationIfNew(
+			'questions',
+			generateKey([variable, language, csvEng.question, csvTrans.question]),
+			{
+				variable_id: variable,
+				language: language,
+				form: csvEng.form,
+				section: csvEng.section,
+				original: csvEng.question,
+				translation: csvTrans.question
+			}
+		);
+
+		addTranslationIfNew(
+			'definitions',
+			generateKey([variable, language, csvEng.definition, csvTrans.definition]),
+			{
+				variable_id: variable,
+				language: language,
+				form: csvEng.form,
+				section: csvEng.section,
+				original: csvEng.definition,
+				translation: csvTrans.definition
+			}
+		);
+
+		addTranslationIfNew(
+			'completion_guides',
+			generateKey([variable, language, csvEng.completionGuide, csvTrans.completionGuide]),
+			{
+				variable_id: variable,
+				language: language,
+				form: csvEng.form,
+				section: csvEng.section,
+				original: csvEng.completionGuide,
+				translation: csvTrans.completionGuide
+			}
+		);
+
+		// Answer options
+		if (csvEng.answerOptions !== null) {
+			for (const answer in csvEng.answerOptions) {
+				if (!csvTrans.answerOptions) continue;
+				if (!csvTrans.answerOptions[answer]) continue;
+				addTranslationIfNew(
+					'answer_options',
+					generateKey([language, csvEng.answerOptions[answer], csvTrans.answerOptions[answer]]),
+					{
+						language: language,
+						original: csvEng.answerOptions[answer],
+						translation: csvTrans.answerOptions[answer]
+					}
+				);
+			}
+		}
+	}
+
+	console.log(newTranslations.definitions, newTranslations.completion_guides);
+
+	await Promise.all([
+		insertTranslations('forms', newTranslations.forms),
+		insertTranslations('sections', newTranslations.sections),
+		insertTranslations('answer_options', newTranslations.answer_options),
+		insertTranslations(
+			'questions' as VariableTranslationTable,
+			newTranslations.questions as Map<string, VariableTranslation>
+		),
+		insertTranslations(
+			'definitions' as VariableTranslationTable,
+			newTranslations.definitions as Map<string, VariableTranslation>
+		),
+		insertTranslations(
+			'completion_guides' as VariableTranslationTable,
+			newTranslations.completion_guides as Map<string, VariableTranslation>
+		)
+	]);
+	return;
 }

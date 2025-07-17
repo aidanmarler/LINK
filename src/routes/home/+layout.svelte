@@ -3,7 +3,7 @@
 	import { supabase } from '../../supabaseClient';
 	import type { AuthSession } from '@supabase/supabase-js';
 	import type { Profile, TranslationLanguage } from '$lib/types';
-	import { getProfile, retrieveTable_lists } from '$lib/supabase/supabaseHelpers';
+	import { getProfile } from '$lib/supabase/supabaseHelpers';
 	import {
 		global_address,
 		reset_address,
@@ -16,6 +16,7 @@
 	import { fade, fly, scale } from 'svelte/transition';
 	import { capitalizeFirstLetter } from '$lib/utils';
 	import ThemeManager from '../components/themeManager.svelte';
+	import KabobMenu from '../components/kabobMenu.svelte';
 
 	let { children } = $props();
 
@@ -55,10 +56,7 @@
 
 {#if session}
 	<div class="w-full p-4 md:max-w-3xl md:mx-auto">
-		<div
-			in:scale={{ duration: 500, opacity: 0 }}
-			class="w-full flex h-10 justify-between"
-		>
+		<div in:scale={{ duration: 500, opacity: 0 }} class="w-full flex h-10 justify-between">
 			<div class="text-lg pt-1 font-medium">
 				{#each breadCrumbs as crumb, i (crumb)}
 					<a
@@ -71,7 +69,7 @@
 					{/if}
 				{/each}
 			</div>
-			
+			<!--
 			<div class="w-full md:w-auto block flex py-1">
 				<ThemeManager />
 				<select
@@ -83,8 +81,13 @@
 				<Logout />
 				
 			</div>
+			-->
+
+			<div class="h-50">
+				<KabobMenu />
+			</div>
 		</div>
-		<hr in:scale={{ duration: 500, opacity: 0 }} class="text-stone-500 mt-1 mb-5" />
+		<hr in:scale={{ duration: 500, opacity: 0 }} class="dark:text-stone-600 text-stone-700 mt-1 mb-5" />
 		{@render children()}
 	</div>
 {/if}

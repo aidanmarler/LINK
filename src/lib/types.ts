@@ -51,20 +51,35 @@ export const CompletionStatus_Icons: Record<CompletionStatus, SVGElement> = {
 	needsReview: "Review"
 }
 */
+export type SimpleTranslationTable = 'forms' | 'sections' | 'answer_options';
+export type VariableTranslationTable = 'questions' | 'definitions' | 'completion_guides';
+export type Table = SimpleTranslationTable | VariableTranslationTable;
+
+export interface SimpleTranslation {
+	language: TranslationLanguage;
+	original: string;
+	translation: string;
+}
+
+export interface VariableTranslation extends SimpleTranslation {
+	variable_id: string;
+	form: string;
+	section: string;
+}
 
 // Holds the information needed to push a transaltions to the Lists Supabase Table
-export type Translation_Lists = {
+export type ListTranslation = {
 	translationLanguage: TranslationLanguage; // Language
 	list: string; // List 					*
 	sublist: string; // Sublist 			**
 	original: string; // English Version 	***
-	translation: string; // Translation 		****
+	translation: string; // Translation 	****
 };
 
 // Holds all needed infomation for a list translation
 export type TranslationItem_Lists = {
 	id: string;
-	listTranslation: Translation_Lists;
+	listTranslation: ListTranslation;
 	viewReport: ViewReport;
 };
 
@@ -113,17 +128,13 @@ export type Profile = {
 	name: string;
 };
 
-export type AnswerOption = {
-	code: number;
-	text: string;
-};
-
-export type ARCHEntry = {
-	variable: string;
-	question: string;
-	answerOptions: null | AnswerOption[];
-	definition: string;
-	completionGuideline: string;
-	section: string;
-	form: string;
+export type ARCHData = {
+	[variable: string]: {
+		question: string;
+		answerOptions: null | Record<string, string>;
+		definition: string;
+		completionGuide: string;
+		section: string;
+		form: string;
+	};
 };

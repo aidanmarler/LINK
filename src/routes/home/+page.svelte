@@ -28,10 +28,20 @@
 					{category}
 				</a>
 
-				<p class="italic">3 questions to check, 21% complete</p>
+				<p class="italic">
+					{global_lists_report.summaryReport.needsReview} questions to check, {((global_lists_report
+						.summaryReport.complete /
+						(global_lists_report.summaryReport.complete +
+							global_lists_report.summaryReport.incomplete +
+							global_lists_report.summaryReport.needsReview)) *
+						100).toFixed(1)}% complete
+				</p>
 			</div>
 			<div class="p-3 text-lg">
-				<DataView completionReport={global_lists_report.summaryReport} options={{showKey:true, large: true}} />
+				<DataView
+					completionReport={global_lists_report.summaryReport}
+					options={{ showKey: true, large: true }}
+				/>
 			</div>
 			<!--
 			<div class="p-3">

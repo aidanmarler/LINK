@@ -10,7 +10,7 @@
 
 	let session: AuthSession | null;
 	let isAdmin: boolean = false;
-	let activeLanguages: Language[] = ['Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
+	let activeLanguages: Language[] = ['Spanish','French', 'Portuguese', 'Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
 </script>
 
 {#snippet LanguageCategoryControls(language: Language)}

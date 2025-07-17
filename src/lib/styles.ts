@@ -1,10 +1,10 @@
-const cardLight: string = ' bg-stone-200 border-stone-500 ';
-const cardDark: string = ' dark:bg-stone-900 dark:border-stone-500 ';
+const cardLight: string = ' bg-stone-200 border-stone-600 ';
+const cardDark: string = ' dark:bg-stone-950 dark:border-stone-600 font-medium ';
 
 const cardLight_interactions: string =
-	' hover:border-stone-600 focus:border-stone-600 hover:bg-stone-50 focus:bg-stone-50 ';
+	' hover:border-stone-700 focus:border-stone-600 hover:bg-stone-50 focus:bg-stone-50 ';
 const cardDark_interactions: string =
-	' dark:hover:bg-stone-950 dark:focus:bg-stone-700 dark:hover:border-stone-400 dark:focus:border-stone-400 dark:hover:shadow-black   ';
+	' dark:text-stone-300 dark:hover:text-white dark:hover:bg-stone-900 dark:focus:bg-stone-700 dark:hover:border-stone-400 dark:focus:border-stone-400 dark:hover:shadow-black   ';
 
 export const card_dynamic: string =
 	cardLight +
