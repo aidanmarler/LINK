@@ -105,13 +105,23 @@ export type SimpleTranslationTable = 'forms' | 'sections' | 'answer_options';
 export type VariableTranslationTable = 'questions' | 'definitions' | 'completion_guides';
 export type Table = SimpleTranslationTable | VariableTranslationTable;
 
-export interface SimpleTranslation {
+export interface BaseTranslation {
 	language: TranslationLanguage;
 	original: string;
 	translation: string;
 }
 
-export interface VariableTranslation extends SimpleTranslation {
+export interface LabelTranslation extends BaseTranslation {
+	form: string;
+}
+
+export interface GuideTranslation extends BaseTranslation {
+	variable_id: string;
+	form: string;
+	section: string;
+}
+
+export interface QuestionTranslation extends BaseTranslation {
 	variable_id: string;
 	form: string;
 	section: string;
@@ -125,6 +135,11 @@ export type ListTranslation = {
 	original: string; // English Version 	***
 	translation: string; // Translation 	****
 };
+
+export interface TranslationItem {
+	id: string;
+	viewReport: ViewReport;
+}
 
 // Holds all needed infomation for a list translation
 export type TranslationItem_Lists = {

@@ -10,10 +10,10 @@ import {
 	type Category,
 	type Language,
 	type ListTranslation,
-	type SimpleTranslation,
+	type BaseTranslation,
 	type Table,
 	type TranslationLanguage,
-	type VariableTranslation,
+	type GuideTranslation,
 	type VariableTranslationTable
 } from '$lib/types';
 import { generateKey } from '$lib/utils/utils';
@@ -276,7 +276,7 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 	// 2. Get Supabase existing Translations
 	const existingTranslations: Record<
 		Table,
-		Map<string, SimpleTranslation | VariableTranslation>
+		Map<string, BaseTranslation | GuideTranslation>
 	> = {
 		forms: await getExistingSimpleTranslations('forms', language),
 		sections: await getExistingSimpleTranslations('sections', language),
@@ -287,23 +287,23 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 	};
 
 	// 3. Define new translation sets
-	const newTranslations: Record<Table, Map<string, SimpleTranslation | VariableTranslation>> = {
-		forms: new Map<string, SimpleTranslation>(),
-		sections: new Map<string, SimpleTranslation>(),
-		answer_options: new Map<string, SimpleTranslation>(),
-		questions: new Map<string, VariableTranslation>(),
-		definitions: new Map<string, VariableTranslation>(),
-		completion_guides: new Map<string, VariableTranslation>()
+	const newTranslations: Record<Table, Map<string, BaseTranslation | GuideTranslation>> = {
+		forms: new Map<string, BaseTranslation>(),
+		sections: new Map<string, BaseTranslation>(),
+		answer_options: new Map<string, BaseTranslation>(),
+		questions: new Map<string, GuideTranslation>(),
+		definitions: new Map<string, GuideTranslation>(),
+		completion_guides: new Map<string, GuideTranslation>()
 	};
 
 	// Helper function to add translation if not exists
 	const addTranslationIfNew = (
 		table: Table,
 		key: string,
-		translation: SimpleTranslation | VariableTranslation
+		translation: BaseTranslation | GuideTranslation
 	) => {
 		if (!existingTranslations[table].has(key) && !newTranslations[table].has(key)) {
-			(newTranslations[table] as Map<string, SimpleTranslation | VariableTranslation>).set(
+			(newTranslations[table] as Map<string, BaseTranslation | GuideTranslation>).set(
 				key,
 				translation
 			);
@@ -396,15 +396,15 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 		insertTranslations('answer_options', newTranslations.answer_options),
 		insertTranslations(
 			'questions' as VariableTranslationTable,
-			newTranslations.questions as Map<string, VariableTranslation>
+			newTranslations.questions as Map<string, GuideTranslation>
 		),
 		insertTranslations(
 			'definitions' as VariableTranslationTable,
-			newTranslations.definitions as Map<string, VariableTranslation>
+			newTranslations.definitions as Map<string, GuideTranslation>
 		),
 		insertTranslations(
 			'completion_guides' as VariableTranslationTable,
-			newTranslations.completion_guides as Map<string, VariableTranslation>
+			newTranslations.completion_guides as Map<string, GuideTranslation>
 		)
 	]);
 	return;

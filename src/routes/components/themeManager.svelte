@@ -1,32 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	// Initialize based on user preference or system preference
-	const initialTheme = onMount(() => {
-		if (typeof window !== 'undefined') {
-			const theme = localStorage.getItem('theme');
-			if (theme === 'true') {
-				isDark = true;
-			} else if (theme === 'false') {
-				isDark = false;
-			} else {
-				isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-			}
-		} else {
-			isDark = true;
-		}
+	//let isDark = $state(document.documentElement.classList.contains('dark'));
 
-		document.documentElement.classList.toggle('dark', isDark);
+	let isDark = $state(false); // Initialize to false by default
+
+	onMount(() => {
+		isDark = document.documentElement.classList.contains('dark');
 	});
-
-	let isDark = $state(true);
 </script>
 
 <button
 	class=" rounded-full border-2 p-1 h-8 items-center content-center cursor-pointer w-8 opacity-70 transition-opacity duration-500 hover:opacity-100
-	border-stone-900 dark:border-stone-200 hover:bg-stone-500"
+	border-stone-900 dark:border-stone-200 hover:bg-stone-400 dark:hover:bg-stone-700"
+	title={isDark ? 'Light Theme' : 'Dark Theme'}
 	onclick={() => {
 		isDark = !$state.snapshot(isDark);
+		document.cookie = `theme=${isDark ? 'dark' : 'light'}; path=/; max-age=31536000`; // 1 year
 		document.documentElement.classList.toggle('dark', isDark);
 	}}
 >

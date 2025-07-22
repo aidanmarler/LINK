@@ -46,8 +46,6 @@
 	}
 </script>
 
-<ThemeManager />
-
 <div class="p-5">
 	<div class="mx-auto w-full text-center my-20">
 		<h1 class="font-bold text-6xl">LINK</h1>
@@ -66,7 +64,7 @@
 				<line class="w-full"> </line>
 				<label class="font-medium">
 					<input
-						class={"w-full  mb-1 " + form_element}
+						class={'w-full  mb-1 ' + form_element}
 						required
 						name="email"
 						type="email"
@@ -78,7 +76,7 @@
 				</label>
 				<label class="font-medium">
 					<input
-						class={"w-full mb-4 " + form_element}
+						class={'w-full mb-4 ' + form_element}
 						required
 						name="password"
 						type="password"
@@ -111,4 +109,5 @@
 		</div>
 		<div></div>
 	</div>
+	<div class="w-full flex justify-center pt-5"><ThemeManager /></div>
 </div>
