@@ -8,8 +8,8 @@
 	} from '$lib/global.svelte';
 	import { fly } from 'svelte/transition';
 	import { page } from '$app/state';
-	import { capitalizeFirstLetter } from '$lib/utils';
-	import DataView from '../dataView.svelte';
+	import { capitalizeFirstLetter } from '$lib/utils/utils';
+	import DataView from '../../components/dataView.svelte';
 	import { onMount } from 'svelte';
 	import { card_dynamic } from '$lib/styles';
 
@@ -18,7 +18,6 @@
 	onMount(() => {
 		reset_address();
 		global_address.category = 'Lists';
-		console.log($state.snapshot(global_address));
 	});
 </script>
 

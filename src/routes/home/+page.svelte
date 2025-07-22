@@ -3,16 +3,20 @@
 	import type { Category, TranslationLanguage } from '$lib/types';
 	import {
 		global_address,
+		global_lists,
 		global_lists_report,
+		loadedStatus,
 		reset_address,
 		userProfile
 	} from '$lib/global.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { card_static } from '$lib/styles';
-	import DataView from './dataView.svelte';
+	import DataView from '../components/dataView.svelte';
+	import DataViewPlaceholder from '../components/dataView_placeholder.svelte';
 
 	onMount(() => {
 		reset_address();
+		console.log(global_address);
 	});
 </script>
 
@@ -29,44 +33,29 @@
 				</a>
 
 				<p class="italic">
-					{global_lists_report.summaryReport.needsReview} questions to check, {((global_lists_report
-						.summaryReport.complete /
-						(global_lists_report.summaryReport.complete +
-							global_lists_report.summaryReport.incomplete +
-							global_lists_report.summaryReport.needsReview)) *
-						100).toFixed(1)}% complete
+					{#if category == 'Lists'}
+						{global_lists_report.summaryReport.needsReview} items to check, {(
+							(global_lists_report.summaryReport.complete /
+								(global_lists_report.summaryReport.complete +
+									global_lists_report.summaryReport.incomplete +
+									global_lists_report.summaryReport.needsReview)) *
+							100
+						).toFixed(1)}% complete
+					{/if}
 				</p>
 			</div>
 			<div class="p-3 text-lg">
-				<DataView
-					completionReport={global_lists_report.summaryReport}
-					options={{ showKey: true, large: true }}
-				/>
+				{#if category == 'Lists'}
+					{#if loadedStatus.lists == true}
+						<DataView
+							completionReport={global_lists_report.summaryReport}
+							options={{ showKey: true, large: true }}
+						/>
+					{:else}
+						<DataViewPlaceholder options={{ showKey: true, large: true }} />
+					{/if}
+				{/if}
 			</div>
-			<!--
-			<div class="p-3">
-				<div class="flex justify-around">
-					<p>Items Translated: 63 of 300</p>
-					<p>Lists Completed: 1 of 7</p>
-				</div>
-				<div
-					class="w-full mt-2 space-y-0.5 p-0.5 rounded-sm shadow-inner h-auto dark:bg-stone-950"
-				>
-				
-					<div class="flex w-auto space-x-0.5 h-3">
-						<div class=" bg-green-500 opacity-70 rounded-xs w-[19%]"></div>
-						<div class="bg-yellow-500 opacity-70 rounded-xs border-yellow-400 w-[2%]"></div>
-						<div class="bg-red-500 opacity-70 rounded-xs border-red-400 w-[79%]"></div>
-					</div>
-
-					<div class="flex w-auto space-x-0.5 h-3">
-						<div class=" bg-blue-500 opacity-50 rounded-xs border-2 border-blue-400 w-[57%]"></div>
-						<div class="bg-blue-400 opacity-50 rounded-xs border-2 border-blue-300 w-[30%]"></div>
-						<div class="bg-blue-300 opacity-50 rounded-xs border-2 border-blue-200 w-[30%]"></div>
-						<div class="bg-red-200 opacity-50 rounded-xs border-2 border-red-100 w-[79%]"></div>
-					</div>
-				</div>
-			</div>-->
 		</div>
 	</div>
 {/snippet}
@@ -76,5 +65,8 @@
 </h2>
 
 <div in:fly={{ y: 20, duration: 500, delay: 100 }} out:fly={{ y: 10, duration: 100 }}>
+	{@render CategorySummary('Questions')}
+	{@render CategorySummary('Completion Guide')}
+	{@render CategorySummary('Labels')}
 	{@render CategorySummary('Lists')}
 </div>

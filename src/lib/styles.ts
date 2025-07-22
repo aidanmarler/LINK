@@ -14,3 +14,6 @@ export const card_dynamic: string =
 	' border cursor-pointer hover:shadow focus:shadow  ';
 
 export const card_static: string = cardLight + cardDark + ' border ';
+
+export const form_element: string =
+	' font-medium rounded-lg bg-stone-100 hover:bg-stone-50 dark:bg-stone-800 dark:hover:bg-stone-700 px-2 py-0.5 rounded ';

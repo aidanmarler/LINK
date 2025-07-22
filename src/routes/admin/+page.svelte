@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
 	import type { AuthSession } from '@supabase/supabase-js';
-	import { checkAdminStatus } from '$lib/supabase/supabaseHelpers';
 	import type { Category, Language } from '$lib/types';
 	import { PullCategory } from './retrieve_Lists';
 	import Logout from '../components/logout.svelte';

@@ -6,13 +6,12 @@
 		userProfile
 	} from '$lib/global.svelte';
 	import {
-		insertListItems,
 		lists_addOption,
 		lists_addSeenToAll,
 		lists_addVote,
 		lists_removeVotesFromAll
-	} from '$lib/supabase/supabaseHelpers';
-	import type { AvailableLanguages, TranslationLanguage } from '$lib/types';
+	} from '$lib/supabase/user';
+	import type { AvailableLanguages, ListAddress, TranslationLanguage } from '$lib/types';
 	import { tick } from 'svelte';
 	import { quintOut } from 'svelte/easing';
 	import { draw, fly } from 'svelte/transition';
@@ -37,6 +36,9 @@
 		};
 	} = $props();
 
+	let cancelButton: HTMLButtonElement;
+  	let confirmButton: HTMLButtonElement;
+
 	// is confirming tranlation
 	let loading = $state({ started: false, addSeen: false, removeVotes: false, addVote: false });
 
@@ -50,6 +52,13 @@
 			console.error('No user to confirm translation');
 			return;
 		}
+
+		if (global_address.category !== 'Lists') {
+			console.error('Not a List');
+			return;
+		}
+
+		const list_address = $state.snapshot(global_address as ListAddress);
 		const userLanguage = userProfile.user.language as TranslationLanguage;
 		const userId = userProfile.user.id;
 		loading.started = true;
@@ -58,14 +67,14 @@
 				console.error('No new translation text');
 				return;
 			}
-			// check address is there
-			if (!global_address.listKey || !global_address.sublistKey) {
+			// check address is therezz
+			if (!list_address.listKey || !list_address.sublistKey) {
 				console.error('Incomplete Address');
 				return;
 			}
 			// get all competing tranlation options
 			const transitionOptions = Object.keys(
-				global_lists[global_address.listKey][global_address.sublistKey][originalKey]
+				global_lists[list_address.listKey][list_address.sublistKey][originalKey]
 			);
 			// 1) add user to seen for all options
 			const result_addSeen = await lists_addSeenToAll(userId, transitionOptions);
@@ -81,8 +90,8 @@
 			const result_addOption = await lists_addOption(
 				userId,
 				userLanguage,
-				global_address.listKey,
-				global_address.sublistKey,
+				list_address.listKey,
+				list_address.sublistKey,
 				originalKey,
 				newTranslationText
 			);
@@ -99,13 +108,13 @@
 				return;
 			}
 			// check address is there
-			if (!global_address.listKey || !global_address.sublistKey) {
+			if (!list_address.listKey || !list_address.sublistKey) {
 				console.error('Incomplete Address');
 				return;
 			}
 			// get all competing tranlation options
 			const transitionOptions = Object.keys(
-				global_lists[global_address.listKey][global_address.sublistKey][originalKey]
+				global_lists[list_address.listKey][list_address.sublistKey][originalKey]
 			);
 			// 1) add user to seen for all options
 			const result_addSeen = await lists_addSeenToAll(userId, transitionOptions);
@@ -127,6 +136,7 @@
 			openConfirmationModal = false;
 		}
 	};
+
 </script>
 
 {#if openConfirmationModal}

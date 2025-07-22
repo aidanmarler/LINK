@@ -9,8 +9,9 @@
 	import { fly } from 'svelte/transition';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
-	import DataView from '../../../dataView.svelte';
+	import DataView from '../../../../components/dataView.svelte';
 	import TranslationForm from './translationForm.svelte';
+	import type { ListAddress } from '$lib/types';
 
 	let pathSegments = $derived(page.url.pathname.split('/').filter(Boolean));
 	let crumb = $derived(pathSegments[pathSegments.length - 1]);
@@ -20,9 +21,11 @@
 	onMount(() => {
 		reset_address();
 		// Set Global Address
-		global_address.category = 'Lists';
-		global_address.listKey = $state.snapshot(pathSegments[pathSegments.length - 2]);
-		global_address.sublistKey = $state.snapshot(pathSegments[pathSegments.length - 1]);
+		Object.assign(global_address, {
+			category: 'Lists',
+			listKey: $state.snapshot(pathSegments[pathSegments.length - 2]),
+			sublistKey: $state.snapshot(pathSegments[pathSegments.length - 1])
+		} satisfies ListAddress);
 	});
 
 	function submitForm() {
@@ -60,7 +63,8 @@
 					<TranslationForm
 						originalKey={translation}
 						originalItem={global_lists[pathSegments[2]][pathSegments[3]][translation]}
-						completionStatus={global_lists_report.lists[pathSegments[2]].sublists[pathSegments[3]].originalItems[translation]}
+						completionStatus={global_lists_report.lists[pathSegments[2]].sublists[pathSegments[3]]
+							.originalItems[translation]}
 					/>
 				{/if}
 				{#if i < Object.entries(global_lists[pathSegments[2]][pathSegments[3]]).length - 1}

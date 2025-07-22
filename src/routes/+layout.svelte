@@ -1,42 +1,13 @@
-<script>
-	import { pageSettings } from '$lib/pageSettings.svelte';
-	import { onMount } from 'svelte';
-	let { children } = $props();
+<script lang="ts">
 	import '../app.css';
+	import Footer from './components/footer.svelte';
 
-	pageSettings.theme = 'dark';
-
-	let isDark = $state(true);
-
-	// Initialize based on user preference or system preference
-	const initialTheme = onMount(() => {
-		if (typeof window !== 'undefined') {
-			const theme = localStorage.getItem('theme');
-			if (theme === 'true') {
-				isDark = true;
-			} else if (theme === 'false') {
-				isDark = false;
-			} else {
-				isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-			}
-		} else {
-			isDark = true;
-		}
-
-		document.documentElement.classList.toggle('dark', isDark);
-	});
+	let { children } = $props();
 </script>
 
-{@render children()}
+<!-- Main content -->
+<main class="min-h-[90vh] flex-grow">
+	{@render children()}
+</main>
 
-<!--
-<style lang="postcss">
-	@reference "tailwindcss/theme";
-
-	:global(body) {
-		@apply bg-stone-100 text-stone-900 text-white;
-		@apply font-extralight;
-		@apply dark:bg-stone-950 dark:text-white;
-	}
-</style>
--->
+<Footer />

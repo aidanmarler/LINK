@@ -4,7 +4,7 @@ import {
 	getExistingSimpleTranslations,
 	insertTranslations,
 	getExistingVariableTranslations
-} from '$lib/supabase/supabaseHelpers';
+} from '$lib/supabase/user';
 import {
 	type ARCHData,
 	type Category,
@@ -16,7 +16,7 @@ import {
 	type VariableTranslation,
 	type VariableTranslationTable
 } from '$lib/types';
-import { generateKey } from '$lib/utils';
+import { generateKey } from '$lib/utils/utils';
 import Papa from 'papaparse';
 const githubToken = import.meta.env.VITE_GITHUB_TOKEN;
 

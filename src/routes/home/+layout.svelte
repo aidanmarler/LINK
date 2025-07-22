@@ -3,18 +3,13 @@
 	import { supabase } from '../../supabaseClient';
 	import type { AuthSession } from '@supabase/supabase-js';
 	import type { Profile, TranslationLanguage } from '$lib/types';
-	import { getProfile } from '$lib/supabase/supabaseHelpers';
-	import {
-		global_address,
-		reset_address,
-		updateGlobalTables,
-		userProfile
-	} from '$lib/global.svelte';
+	import { getProfile } from '$lib/supabase/auth';
+	import { updateGlobalTables, userProfile } from '$lib/global.svelte';
 
 	import { page } from '$app/state';
 	import Logout from '../components/logout.svelte';
 	import { fade, fly, scale } from 'svelte/transition';
-	import { capitalizeFirstLetter } from '$lib/utils';
+	import { capitalizeFirstLetter } from '$lib/utils/utils';
 	import ThemeManager from '../components/themeManager.svelte';
 	import KabobMenu from '../components/kabobMenu.svelte';
 
@@ -87,7 +82,10 @@
 				<KabobMenu />
 			</div>
 		</div>
-		<hr in:scale={{ duration: 500, opacity: 0 }} class="dark:text-stone-600 text-stone-700 mt-1 mb-5" />
+		<hr
+			in:scale={{ duration: 500, opacity: 0 }}
+			class="dark:text-stone-600 text-stone-700 mt-1 mb-5"
+		/>
 		{@render children()}
 	</div>
 {/if}

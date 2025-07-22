@@ -55,6 +55,7 @@
 					title={isDark ? 'Light Theme' : 'Dark Theme'}
 					onclick={() => {
 						isDark = !$state.snapshot(isDark);
+						document.cookie = `theme=${isDark ? 'dark' : 'light'}; path=/; max-age=31536000`; // 1 year
 						document.documentElement.classList.toggle('dark', isDark);
 					}}
 				>

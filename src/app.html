@@ -12,5 +12,20 @@
 		class="bg-stone-200 text-stone-950 font-normal border-stone-600 dark:text-stone-100 dark:bg-stone-950"
 	>
 		<div style="display: contents">%sveltekit.body%</div>
+		<script>
+			// Inline theme script to prevent FOUC
+			(function () {
+				const theme = document.cookie.match(/(?:^|; )theme=(light|dark|system)/)?.[1] ?? 'system';
+				let isDark = theme === 'dark';
+
+				if (theme === 'system') {
+					isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				}
+
+				if (isDark) {
+					document.documentElement.classList.add('dark');
+				}
+			})();
+		</script>
 	</body>
 </html>

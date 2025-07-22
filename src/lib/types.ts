@@ -16,8 +16,9 @@ export type ViewReport = {
 };
 
 // Types of larger categories, a separate system is made for each
-export type Category = 'Questions' | 'Lists' | 'Completion Guide';
-export type CategoryTables = 'lists';
+export type Category = 'Questions' | 'Completion Guide' | 'Labels' | 'Lists';
+
+export type Labels = 'Form' | 'Section';
 
 // This is a vital type. It is used to story the user's current address globally so that at any point, the user can access all
 export type Translation_Address = {
@@ -27,6 +28,55 @@ export type Translation_Address = {
 	originalKey?: string;
 	translationId?: string;
 };
+
+// This is a vital type. It is used to story the user's current address globally so that at any point, the user can access all
+export type TranslationAddress =
+  | ListAddress
+  | QuestionGuideAddress
+  | LabelAddress
+  | BaseTranslationAddress;
+
+export interface BaseTranslationAddress {
+  category?: Category;
+  originalKey?: string;
+  translationId?: string;
+}
+
+export interface ListAddress extends BaseTranslationAddress {
+  category: 'Lists';
+  listKey?: string;
+  sublistKey?: string;
+}
+
+export interface QuestionGuideAddress extends BaseTranslationAddress {
+  category: 'Questions' | 'Completion Guide';
+  formKey?: string;
+  sectionKey?: string;
+}
+
+export interface LabelAddress extends BaseTranslationAddress {
+  category: 'Labels';
+  formKey?: string;
+}
+
+/*
+export interface TranslationAddress {
+	category?: Category;
+	originalKey?: string;
+	translationId?: string;
+}
+
+export interface ListAddress extends TranslationAddress {
+	listKey?: string;
+	sublistKey?: string;
+}
+
+export interface QuestionGuideAddress extends TranslationAddress {
+	formKey?: string;
+	sectionKey?: string;
+}*/
+
+
 
 // Indicates if an original text has been translated or not, or possibly needs review.
 export type CompletionStatus = 'complete' | 'incomplete' | 'needsReview';

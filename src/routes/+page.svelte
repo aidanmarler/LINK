@@ -2,9 +2,10 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '../supabaseClient';
 	import type { AuthSession, User, WeakPassword } from '@supabase/supabase-js';
-	import { checkAdminStatus } from '$lib/supabase/supabaseHelpers';
-	import DataView from './home/dataView.svelte';
+	import DataView from './components/dataView.svelte';
 	import ThemeManager from './components/themeManager.svelte';
+	import { card_static, form_element } from '$lib/styles';
+	import { checkAdminStatus } from '$lib/supabase/auth';
 
 	let session: AuthSession | null;
 	let email: string = '';
@@ -53,48 +54,51 @@
 		<h4 class="italic my-3">Language Integration Network Kit</h4>
 	</div>
 	<div
-		class="px-3 py-4 shadow-md border-2 rounded-lg w-full max-w-96 my-auto mx-auto
-		dark:bg-stone-800 dark:border-stone-700
+		class="shadow-md rounded-lg w-full max-w-96 my-auto mx-auto
+		{card_static}
 		"
 	>
-		<h1 class="text-4xl w-full text-center mb-5 mt-2">Login</h1>
-		<form onsubmit={handleSignIn}>
-			<line class=" w-full"> </line>
-			<label class="font-medium">
-				<input
-					class="w-full rounded-xs mb-2 p-1 bg-stone-950 border border-stone-500"
-					required
-					name="email"
-					type="email"
-					id="email"
-					placeholder="Email"
-					autocomplete="email"
-					bind:value={email}
-				/>
-			</label>
-			<label class="font-medium">
-				<input
-					class="w-full font-medium rounded-xs mb-2 p-1 bg-stone-950 border border-stone-500"
-					required
-					name="password"
-					type="password"
-					placeholder="Password"
-					autocomplete="current-password"
-					bind:value={password}
-				/>
-			</label>
-			<label>
-				<button
-					type="submit"
-					class="w-full font-medium rounded-md mt-6 hover:bg-green-800 cursor-pointer mb-2 p-1 bg-green-900 border-2 border-green-700"
-				>
-					Login
-				</button>
-			</label>
-		</form>
+		<div class="p-4">
+			<!--
+			<h1 class="text-4xl w-full text-center p-2">Login</h1>
+			-->
+			<form onsubmit={handleSignIn}>
+				<line class="w-full"> </line>
+				<label class="font-medium">
+					<input
+						class={"w-full  mb-1 " + form_element}
+						required
+						name="email"
+						type="email"
+						id="email"
+						placeholder="Email"
+						autocomplete="email"
+						bind:value={email}
+					/>
+				</label>
+				<label class="font-medium">
+					<input
+						class={"w-full mb-4 " + form_element}
+						required
+						name="password"
+						type="password"
+						placeholder="Password"
+						autocomplete="current-password"
+						bind:value={password}
+					/>
+				</label>
+				<label>
+					<button
+						type="submit"
+						class="w-full font-medium rounded-md hover:bg-green-800 cursor-pointer p-1 bg-green-900 border-2 border-green-700"
+					>
+						Login
+					</button>
+				</label>
+			</form>
+		</div>
 
-		<div class="flex-wrap">
-			<div class="w-full my-6 h-0 border border-stone-500"></div>
+		<div class="flex-wrap border-t border-inherit p-4">
 			<p class="font-medium w-full text-center mb-2">New User?</p>
 			<a
 				data-sveltekit-preload-code="eager"

@@ -8,10 +8,11 @@
 	} from '$lib/global.svelte';
 	import { fly } from 'svelte/transition';
 	import { page } from '$app/state';
-	import { capitalizeFirstLetter } from '$lib/utils';
-	import DataView from '../../dataView.svelte';
+	import { capitalizeFirstLetter } from '$lib/utils/utils';
+	import DataView from '../../../components/dataView.svelte';
 	import { onMount } from 'svelte';
 	import { card_dynamic } from '$lib/styles';
+	import type { ListAddress } from '$lib/types';
 
 	let pathSegments = $derived(page.url.pathname.split('/').filter(Boolean));
 	let crumb = $derived(pathSegments[pathSegments.length - 1]);
@@ -20,14 +21,13 @@
 
 	onMount(() => {
 		reset_address();
-		global_address.category = 'Lists';
-		global_address.listKey = crumb;
-		console.log($state.snapshot(global_address));
+		Object.assign(global_address, {
+			category: 'Lists',
+			listKey: crumb
+		} satisfies ListAddress);
 
-		console.log(global_lists_report.lists[crumb])
+		console.log(global_lists_report.lists[crumb]);
 	});
-
-
 </script>
 
 {#if loadedStatus.lists}
@@ -46,7 +46,7 @@
 					<h3 class="text-xl mb-2">{capitalizeFirstLetter(sublistKey)}</h3>
 					<DataView
 						completionReport={global_lists_report.lists[crumb].sublists[sublistKey].sublistReport}
-						options={{showKey: true}}
+						options={{ showKey: true }}
 					/>
 					<!--<DataView completionReport={{ complete: 3, incomplete: 10, needsReview: 1 }} />-->
 				</a>
