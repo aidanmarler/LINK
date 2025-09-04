@@ -1,18 +1,24 @@
 /* Lists Initialize */
 // retrieve entire table of lists with only needed columns
 
+import { generateItemKey, tableColumns } from '$lib/dependencies';
 import type {
 	ListTranslation,
-	BaseTranslation,
-	SimpleTranslationTable,
+	BaseItem,
 	TranslationLanguage,
-	GuideTranslation,
-	VariableTranslationTable
+	VariableItem,
+	VariableTable,
+	BaseTable,
+	Item,
+	Table,
+	LabelTable,
+	LabelItem,
+	ItemForTable
 } from '$lib/types';
-import { generateKey } from '$lib/utils/utils';
 import { supabase } from '../../supabaseClient';
 
-// specifically for verifying what needs to be uploaded to SupaBase and what we can leave
+// Step 1: Get Current Entries
+//		To verify what needs to be uploaded to SupaBase and what we can leave
 export async function getCurrentEntries_lists(language: TranslationLanguage) {
 	async function pullRange(page: number, pageSize: number) {
 		const { data, error } = await supabase
@@ -54,47 +60,28 @@ export async function getCurrentEntries_lists(language: TranslationLanguage) {
 	return totalData;
 }
 
-export async function getCurrentEntries_questions(language: TranslationLanguage) {
-	async function pullRange(page: number, pageSize: number) {
-		const { data, error } = await supabase
-			.from('questions')
-			.select('variable_id, original')
-			.eq('language', language)
-			.range((page - 1) * pageSize, page * pageSize - 1);
-		if (error) {
-			console.error('Error fetching table', error);
-			return {};
-		}
-		const range_variables: Record<string, string> = Object.fromEntries(
-			data.map((item) => [item.variable_id, item.original])
-		);
-		return range_variables;
-	}
-
-	let variables: Record<string, string> = {};
-	let page = 1;
-	const pageSize = 1000;
-
-	while (true) {
-		if (page > 40) break;
-		const rangeData: Record<string, string> = await pullRange(page, pageSize);
-		if (!rangeData || Object.keys(rangeData).length == 0) break;
-		variables = { ...variables, ...rangeData };
-		if (Object.keys(rangeData).length < pageSize) break;
-		page++; // Go to next page
-	}
-
-	return variables;
-}
-
-export async function getExistingSimpleTranslations(
-	table: SimpleTranslationTable,
+export async function getExistingTranslations<T extends BaseTable>(
+	table: T,
 	language: TranslationLanguage
-): Promise<Map<string, BaseTranslation>> {
-	async function pullRange(page: number, pageSize: number): Promise<BaseTranslation[]> {
+): Promise<Map<string, ItemForTable<T>>>;
+export async function getExistingTranslations<T extends LabelTable>(
+	table: T,
+	language: TranslationLanguage
+): Promise<Map<string, ItemForTable<T>>>;
+export async function getExistingTranslations<T extends VariableTable>(
+	table: T,
+	language: TranslationLanguage
+): Promise<Map<string, ItemForTable<T>>>;
+export async function getExistingTranslations<T extends Table>(
+	table: T,
+	language: TranslationLanguage
+): Promise<Map<string, ItemForTable<T>>> {
+	console.log('getting existing supabase translations in ', table, language);
+	async function pullRange(page: number, pageSize: number): Promise<ItemForTable<T>[]> {
+		const columns = tableColumns[table].join(', ') as '*';
 		const { data, error } = await supabase
 			.from(table)
-			.select('original, translation')
+			.select(columns) // use table columns (2)
 			.eq('language', language)
 			.range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -103,27 +90,25 @@ export async function getExistingSimpleTranslations(
 			return [];
 		}
 
-		const range_data: BaseTranslation[] = data.map((item) => ({
-			language: language,
-			original: item.original,
-			translation: item.translation
-		}));
-
-		return range_data;
+		return data.map((item) => ({
+			...item
+		})) as ItemForTable<T>[];
 	}
 
-	const allData = new Map<string, BaseTranslation>();
+	const allData = new Map<string, ItemForTable<T>>(); // (1)
 	let page = 1;
 	const pageSize = 1000;
 
 	while (true) {
-		if (page > 20) break;
-		const rangeData: BaseTranslation[] = await pullRange(page, pageSize);
+		if (page > 40) {
+			console.error('Error: found over 40,000 rows in ' + table);
+			break;
+		}
+		const rangeData = await pullRange(page, pageSize);
 		if (!rangeData || rangeData.length === 0) break;
 
-		// Generate keys and add to Map
 		rangeData.forEach((item) => {
-			const key = generateKey([item.language, item.original, item.translation]);
+			const key = generateItemKey(table, item);
 			allData.set(key, item);
 		});
 
@@ -134,57 +119,8 @@ export async function getExistingSimpleTranslations(
 	return allData;
 }
 
-export async function getExistingVariableTranslations(
-	table: VariableTranslationTable,
-	language: TranslationLanguage
-): Promise<Map<string, GuideTranslation>> {
-	async function pullRange(page: number, pageSize: number): Promise<GuideTranslation[]> {
-		const { data, error } = await supabase
-			.from(table)
-			.select('variable_id, original, translation, form, section')
-			.eq('language', language)
-			.range((page - 1) * pageSize, page * pageSize - 1);
-
-		if (error) {
-			console.error('Error fetching ' + table, error);
-			return [];
-		}
-
-		const range_data: GuideTranslation[] = data.map((item) => ({
-			language: language,
-			original: item.original,
-			translation: item.translation,
-			variable_id: item.variable_id,
-			form: item.form,
-			section: item.section
-		}));
-
-		return range_data;
-	}
-
-	const allData = new Map<string, GuideTranslation>();
-	let page = 1;
-	const pageSize = 1000;
-
-	while (true) {
-		if (page > 20) break;
-		const rangeData: GuideTranslation[] = await pullRange(page, pageSize);
-		if (!rangeData || rangeData.length === 0) break;
-
-		// Generate keys and add to Map
-		rangeData.forEach((item) => {
-			const key = generateKey([item.variable_id, item.language, item.original, item.translation]);
-			allData.set(key, item);
-		});
-
-		if (rangeData.length < pageSize) break;
-		page++;
-	}
-
-	return allData;
-}
-
-// Insert new items from ARC-Translations into supabase Lists table
+// Step 2: Insert new items
+//		From ARC-Translations GitHub to Supabase table
 export async function insertListItems(items: ListTranslation[]) {
 	console.log('insterting ' + items.length + ' items to supabase');
 	if (items.length === 0) return; // Avoid making an unnecessary request
@@ -198,36 +134,25 @@ export async function insertListItems(items: ListTranslation[]) {
 
 	return;
 }
-// Insert new items from ARC-Translations into supabase Lists table
-export async function insertQuestionItems(items: GuideTranslation[]) {
-	console.log('insterting ' + items.length + ' items to supabase');
-	if (items.length === 0) return; // Avoid making an unnecessary request
 
-	const { error } = await supabase.from('questions').insert(items);
-
-	if (error) {
-		console.error('Error inserting data:', error);
-		return error;
-	}
-
-	console.log('success!');
-
-	return;
-}
-
+// Insert Translations into Supabase of specified type for table.
 export async function insertTranslations(
-	table: SimpleTranslationTable,
-	translations: Map<string, BaseTranslation>
+	table: BaseTable,
+	translations: Map<string, BaseItem>
 ): Promise<void | Error>;
 export async function insertTranslations(
-	table: VariableTranslationTable,
-	translations: Map<string, GuideTranslation>
+	table: LabelTable,
+	translations: Map<string, LabelItem>
 ): Promise<void | Error>;
 export async function insertTranslations(
-	table: SimpleTranslationTable | VariableTranslationTable,
-	translations: Map<string, BaseTranslation> | Map<string, GuideTranslation>
+	table: VariableTable,
+	translations: Map<string, VariableItem>
+): Promise<void | Error>;
+export async function insertTranslations(
+	table: Table,
+	translations: Map<string, Item>
 ): Promise<void | Error> {
-	console.log('inserting ' + translations.size + ' items to supabase');
+	console.log('inserting ' + translations.size + ' items into ' + table);
 	if (translations.size === 0) return;
 	const { error } = await supabase.from(table).insert(Array.from(translations.values()));
 	if (error) {

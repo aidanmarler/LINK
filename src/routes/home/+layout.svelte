@@ -9,7 +9,7 @@
 	import { page } from '$app/state';
 	import Logout from '../components/logout.svelte';
 	import { fade, fly, scale } from 'svelte/transition';
-	import { capitalizeFirstLetter } from '$lib/utils/utils';
+	import { capitalizeFirstLetter, makeFolderLabel } from '$lib/utils/utils';
 	import ThemeManager from '../components/themeManager.svelte';
 	import KabobMenu from '../components/kabobMenu.svelte';
 
@@ -20,7 +20,7 @@
 		supabase.auth.getSession().then(async ({ data }) => {
 			session = data.session;
 			if (session == null) {
-				window.location.href = '../';
+				window.location.href = '../login';
 			}
 			// Set profile data
 			userProfile.user = (await getProfile(session)) as Profile | null;
@@ -32,7 +32,7 @@
 			session = _session;
 			if (session == null) {
 				userProfile.user = null;
-				window.location.href = '../';
+				window.location.href = '../login';
 			}
 		});
 	});
@@ -42,7 +42,7 @@
 	let breadCrumbs = $derived(
 		pathSegments.map((segment, index) => {
 			return {
-				name: capitalizeFirstLetter(segment.replaceAll('%20', ' ')),
+				name: segment == 'arc' ? 'ARC' : makeFolderLabel(segment),
 				href: '/' + pathSegments.slice(0, index + 1).join('/')
 			};
 		})
@@ -50,15 +50,17 @@
 </script>
 
 {#if session}
-	<div class="w-full p-4 md:max-w-3xl md:mx-auto">
+	<div class="w-full p-4 md:max-w-4xl md:mx-auto">
 		<div in:scale={{ duration: 500, opacity: 0 }} class="w-full flex h-10 justify-between">
-			<div class="text-lg pt-1 font-medium">
+			<div class="text-lg pt-1 font-medium flex">
 				{#each breadCrumbs as crumb, i (crumb)}
 					<a
 						data-sveltekit-preload-code="eager"
-						class="cursor-pointer hover:underline"
-						href={crumb.href}>{crumb.name}</a
+						class="cursor-pointer hover:underline mr-1"
+						href={crumb.href}
 					>
+						{crumb.name}
+					</a>
 					{#if i < breadCrumbs.length - 1}
 						<span> >&nbsp</span>
 					{/if}

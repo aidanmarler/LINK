@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { supabase } from '../supabaseClient';
+	import { supabase } from '../../supabaseClient';
 	import type { AuthSession, User, WeakPassword } from '@supabase/supabase-js';
+	import DataView from '../components/dataView.svelte';
+	import ThemeManager from '../components/themeManager.svelte';
 	import { card_static, form_element } from '$lib/styles';
 	import { checkAdminStatus } from '$lib/supabase/auth';
-	import ThemeManager from './components/themeManager.svelte';
 
 	let session: AuthSession | null;
 	let email: string = '';
@@ -13,10 +14,6 @@
 	onMount(() => {
 		supabase.auth.getSession().then(({ data }) => {
 			session = data.session;
-			console.log(session);
-			if (session) {
-				window.location.href = '/home';
-			}
 		});
 
 		supabase.auth.onAuthStateChange((_event, _session) => {

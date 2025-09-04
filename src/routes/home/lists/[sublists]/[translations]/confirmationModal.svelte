@@ -7,9 +7,9 @@
 	} from '$lib/global.svelte';
 	import {
 		lists_addOption,
-		lists_addSeenToAll,
-		lists_addVote,
-		lists_removeVotesFromAll
+		userSeenTranslation,
+		addVote,
+		removeVotesFromAll
 	} from '$lib/supabase/user';
 	import type { AvailableLanguages, ListAddress, TranslationLanguage } from '$lib/types';
 	import { tick } from 'svelte';
@@ -37,7 +37,7 @@
 	} = $props();
 
 	let cancelButton: HTMLButtonElement;
-  	let confirmButton: HTMLButtonElement;
+	let confirmButton: HTMLButtonElement;
 
 	// is confirming tranlation
 	let loading = $state({ started: false, addSeen: false, removeVotes: false, addVote: false });
@@ -77,12 +77,12 @@
 				global_lists[list_address.listKey][list_address.sublistKey][originalKey]
 			);
 			// 1) add user to seen for all options
-			const result_addSeen = await lists_addSeenToAll(userId, transitionOptions);
+			const result_addSeen = await userSeenTranslation('lists', userId, transitionOptions);
 			console.log('result_addSeen', result_addSeen);
 			if (result_addSeen.success == false) return;
 			loading.addSeen = true;
 			// 2) remove users other votes from all options
-			const result_removeVotes = await lists_removeVotesFromAll(userId, transitionOptions);
+			const result_removeVotes = await removeVotesFromAll('lists', userId, transitionOptions);
 			console.log('result_removeVotes', result_removeVotes);
 			if (result_removeVotes.success == false) return;
 			loading.removeVotes = true;
@@ -117,15 +117,15 @@
 				global_lists[list_address.listKey][list_address.sublistKey][originalKey]
 			);
 			// 1) add user to seen for all options
-			const result_addSeen = await lists_addSeenToAll(userId, transitionOptions);
+			const result_addSeen = await userSeenTranslation('lists', userId, transitionOptions);
 			if (result_addSeen.success == false) return;
 			loading.addSeen = true;
 			// 2) remove users other votes from all options
-			const result_removeVotes = await lists_removeVotesFromAll(userId, transitionOptions);
+			const result_removeVotes = await removeVotesFromAll('lists', userId, transitionOptions);
 			if (result_removeVotes.success == false) return;
 			loading.removeVotes = true;
 			// 3) add user new vote to selected option
-			const result_addVote = await lists_addVote(userId, translationId);
+			const result_addVote = await addVote('lists', userId, translationId);
 			if (result_addVote.success == false) {
 				console.log('hmm, didnt succeed', result_addVote);
 				return;
@@ -136,7 +136,6 @@
 			openConfirmationModal = false;
 		}
 	};
-
 </script>
 
 {#if openConfirmationModal}
@@ -149,17 +148,17 @@
 			class="w-full mx-3 max-w-96 fixed left-[50%] top-[50%] translate-[-50%]"
 		>
 			<div
-				class="bg-stone-800/80 border-2 backdrop-blur-xl border-stone-500 rounded-lg flex flex-col items-center justify-center"
+				class="dark:bg-stone-900/80 bg-stone-200/80 border shadow-sm shadow-stone-500/30 backdrop-blur-xl dark:border-stone-500 border-stone-400 rounded-lg flex flex-col items-center justify-center"
 			>
 				<div class=" p-5 w-full items-center text-center">
-					<p class="text-xl font-medium space-y-3 py-5 text-stone-400 text-center">
+					<p class="text-xl font-medium space-y-3 py-5 text-stone-800 dark:text-stone-300 text-center">
 						In {userProfile.user?.language}, <br />
-						<span class="text-white text-2xl tracking-wider">"{originalText}"</span>
+						<span class="text-black dark:text-white text-2xl tracking-wider">"{originalText}"</span>
 						<br /> is best translated as <br />
-						<span class="text-white text-2xl tracking-wider">"{translatedText}"</span>
+						<span class="text-black dark:text-white text-2xl tracking-wider">"{translatedText}"</span>
 					</p>
 				</div>
-				<div class="border-t-2 border-stone-500 p-5 w-full items-center text-center">
+				<div class="border-t border-inherit p-5 w-full items-center text-center">
 					<p class="text-xl font-semibold">Confirm Submission?</p>
 					<div class="flex justify-around w-full mt-4 space-x-5">
 						<button

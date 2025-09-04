@@ -1,7 +1,9 @@
+//#region Imports
+
 import { tick } from 'svelte';
-import { retrieveTable_lists } from './supabase/user';
+import { retrieveTable, retrieveTable_lists } from './supabase/user';
 import type {
-	CompletionStatus,
+	SegmentStatus,
 	CompletionReport,
 	CompletionReports_Lists,
 	TranslationItem_Lists,
@@ -9,8 +11,22 @@ import type {
 	TranslationLanguage,
 	TreeStructure_Lists,
 	OriginalItem_Lists,
-    TranslationAddress
+	TranslationAddress,
+	Table,
+	LabelItem,
+	Row,
+	BaseRow,
+	TableTree_Labels,
+	SegmentInteraction,
+	TableTree_Guides as TableTree_Variables,
+	VariableItem,
+	AddressBook
 } from './types';
+import { makeFolderLabel, makeFolderNav } from './utils/utils';
+
+//#endregion Imports
+
+//#region User
 
 // Store User informmation globally
 export const userProfile: { user: Profile | null } = $state({ user: null });
@@ -21,8 +37,13 @@ export const loadedStatus = $state({
 	questions: false,
 	answers: false,
 	definitions: false,
-	guides: false
+	guides: false,
+	labels: false
 });
+
+//#endregion User
+
+//#region Address
 
 // Track current webpage as Translation_Address
 export const global_address: TranslationAddress = $state({});
@@ -34,11 +55,195 @@ export const reset_address = () => {
 	}
 };
 
+//#endregion Address
+
+//#region Trees
+
+class TableTree {
+	table: Table;
+	#data: TableTree_Labels | TableTree_Variables | null = $state(null);
+	constructor(table: Table) {
+		this.table = table;
+	}
+	get data() {
+		switch (this.table) {
+			case 'forms':
+			case 'sections':
+				return this.#data as TableTree_Labels;
+			case 'questions':
+			case 'definitions':
+			case 'completion_guides':
+				return this.#data as TableTree_Variables;
+		}
+		return this.#data;
+	}
+
+	private getCompletionStatus(
+		segmentInteraction: SegmentInteraction,
+		userId: string
+	): SegmentStatus {
+		if (segmentInteraction.users_passed.includes(userId)) return 'skipped';
+		if (segmentInteraction.users_voted.includes(userId)) return 'complete';
+		return 'incomplete';
+	}
+
+	async setTreeData(rows: Row[]): Promise<void | Error> {
+		if (!userProfile.user) return new Error();
+
+		const labelData: TableTree_Labels = { forms: {} };
+		const guideData: TableTree_Variables = { forms: {} };
+
+		switch (this.table) {
+			case 'forms':
+			case 'sections':
+				// Iterate through each row
+				// Add row data to tree at location
+				for (const row of rows) {
+					// Get inital info
+					const labelRow = row as BaseRow & LabelItem;
+					const { id, form, segment } = labelRow;
+
+					// If no form, add form
+					if (!labelData.forms[form]) labelData.forms[form] = { segments: {} };
+					// If no segment, add segment
+					if (!labelData.forms[form].segments[segment])
+						labelData.forms[form].segments[segment] = {
+							translations: {},
+							completionStatus: 'incomplete'
+						};
+
+					// At location, add row to list of translations
+					labelData.forms[form].segments[segment].translations[id] = labelRow;
+				}
+				this.#data = labelData;
+				break;
+			case 'questions':
+			case 'definitions':
+			case 'completion_guides':
+				// Iterate through each row
+				// Add row data to tree at location
+				for (const row of rows) {
+					// Get inital info
+					const guideRow = row as BaseRow & VariableItem;
+					const { id, form, section, segment } = guideRow;
+					// If no form, add form
+					if (!guideData.forms[form]) guideData.forms[form] = { sections: {} };
+					// If no section, add section
+					if (!guideData.forms[form].sections[section])
+						guideData.forms[form].sections[section] = { segments: {} };
+					// If no segment, add segment
+					if (!guideData.forms[form].sections[section].segments[segment])
+						guideData.forms[form].sections[section].segments[segment] = {
+							translations: {},
+							completionStatus: 'incomplete'
+						};
+
+					// At location, add row to list of translations
+					guideData.forms[form].sections[section].segments[segment].translations[id] = guideRow;
+				}
+				this.#data = guideData as TableTree_Variables;
+				break;
+		}
+	}
+}
+
+/*
+					// Get row completion status
+					const completionStatus = this.getCompletionStatus(labelRow.segmentInteraction, userId);
+
+					// Set Completion Status
+					this.#data.forms[form].originals[original].completionStatus = completionStatus;
+
+					// Update Completion Report
+					const status = $state.snapshot(
+						this.#data.forms[form].originals[original].completionStatus
+					);
+
+					switch (status) {
+						case 'complete':
+							this.#data.forms[form].completionReport.complete += 1;
+							break;
+						case 'needsReview':
+							this.#data.forms[form].completionReport.needsReview += 1;
+							break;
+						case 'incomplete':
+							this.#data.forms[form].completionReport.incomplete += 1;
+							break;
+					}*/
+
+export const addressBook: AddressBook = { forms: {} };
+export const formTableTree = new TableTree('forms');
+export const sectionTableTree = new TableTree('forms');
+export const guideTableTree = new TableTree('completion_guides');
+export const definitionTableTree = new TableTree('definitions');
+
+export async function updateTableTrees(language: TranslationLanguage) {
+	// Labels of forms and sections
+	const formsTable = await retrieveTable('forms', language);
+	await formTableTree.setTreeData(formsTable);
+	const sectionsTable = await retrieveTable('sections', language);
+	await sectionTableTree.setTreeData(sectionsTable);
+	loadedStatus.labels = true;
+
+	// Guides of completions guides and definitions
+	const guidesTable = await retrieveTable('completion_guides', language);
+	await guideTableTree.setTreeData(guidesTable);
+	const definitionsTable = await retrieveTable('definitions', language);
+	await definitionTableTree.setTreeData(definitionsTable);
+	loadedStatus.guides = true;
+
+	return;
+}
+
+export async function updateAddressBook() {
+	// Build address book tree
+	// Address - each form (id), nav format and label format
+	// Forms[] -> ( Labels[] & Sections[] -> ( Questions & Definitions[] & Guides[] ) )
+
+	for (const form in formTableTree.data?.forms) {
+		const form_nav = makeFolderNav(form);
+		if (!addressBook.forms[form_nav])
+			addressBook.forms[form_nav] = {
+				branch: {
+					id: form,
+					id_label: makeFolderLabel(form),
+					id_nav: form_nav
+				},
+				sections: {}
+			};
+	}
+
+	await tick().then(() => {
+		for (const form in guideTableTree.data?.forms) {
+			const form_nav = makeFolderNav(form);
+
+			for (const section in guideTableTree.data?.forms[form_nav].sections) {
+				const section_nav = makeFolderNav(section);
+
+				if (!addressBook.forms[form_nav].sections[section_nav])
+					addressBook.forms[form_nav].sections[section_nav] = {
+						branch: {
+							id: section,
+							id_label: makeFolderLabel(section),
+							id_nav: section_nav
+						}
+					};
+			}
+		}
+	});
+
+	console.log('addressBook end', addressBook);
+}
+
+//#endregion Trees
+
+//#region Lists
+
 // Global Lists data structure - each translation of each item
 export const global_lists: TreeStructure_Lists = $state({});
 
 // Helper function to initalize empty report
-const createEmptyReport = (): CompletionReport => ({
+const emptyReport = (): CompletionReport => ({
 	complete: 0,
 	incomplete: 0,
 	needsReview: 0
@@ -46,7 +251,7 @@ const createEmptyReport = (): CompletionReport => ({
 
 // Global Lists completion reports - a report for all lists, each list, and each sublist
 export const global_lists_report: CompletionReports_Lists = $state({
-	summaryReport: createEmptyReport(),
+	summaryReport: emptyReport(),
 	lists: {}
 });
 
@@ -54,7 +259,7 @@ export const global_lists_report: CompletionReports_Lists = $state({
 export function determineCompletionIndicator(
 	userId: string,
 	originalItem: OriginalItem_Lists
-): CompletionStatus {
+): SegmentStatus {
 	let seenOne = false; // user has seen at least one translation
 	let seenAll = true; // user has seen all translations
 	for (const translationKey in originalItem) {
@@ -89,7 +294,7 @@ function setGlobalLists(listTranslationsItems: TranslationItem_Lists[]) {
 
 // Using userId, for each ListTranslationItem, see if user has seen it.  If each
 function setListsCompletionReport(userId: string, treeStructure_Lists: TreeStructure_Lists) {
-	console.log('Setting Completion Report');
+	//console.log('Setting Completion Report');
 	// Step 1) Create empty table with empty completion reports
 	// Step 2) Fill in low level items
 	// Step 3) based on low level items, calcualte new correct completion reports
@@ -99,7 +304,7 @@ function setListsCompletionReport(userId: string, treeStructure_Lists: TreeStruc
 		// If a missing list, add it
 		if (!global_lists_report.lists[listKey]) {
 			global_lists_report.lists[listKey] = {
-				listReport: createEmptyReport(),
+				listReport: emptyReport(),
 				sublists: {}
 			};
 		}
@@ -107,14 +312,14 @@ function setListsCompletionReport(userId: string, treeStructure_Lists: TreeStruc
 		for (const sublistKey in treeStructure_Lists[listKey]) {
 			if (!global_lists_report.lists[listKey].sublists[sublistKey]) {
 				global_lists_report.lists[listKey].sublists[sublistKey] = {
-					sublistReport: createEmptyReport(),
+					sublistReport: emptyReport(),
 					originalItems: {}
 				};
 			}
 			// If a missing original item, add it -> then,
 			for (const originalItemKey in treeStructure_Lists[listKey][sublistKey]) {
 				// Step 2: actually fill in the low level items
-				const completionIndicator: CompletionStatus = determineCompletionIndicator(
+				const completionIndicator: SegmentStatus = determineCompletionIndicator(
 					userId,
 					treeStructure_Lists[listKey][sublistKey][originalItemKey]
 				);
@@ -184,6 +389,23 @@ function setListsCompletionReport(userId: string, treeStructure_Lists: TreeStruc
 
 // Function gets all Tables for user's language to visualize them and use them to generate pages and questions.
 export async function updateGlobalTables(language: TranslationLanguage) {
+	await updateTableTrees(language);
+	// 1 - retrieve tables from SupaBase
+	// 2 - set as global $state()
+	// 3 - set completion report
+	// 4 - set loaded as true
+
+	//const formsTable = await retrieveTable('forms', language);
+	//setTableGlobalState('forms', formsTable);
+	/*
+	const sectionsTable = await retrieveTable('sections', language);
+	setTableGlobalState('sections', sectionsTable);
+	const guidesTable = await retrieveTable('completion_guides', language);
+	setTableGlobalState('completion_guides', guidesTable);
+	const definitionsTable = await retrieveTable('definitions', language);
+	setTableGlobalState('definitions', definitionsTable);
+	console.log(formsTable, sectionsTable, guidesTable, definitionsTable);*/
+
 	// Get translations based on user language, and set context
 	const listsTable: TranslationItem_Lists[] = await retrieveTable_lists(language);
 	setGlobalLists(listsTable);
@@ -195,5 +417,14 @@ export async function updateGlobalTables(language: TranslationLanguage) {
 	setListsCompletionReport(userProfile.user.id, $state.snapshot(global_lists));
 	await tick();
 	loadedStatus.lists = true;
+
+	await updateAddressBook();
+
 	return;
 }
+
+export const address = $state({
+	form: null,
+	section: null
+});
+//#endregion Lists

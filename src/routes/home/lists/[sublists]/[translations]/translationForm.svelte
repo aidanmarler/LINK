@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { determineCompletionIndicator, userProfile } from '$lib/global.svelte';
-	import type { CompletionStatus, OriginalItem_Lists, TranslationLanguage } from '$lib/types';
+	import type { SegmentStatus, OriginalItem_Lists, TranslationLanguage } from '$lib/types';
 	import { onMount } from 'svelte';
 	import ConfirmationModal from './confirmationModal.svelte';
 	import { card_dynamic } from '$lib/styles';
@@ -9,7 +9,7 @@
 		originalKey,
 		originalItem,
 		completionStatus
-	}: { originalKey: string; originalItem: OriginalItem_Lists; completionStatus: CompletionStatus } =
+	}: { originalKey: string; originalItem: OriginalItem_Lists; completionStatus: SegmentStatus } =
 		$props();
 
 	let suggestedText: string | null = $state(null);
@@ -23,7 +23,7 @@
 		selectedTranslationId || (isSuggestingNew && newSuggestionText.length > 0)
 	);
 
-	let questionState: CompletionStatus = $derived.by(() => {
+	let questionState: SegmentStatus = $derived.by(() => {
 		if (userProfile.user == null) return 'incomplete';
 		return determineCompletionIndicator(userProfile.user.id, originalItem);
 	});

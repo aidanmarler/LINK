@@ -78,7 +78,7 @@
 	<div
 		in:fly={{ y: 20, duration: 500, delay: 100 }}
 		out:fly={{ y: 20, duration: 100 }}
-		class="bg-stone-800/50 border-t-2 border-stone-800 fixed bottom-0 left-0 backdrop-blur-md w-full h-auto p-2 flex justify-between"
+		class="dark:bg-stone-900/50 dark:border-stone-700 bg-stone-300/50 border-stone-500 border-t fixed bottom-0 left-0 backdrop-blur-md w-full h-auto p-2 flex justify-between"
 	>
 		<div class="flex w-full items-center space-x-2">
 			<p class="text-3xl italic p-2">{crumb}</p>
@@ -92,12 +92,12 @@
 		</div>
 		<div class="flex justify-end w-1/2 items-center space-x-3 pr-2">
 			<button
-				class="cursor-pointer font-semibold block border-2 opacity-70 hover:opacity-90 border-stone-500 bg-stone-500/50 rounded-lg p-1 px-3"
+				class="cursor-pointer font-semibold block border-2 opacity-70 hover:opacity-90 rounded-lg p-1 px-3"
 			>
 				Top of page
 			</button>
 			<button
-				class="cursor-pointer font-semibold block border-2 opacity-70 hover:opacity-90 border-stone-500 bg-stone-500/50 rounded-lg p-1 px-3"
+				class="cursor-pointer font-semibold block border-2 opacity-70 hover:opacity-90 rounded-lg p-1 px-3"
 			>
 				Next
 			</button>

@@ -1,15 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { supabase } from '../../supabaseClient';
-	import type { AuthSession } from '@supabase/supabase-js';
 	import type { Category, Language } from '$lib/types';
 	import { PullCategory } from './retrieve_Lists';
-	import Logout from '../components/logout.svelte';
 	import { card_static } from '$lib/styles';
-
-	let session: AuthSession | null;
-	let isAdmin: boolean = false;
-	let activeLanguages: Language[] = ['Spanish','French', 'Portuguese', 'Spanish']; // ['French', 'Portuguese', 'Spanish'];Languages to check and have in the app.
+	let activeLanguages: Language[] = ['Spanish']; //, 'French', 'Portuguese'];
 </script>
 
 {#snippet LanguageCategoryControls(language: Language)}

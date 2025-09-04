@@ -1,22 +1,24 @@
+import { generateItemKey } from '$lib/dependencies';
 import {
-	insertListItems,
 	getCurrentEntries_lists,
-	getExistingSimpleTranslations,
-	insertTranslations,
-	getExistingVariableTranslations
-} from '$lib/supabase/user';
+	getExistingTranslations,
+	insertListItems,
+	insertTranslations
+} from '$lib/supabase/admin';
 import {
 	type ARCHData,
 	type Category,
 	type Language,
 	type ListTranslation,
-	type BaseTranslation,
+	type BaseItem,
 	type Table,
 	type TranslationLanguage,
-	type GuideTranslation,
-	type VariableTranslationTable
+	type VariableItem,
+	type VariableTable,
+	type LabelItem,
+	type ItemForTable
+	//type ListItem
 } from '$lib/types';
-import { generateKey } from '$lib/utils/utils';
 import Papa from 'papaparse';
 const githubToken = import.meta.env.VITE_GITHUB_TOKEN;
 
@@ -105,7 +107,6 @@ async function fetchAndParseARCHCSV(owner: string, repo: string, path: string): 
 
 	const data = await response.json();
 	const csvText = data.data.repository.object.text;
-	//console.log(csvText.length);
 
 	const parseConfig: Papa.ParseConfig = {
 		header: true,
@@ -117,9 +118,8 @@ async function fetchAndParseARCHCSV(owner: string, repo: string, path: string): 
 	};
 	const papaParsed = Papa.parse(csvText, parseConfig);
 	const parsedError = papaParsed.errors;
-	if (parsedError.length > 0) console.log('   ARCH parse errors', parsedError);
+	if (parsedError.length > 0) console.log('     ARCH parse errors', parsedError);
 	const parsedData = papaParsed.data as Record<string, string>[];
-	//console.log(parsedData.length);
 	const ARCHData: ARCHData = {};
 
 	parsedData.forEach((row) => {
@@ -273,42 +273,61 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 
 	const language: TranslationLanguage = ARCHlanguage.toLowerCase() as TranslationLanguage;
 
+	console.log(' [✓] GitHub pull complete');
+	console.log(' [ ] Begin Supabase pull ...');
+
 	// 2. Get Supabase existing Translations
-	const existingTranslations: Record<
-		Table,
-		Map<string, BaseTranslation | GuideTranslation>
-	> = {
-		forms: await getExistingSimpleTranslations('forms', language),
-		sections: await getExistingSimpleTranslations('sections', language),
-		answer_options: await getExistingSimpleTranslations('answer_options', language),
-		questions: await getExistingVariableTranslations('questions', language),
-		definitions: await getExistingVariableTranslations('definitions', language),
-		completion_guides: await getExistingVariableTranslations('completion_guides', language)
+	const existingTranslations: {
+		forms: Map<string, LabelItem>;
+		//lists: Map<string, ListItem>;
+		sections: Map<string, LabelItem>;
+		answer_options: Map<string, BaseItem>;
+		questions: Map<string, VariableItem>;
+		definitions: Map<string, VariableItem>;
+		completion_guides: Map<string, VariableItem>;
+	} = {
+		answer_options: await getExistingTranslations('answer_options', language),
+		forms: await getExistingTranslations('forms', language),
+		sections: await getExistingTranslations('sections', language),
+		definitions: await getExistingTranslations('definitions', language),
+		completion_guides: await getExistingTranslations('completion_guides', language),
+		questions: await getExistingTranslations('questions', language)
 	};
 
 	// 3. Define new translation sets
-	const newTranslations: Record<Table, Map<string, BaseTranslation | GuideTranslation>> = {
-		forms: new Map<string, BaseTranslation>(),
-		sections: new Map<string, BaseTranslation>(),
-		answer_options: new Map<string, BaseTranslation>(),
-		questions: new Map<string, GuideTranslation>(),
-		definitions: new Map<string, GuideTranslation>(),
-		completion_guides: new Map<string, GuideTranslation>()
+	const newTranslations: {
+		forms: Map<string, LabelItem>;
+		//lists: Map<string, ListItem>;
+		sections: Map<string, LabelItem>;
+		answer_options: Map<string, BaseItem>;
+		questions: Map<string, VariableItem>;
+		definitions: Map<string, VariableItem>;
+		completion_guides: Map<string, VariableItem>;
+	} = {
+		forms: new Map(),
+		sections: new Map(),
+		answer_options: new Map(),
+		questions: new Map(),
+		definitions: new Map(),
+		completion_guides: new Map()
 	};
 
 	// Helper function to add translation if not exists
-	const addTranslationIfNew = (
-		table: Table,
-		key: string,
-		translation: BaseTranslation | GuideTranslation
-	) => {
-		if (!existingTranslations[table].has(key) && !newTranslations[table].has(key)) {
-			(newTranslations[table] as Map<string, BaseTranslation | GuideTranslation>).set(
-				key,
-				translation
-			);
+	function addTranslationIfNew<T extends Table>(
+		table: T,
+		translation: ItemForTable<T>,
+		key: string
+	) {
+		if (translation.segment == '' || translation.translation == '') return;
+		if (table == 'forms') {
+			console.log('key: ' + key);
+			console.log(existingTranslations[table].has(key), existingTranslations[table]);
+			//console.log(newTranslations[table].has(key), newTranslations[table].keys);
 		}
-	};
+		if (!existingTranslations[table].has(key) && !newTranslations[table].has(key)) {
+			(newTranslations[table] as Map<string, typeof translation>).set(key, translation);
+		}
+	}
 
 	// 4. Check if translation in existing translations
 	for (const variable in csvEnglish) {
@@ -318,93 +337,98 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 		const csvEng = csvEnglish[variable];
 		const csvTrans = csvTranslation[variable];
 
-		// Form
-		addTranslationIfNew('forms', generateKey([language, csvEng.form, csvTrans.form]), {
-			language: language,
-			original: csvEng.form,
-			translation: csvTrans.form
-		});
-
-		addTranslationIfNew('sections', generateKey([language, csvEng.section, csvTrans.section]), {
-			language: language,
-			original: csvEng.section,
-			translation: csvTrans.section
-		});
-
-		addTranslationIfNew(
-			'questions',
-			generateKey([variable, language, csvEng.question, csvTrans.question]),
-			{
+		const items: Partial<Record<Table, ItemForTable<Table>>> = {
+			forms: {
+				language: language,
+				form: csvEng.form,
+				segment: csvEng.form,
+				translation: csvTrans.form
+			},
+			sections: {
+				language: language,
+				form: csvEng.form,
+				segment: csvEng.section,
+				translation: csvTrans.section
+			},
+			definitions: {
 				variable_id: variable,
 				language: language,
 				form: csvEng.form,
 				section: csvEng.section,
-				original: csvEng.question,
+				segment: csvEng.definition,
+				translation: csvTrans.definition
+			},
+			completion_guides: {
+				variable_id: variable,
+				language: language,
+				form: csvEng.form,
+				section: csvEng.section,
+				segment: csvEng.completionGuide,
+				translation: csvTrans.completionGuide
+			},
+			questions: {
+				variable_id: variable,
+				language: language,
+				form: csvEng.form,
+				section: csvEng.section,
+				segment: csvEng.question,
 				translation: csvTrans.question
 			}
-		);
+		};
 
-		addTranslationIfNew(
-			'definitions',
-			generateKey([variable, language, csvEng.definition, csvTrans.definition]),
-			{
-				variable_id: variable,
-				language: language,
-				form: csvEng.form,
-				section: csvEng.section,
-				original: csvEng.definition,
-				translation: csvTrans.definition
-			}
-		);
+		for (const t in items) {
+			const table = t as Table;
+			const item = items[table];
+			if (!item) return;
+			const itemKey = generateItemKey(table, item);
+			addTranslationIfNew(table, item, itemKey);
+		}
 
-		addTranslationIfNew(
-			'completion_guides',
-			generateKey([variable, language, csvEng.completionGuide, csvTrans.completionGuide]),
-			{
-				variable_id: variable,
-				language: language,
-				form: csvEng.form,
-				section: csvEng.section,
-				original: csvEng.completionGuide,
-				translation: csvTrans.completionGuide
+		(Object.entries(items) as [Table, ItemForTable<Table>][]).forEach(([table, item]) => {
+			if (item) {
+				const itemKey = generateItemKey(table, item);
+				addTranslationIfNew(table, item, itemKey);
 			}
-		);
+		});
 
 		// Answer options
 		if (csvEng.answerOptions !== null) {
 			for (const answer in csvEng.answerOptions) {
 				if (!csvTrans.answerOptions) continue;
 				if (!csvTrans.answerOptions[answer]) continue;
+				const itemKey = generateItemKey('answer_options', {
+					language: language,
+					segment: csvEng.answerOptions[answer],
+					translation: csvTrans.answerOptions[answer]
+				});
 				addTranslationIfNew(
 					'answer_options',
-					generateKey([language, csvEng.answerOptions[answer], csvTrans.answerOptions[answer]]),
 					{
 						language: language,
-						original: csvEng.answerOptions[answer],
+						segment: csvEng.answerOptions[answer],
 						translation: csvTrans.answerOptions[answer]
-					}
+					},
+					itemKey
 				);
 			}
 		}
 	}
-
-	console.log(newTranslations.definitions, newTranslations.completion_guides);
 
 	await Promise.all([
 		insertTranslations('forms', newTranslations.forms),
 		insertTranslations('sections', newTranslations.sections),
 		insertTranslations('answer_options', newTranslations.answer_options),
 		insertTranslations(
-			'questions' as VariableTranslationTable,
-			newTranslations.questions as Map<string, GuideTranslation>
+			'questions' as VariableTable,
+			newTranslations.questions as Map<string, VariableItem>
 		),
 		insertTranslations(
-			'definitions' as VariableTranslationTable,
-			newTranslations.definitions as Map<string, GuideTranslation>
+			'definitions' as VariableTable,
+			newTranslations.definitions as Map<string, VariableItem>
 		),
 		insertTranslations(
-			'completion_guides' as VariableTranslationTable,
-			newTranslations.completion_guides as Map<string, GuideTranslation>
+			'completion_guides' as VariableTable,
+			newTranslations.completion_guides as Map<string, VariableItem>
 		)
 	]);
 	return;
