@@ -20,7 +20,14 @@
 	let currentForm: UserForm = $state('Forward Translate');
 	let forms: UserForm[] = ['Forward Translate', 'Review', 'Backward Translate'];
 
-	const categories = $state({
+	type VariableCategory = 'questions' | 'answers' | 'definitions' | 'completion_guides';
+
+	interface VariableCategoryConfig {
+		label: string;
+		visible: boolean;
+	}
+
+	const categories: Record<VariableCategory, VariableCategoryConfig> = $state({
 		questions: {
 			label: 'Questions',
 			visible: false
@@ -69,26 +76,17 @@
 
 		return translations;
 	});
-
-	onMount(() => {
-		console.log(
-			$state.snapshot(form),
-			$state.snapshot(section_nav),
-			$state.snapshot(addressBook.forms[form_nav].sections),
-			$state.snapshot(guideTableTree.data.forms[form].sections)
-		);
-	});
 </script>
 
-{#if guideTableTree.data.forms[form].sections[section]}
+{#if guideTableTree.data?.forms[form].sections[section]}
 	<div
 		in:fly|global={{ x: 10, duration: 200, delay: 100 }}
 		out:fly|global={{ x: -10, duration: 100 }}
 		class="w-full"
 	>
 		<div class="flex w-full justify-center space-x-4 px-20 py-2 flex-wrap">
-			{#each Object.keys(categories) as category}
-				<ToggleSwitch label={categories[category].label} value={categories[category].visible} />
+			{#each Object.entries(categories) as [category, config]}
+				<ToggleSwitch label={config.label} value={config.visible} />
 			{/each}
 		</div>
 		<div class="py-5">

@@ -20,7 +20,8 @@ import type {
 	SegmentInteraction,
 	TableTree_Guides as TableTree_Variables,
 	VariableItem,
-	AddressBook
+	AddressBook,
+	TableTree_Guides
 } from './types';
 import { makeFolderLabel, makeFolderNav } from './utils/utils';
 
@@ -85,6 +86,14 @@ class TableTree {
 		if (segmentInteraction.users_passed.includes(userId)) return 'skipped';
 		if (segmentInteraction.users_voted.includes(userId)) return 'complete';
 		return 'incomplete';
+	}
+
+	hasSections(): this is { data: TableTree_Guides } {
+		return (
+			this.table === 'questions' ||
+			this.table === 'definitions' ||
+			this.table === 'completion_guides'
+		);
 	}
 
 	async setTreeData(rows: Row[]): Promise<void | Error> {
@@ -172,10 +181,34 @@ class TableTree {
 					}*/
 
 export const addressBook: AddressBook = { forms: {} };
-export const formTableTree = new TableTree('forms');
-export const sectionTableTree = new TableTree('forms');
-export const guideTableTree = new TableTree('completion_guides');
-export const definitionTableTree = new TableTree('definitions');
+
+// Create more specific interfaces for each table type
+export interface LabelTableTree extends TableTree {
+	readonly table: 'forms' | 'sections';
+	data: TableTree_Labels | null;
+}
+
+export interface GuideTableTree extends TableTree {
+	readonly table: 'questions' | 'definitions' | 'completion_guides';
+	data: TableTree_Guides | null;
+}
+
+// Factory functions
+export function createLabelTableTree(table: 'forms' | 'sections'): LabelTableTree {
+	return new TableTree(table) as LabelTableTree;
+}
+
+export function createGuideTableTree(
+	table: 'questions' | 'definitions' | 'completion_guides'
+): GuideTableTree {
+	return new TableTree(table) as GuideTableTree;
+}
+
+// Your instances - TypeScript knows the exact type from creation!
+export const formTableTree = createLabelTableTree('forms');
+export const sectionTableTree = createLabelTableTree('sections');
+export const guideTableTree = createGuideTableTree('completion_guides');
+export const definitionTableTree = createGuideTableTree('definitions');
 
 export async function updateTableTrees(language: TranslationLanguage) {
 	// Labels of forms and sections
@@ -214,20 +247,22 @@ export async function updateAddressBook() {
 	}
 
 	await tick().then(() => {
-		for (const form in guideTableTree.data?.forms) {
-			const form_nav = makeFolderNav(form);
+		if (guideTableTree.hasSections()) {
+			for (const form in guideTableTree.data?.forms) {
+				const form_nav = makeFolderNav(form);
 
-			for (const section in guideTableTree.data?.forms[form_nav].sections) {
-				const section_nav = makeFolderNav(section);
+				for (const section in guideTableTree.data?.forms[form_nav].sections) {
+					const section_nav = makeFolderNav(section);
 
-				if (!addressBook.forms[form_nav].sections[section_nav])
-					addressBook.forms[form_nav].sections[section_nav] = {
-						branch: {
-							id: section,
-							id_label: makeFolderLabel(section),
-							id_nav: section_nav
-						}
-					};
+					if (!addressBook.forms[form_nav].sections[section_nav])
+						addressBook.forms[form_nav].sections[section_nav] = {
+							branch: {
+								id: section,
+								id_label: makeFolderLabel(section),
+								id_nav: section_nav
+							}
+						};
+				}
 			}
 		}
 	});
