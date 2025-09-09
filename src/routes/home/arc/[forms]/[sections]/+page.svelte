@@ -12,7 +12,12 @@
 	} from '$lib/global.svelte';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import type { ForwardTranslation, LabelAddress, LabelItem } from '$lib/types';
+	import type {
+		ForwardTranslation,
+		LabelAddress,
+		VariableCategory,
+		VariableItem
+	} from '$lib/types';
 	import ForwardTranslationsForm from '../../../../components/forms/forwardTranslationsForm.svelte';
 	import ToggleSwitch from '../../../../components/toggleSwitch.svelte';
 
@@ -20,14 +25,12 @@
 	let currentForm: UserForm = $state('Forward Translate');
 	let forms: UserForm[] = ['Forward Translate', 'Review', 'Backward Translate'];
 
-	type VariableCategory = 'questions' | 'answers' | 'definitions' | 'completion_guides';
-
 	interface VariableCategoryConfig {
 		label: string;
 		visible: boolean;
 	}
 
-	const categories: Record<VariableCategory, VariableCategoryConfig> = $state({
+	const categories: Partial<Record<VariableCategory, VariableCategoryConfig>> = $state({
 		questions: {
 			label: 'Questions',
 			visible: false
@@ -46,39 +49,77 @@
 		}
 	});
 
+	// svelte-ignore non_reactive_update
+	let forwardTranslationsFormRef: ForwardTranslationsForm;
+
 	let form_nav = $derived(page.url.pathname.split('/').filter(Boolean)[2]);
 	let form = $derived(addressBook.forms[form_nav].branch.id);
 	let section_nav = $derived(page.url.pathname.split('/').filter(Boolean)[3]);
 	let section = $derived(addressBook.forms[form_nav].sections[section_nav].branch.id);
+	let guideSegments = $derived(guideTableTree.data.forms[form].sections[section].segments);
+	let definitionSegments = $derived(
+		definitionTableTree.data.forms[form].sections[section].segments
+	);
 
 	let forwardTranslations: Record<string, ForwardTranslation[]> = $derived.by(() => {
-		if (!guideTableTree.data || !definitionTableTree.data) return {};
-		//let guideSegments = Object.entries(guideTableTree.data.forms[form].sections[section].segments)[0][0];
-		let guideSegments: ForwardTranslation[] = Object.entries(
-			guideTableTree.data.forms[form].sections[section].segments
-		).map(
-			([guideSegment]) =>
-				({
-					table: 'completion_guides',
-					skipped: false,
-					comment: null,
-					item: {
-						segment: guideSegment, // This is the equivalent of formSegment for sections
-						translation: '',
-						language: 'spanish',
-						form: addressBook.forms[form].branch.id
-					} as LabelItem
-				}) as ForwardTranslation
-		);
-		let translations: Record<string, ForwardTranslation[]> = {
-			'Completion Guides': guideSegments
-		};
 
-		return translations;
+		// Create a map to group by variable_id
+		const translationsByVariableId: Record<string, ForwardTranslation[]> = {};
+		// Process definition segments
+		Object.entries(definitionSegments).forEach(([definitionSegment, segmentData]) => {
+			console.log('segmentData', segmentData)
+			const variableId = segmentData.variableId;
+			const translation: ForwardTranslation = {
+				table: 'definitions', // Changed from 'completion_guides' to 'definitions'
+				skipped: false,
+				comment: null,
+				open: categories.definitions ? categories.definitions.visible : false,
+				category: 'definitions',
+				item: {
+					segment: definitionSegment,
+					translation: '',
+					language: 'spanish',
+					form: form,
+					variable_id: variableId,
+					section: section
+				} satisfies VariableItem
+			};
+
+			if (!translationsByVariableId[variableId]) {
+				translationsByVariableId[variableId] = [];
+			}
+			translationsByVariableId[variableId].push(translation);
+		});
+		// Process guide segments
+		Object.entries(guideSegments).forEach(([guideSegment, segmentData]) => {
+			const variableId = segmentData.variableId;
+			const translation: ForwardTranslation = {
+				table: 'completion_guides',
+				skipped: false,
+				comment: null,
+				open: categories.completion_guides ? categories.completion_guides.visible : false,
+				category: 'completion_guides',
+				item: {
+					segment: guideSegment,
+					translation: '',
+					language: 'spanish',
+					form: form,
+					variable_id: variableId,
+					section: section
+				} satisfies VariableItem
+			};
+
+			if (!translationsByVariableId[variableId]) {
+				translationsByVariableId[variableId] = [];
+			}
+			translationsByVariableId[variableId].push(translation);
+		});
+
+		return translationsByVariableId;
 	});
 </script>
 
-{#if guideTableTree.data?.forms[form].sections[section]}
+{#if loadedStatus.arc}
 	<div
 		in:fly|global={{ x: 10, duration: 200, delay: 100 }}
 		out:fly|global={{ x: -10, duration: 100 }}
@@ -86,7 +127,15 @@
 	>
 		<div class="flex w-full justify-center space-x-4 px-20 py-2 flex-wrap">
 			{#each Object.entries(categories) as [category, config]}
-				<ToggleSwitch label={config.label} value={config.visible} />
+				<ToggleSwitch
+					label={config.label}
+					bind:value={config.visible}
+					onChange={() => {
+						if (forwardTranslationsFormRef) {
+							forwardTranslationsFormRef.filterData(category, config.visible);
+						}
+					}}
+				/>
 			{/each}
 		</div>
 		<div class="py-5">
@@ -94,16 +143,10 @@
 				{#each forms as form}
 					<label
 						class=" hover:underline cursor-pointer px-2 rounded-full {currentForm == form
-							? ' shadow '
+							? '  '
 							: 'opacity-50 '}"
 					>
-						<input
-							class="mr-2"
-							type="radio"
-							name="currentForm"
-							value={form}
-							bind:group={currentForm}
-						/>
+						<input class="" type="radio" name="currentForm" value={form} bind:group={currentForm} />
 						<span class="mr-2">{form}</span>
 					</label>
 				{/each}
@@ -112,7 +155,7 @@
 		<hr class="border-stone-700 dark:border-stone-600" />
 		{#if currentForm == 'Forward Translate'}
 			<div in:fly={{ x: -40, duration: 200, delay: 100 }} out:fly={{ x: -40, duration: 100 }}>
-				<ForwardTranslationsForm {forwardTranslations} />
+				<ForwardTranslationsForm {forwardTranslations} bind:this={forwardTranslationsFormRef} />
 			</div>
 		{:else if currentForm == 'Backward Translate'}
 			<div in:fly={{ x: 40, duration: 200, delay: 100 }} out:fly={{ x: 40, duration: 100 }}>

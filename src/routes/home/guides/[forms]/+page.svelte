@@ -18,7 +18,6 @@
 	let crumb = $derived(pathSegments[pathSegments.length - 1]);
 
 	let sections = $derived.by(() => {
-		if (!guideTableTree.data) return {};
 		return guideTableTree.data.forms[crumb].sections;
 	});
 

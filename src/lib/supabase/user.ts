@@ -16,16 +16,40 @@ import type {
 
 export async function retrieveTable(table: Table | 'lists', language: TranslationLanguage) {
 	const columns = idColumns.concat(tableColumns[table]).join(', ') as '*';
-	const query = supabase.from(table).select(columns).eq('language', language);
-	const { data, error } = await query;
 
-	if (error) {
-		return [];
+	async function pullRange(page: number, pageSize: number) {
+		const query = supabase
+			.from(table)
+			.select(columns)
+			.eq('language', language)
+			.range((page - 1) * pageSize, page * pageSize - 1);
+
+		const { data, error } = await query;
+
+		if (error) {
+			console.error('Error fetching table', error);
+			return [];
+		}
+
+		return data.map((row) => ({
+			...row
+		})) as Row[];
 	}
 
-	return data.map((row) => ({
-		...row
-	})) as Row[];
+	let totalData: Row[] = [];
+	let page = 1;
+	const pageSize = 1000;
+
+	while (true) {
+		if (page > 20) break;
+		const rangeData = await pullRange(page, pageSize);
+		if (!rangeData || rangeData.length === 0) break;
+		totalData = totalData.concat(rangeData); // Combine results
+		if (rangeData.length < 990) break;
+		page++; // Go to next page
+	}
+
+	return totalData;
 }
 
 export async function userSeenTranslation(

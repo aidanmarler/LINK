@@ -1,10 +1,12 @@
 <script lang="ts">
-	import type { ForwardTranslation, Table } from '$lib/types';
+	import { VariableCategory_Labels, type ForwardTranslation, type Table } from '$lib/types';
 	import TranslateSegment from './translateSegment.svelte';
 
 	let {
 		forwardTranslations
-	}: { forwardTranslations: Record<string, ForwardTranslation[]> } = $props();
+	}: {
+		forwardTranslations: Record<string, ForwardTranslation[]>;
+	} = $props();
 
 	let translationsToPush: Partial<Record<Table, ForwardTranslation[]>> = {};
 
@@ -24,9 +26,12 @@
 			});
 		});
 
-		// Call your existing function to push to server
 		console.log('Translations to push:', translationsToPush);
-		// yourExistingPushFunction(translationsToPush);
+	}
+	// Function to filter and update segments based on category
+	export function filterData(category: string, open: boolean) {
+		console.log(`Filtering ${category} to ${open ? 'visible' : 'hidden'}`);
+		// For each segment-open pair, see if segment is in category and if so, set 'open' to open
 	}
 </script>
 
@@ -35,6 +40,8 @@
 	<h1 class="text-lg font-light">{section}</h1>
 	{#each translations as translation, j (j)}
 		<TranslateSegment
+			open={translation.open}
+			label={VariableCategory_Labels[translation.category]}
 			segment={translation.item.segment}
 			bind:translation={translation.item.translation}
 		/>

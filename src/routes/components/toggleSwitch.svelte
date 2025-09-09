@@ -1,5 +1,9 @@
 <script lang="ts">
-	let { label = '', value = $bindable() }: { label?: string; value: boolean } = $props();
+	let {
+		label = '',
+		value = $bindable(),
+		onChange
+	}: { label?: string; value: boolean; onChange?: (newValue: boolean) => void } = $props();
 </script>
 
 <!-- Full element -->
@@ -7,11 +11,20 @@
 	class="flex items-center hover:underline cursor-pointer p-0.5 px-1 rounded-full {value
 		? 'opacity-100  border-stone-700 dark:border-stone-600 '
 		: 'opacity-50 hover:opacity-80 border-transparent'}"
-	title="{value ? 'Hide' : 'Show'}"
+	title={value ? 'Hide' : 'Show'}
 >
 	<div class="relative">
 		<!-- Invisible Checkbox -->
-		<input type="checkbox" class="sr-only" bind:checked={value} />
+		<input
+			type="checkbox"
+			class="sr-only"
+			bind:checked={value}
+			onchange={() => {
+				if (onChange) {
+					onChange(value);
+				}
+			}}
+		/>
 		<!-- Background -->
 		<div
 			class="block w-9 h-5 rounded-full border-2 ease-in-out {value

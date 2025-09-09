@@ -40,6 +40,7 @@
 					table: 'forms',
 					skipped: false,
 					comment: null,
+					category: 'lists',
 					item: {
 						segment: formSegment,
 						translation: '',
@@ -55,7 +56,7 @@
 	});
 </script>
 
-{#if loadedStatus.lists && formTableTree.data}
+{#if loadedStatus.arc}
 	<div
 		in:fly|global={{ x: 10, duration: 200, delay: 100 }}
 		out:fly|global={{ x: -10, duration: 100 }}

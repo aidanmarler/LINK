@@ -37,8 +37,8 @@
 						translation: '',
 						language: 'spanish',
 						form: crumb
-					} as LabelItem
-				}) as ForwardTranslation
+					} satisfies LabelItem
+				}) satisfies ForwardTranslation
 		);
 		let translations: Record<string, ForwardTranslation[]> = {
 			'Form Label': [
@@ -51,7 +51,7 @@
 						translation: '',
 						language: 'spanish',
 						form: crumb
-					} as LabelItem
+					} satisfies LabelItem
 				}
 			],
 			'Section Labels': sectionLabels

@@ -32,6 +32,8 @@ export type ViewReport = {
 
 export type Labels = 'Form' | 'Section';
 
+export type forwardStatus = 'skipped' | 'toForwardTranslate' | 'forwardTranslated' | 'inProgress';
+
 // Indicates if an original text has been translated or not, or possibly needs review.
 export type SegmentStatus =
 	| 'complete'
@@ -151,12 +153,12 @@ export type TableTree_Labels = {
 	};
 };
 
-export type TableTree_Guides = {
+export type TableTree_Variables = {
 	forms: {
 		[formId: string]: {
 			sections: {
 				[sectionId: string]: {
-					segments: { [segmentId: string]: SegmentData };
+					segments: { [segmentId: string]: SegmentData & { variableId: string } };
 				};
 			};
 		};
@@ -222,9 +224,26 @@ export interface QuestionGuideAddress extends BaseAddress {
 
 export type TranslationAddress = ListAddress | QuestionGuideAddress | LabelAddress | BaseAddress;
 
+export type VariableCategory =
+	| 'lists'
+	| 'questions'
+	| 'answers'
+	| 'definitions'
+	| 'completion_guides';
+
+export const VariableCategory_Labels: Record<VariableCategory, string> = {
+	questions: 'Question',
+	answers: 'Answer',
+	definitions: 'Definition',
+	completion_guides: 'Completion Guide',
+	lists: ''
+};
+
 export type ForwardTranslation = {
 	table: Table;
 	item: Item;
+	category: VariableCategory;
+	open: boolean;
 	skipped: boolean;
 	comment: string | null;
 };

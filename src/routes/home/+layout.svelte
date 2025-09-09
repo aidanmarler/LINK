@@ -5,12 +5,9 @@
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { getProfile } from '$lib/supabase/auth';
 	import { updateGlobalTables, userProfile } from '$lib/global.svelte';
-
 	import { page } from '$app/state';
-	import Logout from '../components/logout.svelte';
-	import { fade, fly, scale } from 'svelte/transition';
-	import { capitalizeFirstLetter, makeFolderLabel } from '$lib/utils/utils';
-	import ThemeManager from '../components/themeManager.svelte';
+	import { scale } from 'svelte/transition';
+	import { makeFolderLabel } from '$lib/utils/utils';
 	import KabobMenu from '../components/kabobMenu.svelte';
 
 	let { children } = $props();
@@ -23,9 +20,9 @@
 				window.location.href = '../login';
 			}
 			// Set profile data
-			userProfile.user = (await getProfile(session)) as Profile | null;
-			console.log('updateGlobalTables');
-			updateGlobalTables(userProfile.user?.language as TranslationLanguage);
+			userProfile.user = (await getProfile(session)) satisfies Profile | null;
+			if (!userProfile.user) return;
+			updateGlobalTables(userProfile.user.language as TranslationLanguage);
 		});
 
 		supabase.auth.onAuthStateChange((_event, _session) => {
@@ -66,19 +63,6 @@
 					{/if}
 				{/each}
 			</div>
-			<!--
-			<div class="w-full md:w-auto block flex py-1">
-				<ThemeManager />
-				<select
-					class="mx-2 h-full bg-stone-900/50 border-2 border-stone-600/50 px-3 py-0.5 font-semibold rounded-md cursor-pointer
-						hover:bg-stone-900 hover:border-stone-600"
-					>CRF: <option>Dengue</option><option>All Questions</option><option>All Questions</option
-					></select
-				>
-				<Logout />
-				
-			</div>
-			-->
 
 			<div class="h-50">
 				<KabobMenu />

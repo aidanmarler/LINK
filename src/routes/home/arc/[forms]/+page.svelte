@@ -1,17 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import {
-		address,
-		addressBook,
-		formTableTree,
-		global_address,
-		loadedStatus,
-		reset_address
-	} from '$lib/global.svelte';
+	import { addressBook, loadedStatus } from '$lib/global.svelte';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { card_dynamic } from '$lib/styles';
-	import { capitalizeFirstLetter } from '$lib/utils/utils';
 
 	let form = $state('');
 	onMount(() => {
@@ -20,7 +12,7 @@
 	});
 </script>
 
-{#if addressBook.forms[form]}
+{#if loadedStatus.arc && addressBook.forms[form]?.sections}
 	<div
 		in:fly|global={{ x: 10, duration: 200, delay: 100 }}
 		out:fly|global={{ x: -10, duration: 100 }}
