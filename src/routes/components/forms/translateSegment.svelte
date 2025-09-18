@@ -182,9 +182,6 @@
 				{/if}
 			</div>
 		</div>
-		<div class="w-5 p-0.5 h-5">
-			<SegmentMenu />
-		</div>
 	</div>
 
 	<div
@@ -201,11 +198,16 @@
 					<div class=" w-2/3 px-2">{translation}</div>
 				{:else}
 					<textarea
+					placeholder="Translate segment here..."
 						class="bg-white rounded-r dark:bg-black w-2/3 px-2 min-h-full"
 						rows="1"
 						bind:value={translation}
 					></textarea>
 				{/if}
+			</div>
+
+			<div class="w-6 p-0.5 h-5">
+				<SegmentMenu bind:comment />
 			</div>
 		{/if}
 	</div>

@@ -122,6 +122,7 @@ class TableTree {
 				// Iterate through each row
 				// Add row data to tree at location
 				for (const row of rows) {
+					console.log('01', row.comment);
 					// Get inital info
 					const guideRow = row as BaseRow & GuideItem;
 					const { id, form, section, segment, variable_id } = guideRow;

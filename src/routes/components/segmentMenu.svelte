@@ -3,7 +3,13 @@
 	import { fly, scale } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
 
-	
+	let {
+		//skipped = $bindable(),
+		comment = $bindable()
+	}: {
+		//skipped: boolean;
+		comment: string | null;
+	} = $props();
 
 	let menuContainer: HTMLDivElement;
 	let menuOpen = $state(false);
@@ -11,9 +17,16 @@
 	const buttonStyle =
 		'h-7 flex justify-left cursor-pointer hover:bg-white dark:hover:bg-stone-800 rounded-md opacity-70 hover:opacity-100';
 
+	const textStyle = ' min-h-7 flex bg-stone-50 p-0.5 px-2 dark:bg-stone-800 rounded-md ';
+
 	// Handle clicks outside the menu
 	function handleClickOutside(event: MouseEvent) {
 		if (menuContainer && !menuContainer.contains(event.target as Node)) {
+			menuOpen = false;
+		}
+	}
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' || (event.key === 'Enter' && !event.shiftKey)) {
 			menuOpen = false;
 		}
 	}
@@ -24,14 +37,17 @@
 			// Add listener on next tick to avoid immediate closure
 			setTimeout(() => {
 				document.addEventListener('click', handleClickOutside);
+				document.addEventListener('keydown', handleKeydown);
 			}, 0);
 		} else {
 			document.removeEventListener('click', handleClickOutside);
+			document.removeEventListener('keydown', handleKeydown);
 		}
 
 		// Cleanup function
 		return () => {
 			document.removeEventListener('click', handleClickOutside);
+			document.removeEventListener('keydown', handleKeydown);
 		};
 	});
 </script>
@@ -41,7 +57,7 @@
 		onclick={() => {
 			menuOpen = !menuOpen;
 		}}
-		class="opacity-50 hover:opacity-100  w-full h-full cursor-pointer"
+		class="opacity-50 hover:opacity-100 w-full h-full cursor-pointer"
 		title="Menu"
 		><img
 			alt="Menu"
@@ -52,10 +68,10 @@
 	{#if menuOpen}
 		<div
 			transition:fly={{ x: 15, duration: 75 }}
-			class="flex z-10 flex-col font-semibold text-sm overflow-hidden border shadow w-44 h-auto absolute -translate-x-38 -translate-y-1.5 rounded-lg
+			class="flex z-10 flex-col font-semibold text-sm overflow-hidden border shadow w-66 h-auto absolute -translate-x-60 -translate-y-1.5 rounded-lg
             dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
 		>
-			<div class="border-inherit p-1 space-y-0.5 flex flex-col">
+			<div class="border-inherit border-b p-1 flex flex-col">
 				<button class={buttonStyle} title="Choose not to translate segment." onclick={() => {}}>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -70,10 +86,13 @@
 					</svg>
 					<div class="h-full pt-1">Skip</div>
 				</button>
+				<!--
 				<button
 					class={buttonStyle}
 					title="Write a comment for reviewers/admins."
-					onclick={() => {}}
+					onclick={() => {
+						commentOpen = !commentOpen;
+					}}
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +106,11 @@
 						/>
 					</svg>
 					<div class="h-full pt-1">Write Comment</div>
-				</button>
+				</button>-->
+			</div>
+			<div class=" p-1 flex flex-col">
+				<textarea placeholder="Leave comment here..." class={textStyle} bind:value={comment}
+				></textarea>
 			</div>
 		</div>
 	{/if}

@@ -86,11 +86,12 @@
 			for (const translation in segmentData.translations) {
 				if (segmentData.translations[translation].user_created == userId) {
 					translated = true;
+					console.log(segmentData.translations[translation].comment);
 					const oldTranslation: ForwardTranslation = {
 						table: 'questions', // Changed from 'completion_guides' to 'definitions'
 						skipped: false, // !change get skipped
 						completed: true,
-						comment: null, // !change get comment
+						comment: segmentData.translations[translation].comment, // !change get comment
 						open: false, //categories.questions ? categories.questions.visible : false,
 						category: 'questions',
 						item: {
@@ -199,14 +200,16 @@
 			const variableId = segmentData.variableId;
 
 			let translated = false;
+
 			for (const translation in segmentData.translations) {
+				console.log('comment', segmentData.translations[translation].comment);
 				if (segmentData.translations[translation].user_created == userId) {
 					translated = true;
 					const oldTranslation: ForwardTranslation = {
 						table: 'definitions', // Changed from 'completion_guides' to 'definitions'
 						skipped: false, // !change get skipped
 						completed: true,
-						comment: null, // !change get comment
+						comment: segmentData.translations[translation].comment, // !change get comment
 						open: false, // categories.definitions ? categories.definitions.visible : false,
 						category: 'definitions',
 						item: {

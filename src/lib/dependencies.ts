@@ -17,7 +17,7 @@ export const tableColumns: Record<Table|'lists', string[]> = {
 	questions: questionColumns
 };
 
-export const idColumns = ['id', 'users_seen', 'users_voted', 'user_created'];
+export const idColumns = ['id', 'users_seen', 'users_voted', 'user_created', 'comment'];
 
 export function generateItemKey<T extends Table>(table: T, item: ItemForTable<T>): string {
 	 let itemKey = '';
