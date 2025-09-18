@@ -13,10 +13,12 @@ import {
 	type BaseItem,
 	type Table,
 	type TranslationLanguage,
-	type VariableItem,
-	type VariableTable,
+	type GuideItem,
+	type GuideTable,
 	type LabelItem,
-	type ItemForTable
+	type ItemForTable,
+	type QuestionItem,
+	type QuestionTable
 	//type ListItem
 } from '$lib/types';
 import Papa from 'papaparse';
@@ -282,9 +284,9 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 		//lists: Map<string, ListItem>;
 		sections: Map<string, LabelItem>;
 		answer_options: Map<string, BaseItem>;
-		questions: Map<string, VariableItem>;
-		definitions: Map<string, VariableItem>;
-		completion_guides: Map<string, VariableItem>;
+		questions: Map<string, GuideItem>;
+		definitions: Map<string, GuideItem>;
+		completion_guides: Map<string, GuideItem>;
 	} = {
 		answer_options: await getExistingTranslations('answer_options', language),
 		forms: await getExistingTranslations('forms', language),
@@ -294,15 +296,17 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 		questions: await getExistingTranslations('questions', language)
 	};
 
+	console.log('existingTranslations.questions', existingTranslations.questions);
+
 	// 3. Define new translation sets
 	const newTranslations: {
 		forms: Map<string, LabelItem>;
 		//lists: Map<string, ListItem>;
 		sections: Map<string, LabelItem>;
 		answer_options: Map<string, BaseItem>;
-		questions: Map<string, VariableItem>;
-		definitions: Map<string, VariableItem>;
-		completion_guides: Map<string, VariableItem>;
+		questions: Map<string, GuideItem>;
+		definitions: Map<string, GuideItem>;
+		completion_guides: Map<string, GuideItem>;
 	} = {
 		forms: new Map(),
 		sections: new Map(),
@@ -319,15 +323,12 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 		key: string
 	) {
 		if (translation.segment == '' || translation.translation == '') return;
-		if (table == 'forms') {
-			console.log('key: ' + key);
-			console.log(existingTranslations[table].has(key), existingTranslations[table]);
-			//console.log(newTranslations[table].has(key), newTranslations[table].keys);
-		}
 		if (!existingTranslations[table].has(key) && !newTranslations[table].has(key)) {
 			(newTranslations[table] as Map<string, typeof translation>).set(key, translation);
 		}
 	}
+
+	console.log(csvEnglish);
 
 	// 4. Check if translation in existing translations
 	for (const variable in csvEnglish) {
@@ -372,7 +373,8 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 				form: csvEng.form,
 				section: csvEng.section,
 				segment: csvEng.question,
-				translation: csvTrans.question
+				translation: csvTrans.question,
+				answer_options: csvEng.answerOptions ? Object.values(csvEng.answerOptions) : null
 			}
 		};
 
@@ -419,16 +421,16 @@ async function PullARCH(ARCHlanguage: Language, version: string, owner: string, 
 		insertTranslations('sections', newTranslations.sections),
 		insertTranslations('answer_options', newTranslations.answer_options),
 		insertTranslations(
-			'questions' as VariableTable,
-			newTranslations.questions as Map<string, VariableItem>
+			'questions' as QuestionTable,
+			newTranslations.questions as Map<string, QuestionItem>
 		),
 		insertTranslations(
-			'definitions' as VariableTable,
-			newTranslations.definitions as Map<string, VariableItem>
+			'definitions' as GuideTable,
+			newTranslations.definitions as Map<string, GuideItem>
 		),
 		insertTranslations(
-			'completion_guides' as VariableTable,
-			newTranslations.completion_guides as Map<string, VariableItem>
+			'completion_guides' as GuideTable,
+			newTranslations.completion_guides as Map<string, GuideItem>
 		)
 	]);
 	return;

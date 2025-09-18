@@ -5,6 +5,7 @@ export const baseColumns = ['language', 'segment', 'translation'];
 export const labelColumns = baseColumns.concat(['form']);
 export const listColumns = baseColumns.concat(['list', 'sublist', 'original']);
 export const guideColumns = baseColumns.concat(['form', 'section', 'variable_id']);
+export const questionColumns = baseColumns.concat(['form', 'section', 'variable_id', 'answer_options']);
 
 export const tableColumns: Record<Table|'lists', string[]> = {
 	answer_options: baseColumns,
@@ -13,10 +14,10 @@ export const tableColumns: Record<Table|'lists', string[]> = {
 	sections: labelColumns,
 	definitions: guideColumns,
 	completion_guides: guideColumns,
-	questions: guideColumns
+	questions: questionColumns
 };
 
-export const idColumns = ['id', 'users_seen', 'users_voted'];
+export const idColumns = ['id', 'users_seen', 'users_voted', 'user_created'];
 
 export function generateItemKey<T extends Table>(table: T, item: ItemForTable<T>): string {
 	 let itemKey = '';

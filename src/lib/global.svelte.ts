@@ -15,12 +15,15 @@ import type {
 	Table,
 	LabelItem,
 	Row,
-	BaseRow,
-	TableTree_Labels,
-	SegmentInteraction,
-	VariableItem,
+	TableTreeData_Labels,
+	GuideItem,
 	AddressBook,
-	TableTree_Variables
+	TableTreeData_Guides,
+	BaseRow,
+	QuestionItem,
+	TableTreeData_Questions,
+	TableTreeData_Answers,
+	TableTreeData
 } from './types';
 import { makeFolderLabel, makeFolderNav } from './utils/utils';
 
@@ -33,13 +36,14 @@ export const userProfile: { user: Profile | null } = $state({ user: null });
 
 // Track information pulled from  Supabase
 export const loadedStatus = $state({
-	lists: false,
 	arc: false,
+	lists: false,
 	questions: false,
 	answers: false,
 	definitions: false,
 	guides: false,
-	labels: false
+	sections: false,
+	forms: false
 });
 
 //#endregion User
@@ -63,9 +67,7 @@ export const reset_address = () => {
 class TableTree {
 	table: Table;
 	// Using as here! Replace with satisfies?
-	#data: TableTree_Labels | TableTree_Variables = $state(
-		{} as TableTree_Labels | TableTree_Variables
-	);
+	#data: TableTreeData = $state({} as TableTreeData);
 	constructor(table: Table) {
 		this.table = table;
 	}
@@ -73,28 +75,23 @@ class TableTree {
 		return this.#data;
 	}
 
-	private getCompletionStatus(
-		segmentInteraction: SegmentInteraction,
-		userId: string
-	): SegmentStatus {
+	private getCompletionStatus(segmentInteraction: BaseRow, userId: string): SegmentStatus {
 		if (segmentInteraction.users_passed.includes(userId)) return 'skipped';
 		if (segmentInteraction.users_voted.includes(userId)) return 'complete';
 		return 'incomplete';
 	}
 
-	hasSections(): this is { data: TableTree_Variables } {
-		return (
-			this.table === 'questions' ||
-			this.table === 'definitions' ||
-			this.table === 'completion_guides'
-		);
+	hasSections(): this is { data: TableTreeData_Guides } {
+		return this.table === 'definitions' || this.table === 'completion_guides';
 	}
 
 	async setTreeData(rows: Row[]): Promise<void | Error> {
 		if (!userProfile.user) return new Error();
 
-		const labelData: TableTree_Labels = { forms: {} };
-		const guideData: TableTree_Variables = { forms: {} };
+		const labelData: TableTreeData_Labels = { forms: {} };
+		const guideData: TableTreeData_Guides = { forms: {} };
+		const questionData: TableTreeData_Questions = { forms: {} };
+		const answerData: TableTreeData_Answers = { segments: {} };
 
 		switch (this.table) {
 			case 'forms':
@@ -120,14 +117,13 @@ class TableTree {
 				}
 				this.#data = labelData;
 				break;
-			case 'questions':
 			case 'definitions':
 			case 'completion_guides':
 				// Iterate through each row
 				// Add row data to tree at location
 				for (const row of rows) {
 					// Get inital info
-					const guideRow = row as BaseRow & VariableItem;
+					const guideRow = row as BaseRow & GuideItem;
 					const { id, form, section, segment, variable_id } = guideRow;
 					// If no form, add form
 					if (!guideData.forms[form]) guideData.forms[form] = { sections: {} };
@@ -145,7 +141,49 @@ class TableTree {
 					// At location, add row to list of translations
 					guideData.forms[form].sections[section].segments[segment].translations[id] = guideRow;
 				}
-				this.#data = guideData satisfies TableTree_Variables;
+				this.#data = guideData satisfies TableTreeData_Guides;
+				break;
+			case 'questions':
+				// Iterate through each row
+				// Add row data to tree at location
+				for (const row of rows) {
+					// Get inital info
+					const questionRow = row as BaseRow & QuestionItem;
+					const { id, form, section, segment, variable_id, answer_options } = questionRow;
+					// If no form, add form
+					if (!questionData.forms[form]) questionData.forms[form] = { sections: {} };
+					// If no section, add section
+					if (!questionData.forms[form].sections[section])
+						questionData.forms[form].sections[section] = { segments: {} };
+					// If no segment, add segment
+					if (!questionData.forms[form].sections[section].segments[segment])
+						questionData.forms[form].sections[section].segments[segment] = {
+							translations: {},
+							completionStatus: 'incomplete',
+							variableId: variable_id,
+							answer_options: answer_options
+						};
+
+					// At location, add row to list of translations
+					questionData.forms[form].sections[section].segments[segment].translations[id] =
+						questionRow;
+				}
+				this.#data = questionData satisfies TableTreeData_Questions;
+				break;
+			case 'answer_options':
+				for (const row of rows) {
+					// Get inital info
+					const { id, segment } = row;
+					// If no segment, add segment
+					if (!answerData.segments[segment])
+						answerData.segments[segment] = {
+							translations: {},
+							completionStatus: 'incomplete'
+						};
+					// At location, add row to list of translations
+					answerData.segments[segment].translations[id] = row;
+				}
+				this.#data = answerData satisfies TableTreeData_Answers;
 				break;
 		}
 	}
@@ -180,12 +218,22 @@ export const addressBook: AddressBook = { forms: {} };
 // Create more specific interfaces for each table type
 export interface LabelTableTree extends TableTree {
 	readonly table: 'forms' | 'sections';
-	data: TableTree_Labels;
+	data: TableTreeData_Labels;
 }
 
 export interface GuideTableTree extends TableTree {
-	readonly table: 'questions' | 'definitions' | 'completion_guides';
-	data: TableTree_Variables;
+	readonly table: 'definitions' | 'completion_guides';
+	data: TableTreeData_Guides;
+}
+
+export interface QuestionTableTree extends TableTree {
+	readonly table: 'questions';
+	data: TableTreeData_Questions;
+}
+
+export interface AnswerTableTree extends TableTree {
+	readonly table: 'answer_options';
+	data: TableTreeData_Answers;
 }
 
 // Factory functions
@@ -193,18 +241,25 @@ export function createLabelTableTree(table: 'forms' | 'sections'): LabelTableTre
 	return new TableTree(table) as LabelTableTree;
 }
 
-export function createGuideTableTree(
-	table: 'questions' | 'definitions' | 'completion_guides'
-): GuideTableTree {
+export function createGuideTableTree(table: 'definitions' | 'completion_guides'): GuideTableTree {
 	return new TableTree(table) as GuideTableTree;
 }
 
-// Your instances - TypeScript knows the exact type from creation!
+export function createQuestionTableTree(table: 'questions'): QuestionTableTree {
+	return new TableTree(table) as QuestionTableTree;
+}
+
+export function createAnswerTableTree(table: 'answer_options'): AnswerTableTree {
+	return new TableTree(table) as AnswerTableTree;
+}
+
+// Create Table Trees
 export const formTableTree = createLabelTableTree('forms');
 export const sectionTableTree = createLabelTableTree('sections');
 export const guideTableTree = createGuideTableTree('completion_guides');
 export const definitionTableTree = createGuideTableTree('definitions');
-//export const questionsTableTree = createGuideTableTree('definitions');
+export const questionTableTree = createQuestionTableTree('questions');
+export const answerTableTree = createAnswerTableTree('answer_options');
 
 export async function updateTableTrees(language: TranslationLanguage) {
 	// Get data from Supabase as lists of rows
@@ -212,12 +267,24 @@ export async function updateTableTrees(language: TranslationLanguage) {
 	const sectionsTable = await retrieveTable('sections', language);
 	const guidesTable = await retrieveTable('completion_guides', language);
 	const definitionsTable = await retrieveTable('definitions', language);
-	//const questionsTable = await retrieveTable('questions', language);
+	const questionsTable = await retrieveTable('questions', language);
+	const answersTable = await retrieveTable('answer_options', language);
+
+	console.log('answersTable', answersTable);
+
 	// convert rows into Table Tree by setting the data source for the proper tree.
-	await sectionTableTree.setTreeData(sectionsTable);
+	await questionTableTree.setTreeData(questionsTable);
+	loadedStatus.questions = true;
+	await answerTableTree.setTreeData(answersTable);
+	loadedStatus.answers = true;
 	await formTableTree.setTreeData(formsTable);
+	loadedStatus.forms = true;
+	await sectionTableTree.setTreeData(sectionsTable);
+	loadedStatus.sections = true;
 	await definitionTableTree.setTreeData(definitionsTable);
+	loadedStatus.definitions = true;
 	await guideTableTree.setTreeData(guidesTable);
+	loadedStatus.guides = true;
 	// return when complete
 	return;
 }

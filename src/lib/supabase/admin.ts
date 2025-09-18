@@ -6,14 +6,16 @@ import type {
 	ListTranslation,
 	BaseItem,
 	TranslationLanguage,
-	VariableItem,
-	VariableTable,
+	GuideItem,
+	GuideTable,
 	BaseTable,
 	Item,
 	Table,
 	LabelTable,
 	LabelItem,
-	ItemForTable
+	ItemForTable,
+	QuestionTable,
+	QuestionItem
 } from '$lib/types';
 import { supabase } from '../../supabaseClient';
 
@@ -68,7 +70,11 @@ export async function getExistingTranslations<T extends LabelTable>(
 	table: T,
 	language: TranslationLanguage
 ): Promise<Map<string, ItemForTable<T>>>;
-export async function getExistingTranslations<T extends VariableTable>(
+export async function getExistingTranslations<T extends GuideTable>(
+	table: T,
+	language: TranslationLanguage
+): Promise<Map<string, ItemForTable<T>>>;
+export async function getExistingTranslations<T extends QuestionTable>(
 	table: T,
 	language: TranslationLanguage
 ): Promise<Map<string, ItemForTable<T>>>;
@@ -76,7 +82,7 @@ export async function getExistingTranslations<T extends Table>(
 	table: T,
 	language: TranslationLanguage
 ): Promise<Map<string, ItemForTable<T>>> {
-	console.log('getting existing supabase translations in ', table, language);
+	console.log('getting existing supabase translations in', table, language);
 	async function pullRange(page: number, pageSize: number): Promise<ItemForTable<T>[]> {
 		const columns = tableColumns[table].join(', ') as '*';
 		const { data, error } = await supabase
@@ -145,8 +151,12 @@ export async function insertTranslations(
 	translations: Map<string, LabelItem>
 ): Promise<void | Error>;
 export async function insertTranslations(
-	table: VariableTable,
-	translations: Map<string, VariableItem>
+	table: GuideTable,
+	translations: Map<string, GuideItem>
+): Promise<void | Error>;
+export async function insertTranslations(
+	table: QuestionTable,
+	translations: Map<string, QuestionItem>
 ): Promise<void | Error>;
 export async function insertTranslations(
 	table: Table,

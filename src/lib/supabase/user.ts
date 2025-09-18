@@ -5,13 +5,8 @@ import type {
 	Row,
 	TranslationItem_Lists,
 	TranslationLanguage,
-	BaseTable,
-	LabelTable,
-	VariableTable,
-	BaseItem,
-	LabelItem,
-	VariableItem,
-	Item
+	ItemForTable,
+	UserComment
 } from '../types';
 
 export async function retrieveTable(table: Table | 'lists', language: TranslationLanguage) {
@@ -27,7 +22,12 @@ export async function retrieveTable(table: Table | 'lists', language: Translatio
 		const { data, error } = await query;
 
 		if (error) {
-			console.error('Error fetching table', error);
+			console.error(
+				'Error fetching table:' + table + ' for ' + language,
+				'page ' + page,
+				columns,
+				error
+			);
 			return [];
 		}
 
@@ -234,6 +234,7 @@ export async function retrieveTable_lists(language?: TranslationLanguage) {
 		}
 	})) as TranslationItem_Lists[];
 }
+
 /* Lists Upload Changes 
 // Function adds user to all seen rows, if not already in it.
 export async function lists_addSeenToAll(userId: string, translationIds: string[]) {
@@ -374,29 +375,23 @@ export async function lists_addOption(
 }
 
 // Insert Translations into Supabase of specified type for table.
-export async function addTranslations(
+export async function addItems<T extends Table>(
 	userId: string,
-	table: BaseTable,
-	items: BaseItem[]
-): Promise<void | Error>;
-export async function addTranslations(
-	userId: string,
-	table: LabelTable,
-	items: LabelItem[]
-): Promise<void | Error>;
-export async function addTranslations(
-	userId: string,
-	table: VariableTable,
-	items: VariableItem[]
-): Promise<void | Error>;
-export async function addTranslations(
-	userId: string,
-	table: Table,
-	items: Item[]
+	table: T,
+	items: (ItemForTable<T> & UserComment)[]
 ): Promise<void | Error> {
-	console.log('adding ' + items.length + ' new translation into ' + table);
 	if (items.length === 0) return;
-	const { error } = await supabase.from(table).insert({ items });
+
+	// Mutate each item to include user_created
+	const itemsWithUser = items.map((item) => ({
+		...item,
+		user_created: userId
+	}));
+
+	console.log(itemsWithUser);
+	console.log('adding ' + itemsWithUser.length + ' new translation into ' + table, itemsWithUser);
+
+	const { error } = await supabase.from(table).insert(itemsWithUser);
 	if (error) return error;
 	return;
 }

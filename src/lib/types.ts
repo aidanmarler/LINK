@@ -82,9 +82,10 @@ Each table is of a type, Base, Label, or Variable
 
 // Tables
 export type BaseTable = 'answer_options';
+export type QuestionTable = 'questions';
 export type LabelTable = 'forms' | 'sections';
-export type VariableTable = 'questions' | 'definitions' | 'completion_guides';
-export type Table = BaseTable | LabelTable | VariableTable;
+export type GuideTable = 'definitions' | 'completion_guides';
+export type Table = BaseTable | LabelTable | GuideTable | QuestionTable;
 
 // Items
 export interface BaseItem {
@@ -99,7 +100,7 @@ export interface ListItem extends BaseItem {
 export interface LabelItem extends BaseItem {
 	form: string;
 }
-export interface VariableItem extends BaseItem {
+export interface GuideItem extends BaseItem {
 	variable_id: string;
 	form: string;
 	section: string;
@@ -108,7 +109,7 @@ export interface QuestionItem extends BaseItem {
 	variable_id: string;
 	form: string;
 	section: string;
-	answers: [string];
+	answer_options: string[] | null;
 }
 
 // Table-Translation Type Mapping
@@ -116,26 +117,28 @@ export type TableItemMap = {
 	answer_options: BaseItem;
 	forms: LabelItem;
 	sections: LabelItem;
-	questions: VariableItem;
-	definitions: VariableItem;
-	completion_guides: VariableItem;
+	definitions: GuideItem;
+	completion_guides: GuideItem;
+	questions: QuestionItem;
 };
 
 // Helper type to get translation type from table
 export type ItemForTable<T extends Table> = T extends keyof TableItemMap ? TableItemMap[T] : never;
 
-export type Item = BaseItem | LabelItem | VariableItem;
+export type Item = BaseItem | LabelItem | GuideItem | QuestionItem;
 
-export interface SegmentInteraction {
+// Handling comments
+export interface UserComment {
+	comment: string | null;
+}
+
+// Row - comment plus all the other row things
+export interface BaseRow extends UserComment {
+	id: string;
+	user_created: string | null;
 	users_seen: string[];
 	users_voted: string[];
 	users_passed: string[];
-}
-
-// Row
-export interface BaseRow {
-	id: string;
-	segmentInteraction: SegmentInteraction;
 }
 
 export type Row = BaseRow & Item;
@@ -145,7 +148,7 @@ export type SegmentData = {
 	completionStatus: SegmentStatus;
 };
 
-export type TableTree_Labels = {
+export type TableTreeData_Labels = {
 	forms: {
 		[formId: string]: {
 			segments: { [segmentId: string]: SegmentData };
@@ -153,7 +156,7 @@ export type TableTree_Labels = {
 	};
 };
 
-export type TableTree_Variables = {
+export type TableTreeData_Guides = {
 	forms: {
 		[formId: string]: {
 			sections: {
@@ -164,6 +167,33 @@ export type TableTree_Variables = {
 		};
 	};
 };
+
+export type TableTreeData_Questions = {
+	forms: {
+		[formId: string]: {
+			sections: {
+				[sectionId: string]: {
+					segments: {
+						[segmentId: string]: SegmentData & {
+							variableId: string;
+							answer_options: string[] | null;
+						};
+					};
+				};
+			};
+		};
+	};
+};
+
+export type TableTreeData_Answers = {
+	segments: { [segmentId: string]: SegmentData };
+};
+
+export type TableTreeData =
+	| TableTreeData_Answers
+	| TableTreeData_Questions
+	| TableTreeData_Guides
+	| TableTreeData_Labels;
 
 export type AddressBook = {
 	forms: {
@@ -244,6 +274,7 @@ export type ForwardTranslation = {
 	item: Item;
 	category: VariableCategory;
 	open: boolean;
+	completed: boolean;
 	skipped: boolean;
 	comment: string | null;
 };

@@ -3,6 +3,8 @@
 	import { PullCategory } from './retrieve_Lists';
 	import { card_static } from '$lib/styles';
 	let activeLanguages: Language[] = ['Spanish']; //, 'French', 'Portuguese'];
+
+	let ARCHVersion = $state('1.1.0');
 </script>
 
 {#snippet LanguageCategoryControls(language: Language)}
@@ -11,8 +13,8 @@
 			<h3 class="text-2xl w-20">{language}</h3>
 			<button
 				title="Push Updated Lists to GitHub"
-				class="bg-green-900 border-2 border-green-600 px-3 py-0 font-semibold rounded-lg cursor-pointer
-							hover:bg-green-700 hover:border-green-400"
+				class="dark:bg-green-900 border-2 border-green-600 px-3 py-0 font-semibold rounded-lg cursor-pointer
+							dark:hover:bg-green-700 hover:border-green-400"
 			>
 				Push Lists
 			</button>
@@ -81,14 +83,14 @@
 	</div>
 {/snippet}
 
-<div class="max-w-96 p-2 rounded-lg {card_static}">
+<div class="max-w-96 flex-wrap flex p-2 rounded-lg {card_static}">
 	<button
 		title="Pull Lists from GitHub"
-		class="bg-blue-900 border-2 border-blue-600 px-3 font-semibold rounded-lg cursor-pointer
-						hover:bg-blue-700 hover:border-blue-400"
+		class="dark:bg-blue-900 border-2 border-blue-600 px-3 font-semibold rounded-lg cursor-pointer
+						hover:bg-blue-500/20 hover:border-blue-500 dark:hover:border-blue-400"
 		onclick={async () => {
 			for (const language of activeLanguages) {
-				await PullCategory('Lists', language);
+				await PullCategory('Lists', language, ARCHVersion);
 			}
 		}}
 	>
@@ -97,16 +99,22 @@
 
 	<button
 		title="Pull ARCH from GitHub"
-		class="bg-blue-900 border-2 border-blue-600 px-3 font-semibold rounded-lg cursor-pointer
-						hover:bg-blue-700 hover:border-blue-400"
+		class="dark:bg-blue-900 mx-2 border-2 border-blue-600 px-3 font-semibold rounded-lg cursor-pointer
+						dark:hover:bg-blue-700 hover:border-blue-400"
 		onclick={async () => {
 			for (const language of activeLanguages) {
-				await PullCategory('Questions', language);
+				await PullCategory('Questions', language, ARCHVersion);
 			}
 		}}
 	>
 		Pull ARCH
 	</button>
+
+	<input
+		class=" border-2 px-3 w-20 font-semibold rounded-lg
+						"
+		bind:value={ARCHVersion}
+	/>
 </div>
 
 {@render CategoryControls('Lists')}

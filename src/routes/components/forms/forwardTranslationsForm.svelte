@@ -1,5 +1,16 @@
 <script lang="ts">
-	import { VariableCategory_Labels, type ForwardTranslation, type Table } from '$lib/types';
+	import { updateGlobalTables, userProfile } from '$lib/global.svelte';
+	import { addItems } from '$lib/supabase/user';
+	import {
+		VariableCategory_Labels,
+		type BaseRow,
+		type ForwardTranslation,
+		type Item,
+		type Row,
+		type Table,
+		type TranslationLanguage,
+		type UserComment
+	} from '$lib/types';
 	import TranslateSegment from './translateSegment.svelte';
 
 	let {
@@ -10,13 +21,24 @@
 
 	let translationsToPush: Partial<Record<Table, ForwardTranslation[]>> = {};
 
-	function handleSubmit() {
+	async function handleSubmit() {
+		if (!userProfile.user) return Error();
 		// Collect only translations that have been changed (non-empty translation field)
 		translationsToPush = {};
 
+		const addedSegments = new Set<string>();
+
 		Object.entries(forwardTranslations).forEach(([section, translations]) => {
 			translations.forEach((translation) => {
-				if (translation.item.translation.trim() !== '') {
+				if (translation.item.translation.trim() !== '' && !translation.completed) {
+					// Check if this segment has already been added
+					if (addedSegments.has(translation.item.segment)) {
+						return; // Skip if already added
+					}
+
+					// Mark this segment as added
+					addedSegments.add(translation.item.segment);
+
 					const table = translation.table;
 					if (!translationsToPush[table]) {
 						translationsToPush[table] = [];
@@ -26,8 +48,37 @@
 			});
 		});
 
-		console.log('Translations to push:', translationsToPush);
+		console.log('pushing translations...');
+
+		console.log('translationsToPush', translationsToPush);
+
+		for (const [table, translations] of Object.entries(translationsToPush)) {
+			if (!userProfile.user) return Error();
+			const items = translations.map((translation) => ({
+				...(translation.item satisfies Item),
+				comment: translation.comment
+			}));
+
+			const result = await addItems(
+				userProfile.user.id,
+				table as Table,
+				items as (Item & UserComment)[]
+			);
+
+			if (result instanceof Error) {
+				console.error(`Failed to insert into ${table}:`, items, result);
+				return Error();
+				// Handle error (show notification, etc.)
+			} else {
+				console.log(`Successfully inserted into ${table}!`);
+			}
+		}
+
+		console.log('All translations processed successfully!');
+		if (!userProfile.user) return Error();
+		updateGlobalTables(userProfile.user.language as TranslationLanguage);
 	}
+
 	// Function to filter and update segments based on category
 	export function filterData(category: string, open: boolean) {
 		console.log(`Filtering ${category} to ${open ? 'visible' : 'hidden'}`);
@@ -40,10 +91,12 @@
 	<h1 class="text-lg font-light">{section}</h1>
 	{#each translations as translation, j (j)}
 		<TranslateSegment
+			completed={translation.completed}
 			open={translation.open}
 			label={VariableCategory_Labels[translation.category]}
 			segment={translation.item.segment}
 			bind:translation={translation.item.translation}
+			bind:comment={translation.comment}
 		/>
 	{/each}
 	<br />
