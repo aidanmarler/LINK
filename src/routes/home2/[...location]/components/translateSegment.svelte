@@ -3,7 +3,7 @@
 	import type { forwardStatus } from '$lib/types';
 	import { quintInOut, quintOut } from 'svelte/easing';
 	import { blur, draw, fade, fly, scale } from 'svelte/transition';
-	import SegmentMenu from '../segmentMenu.svelte';
+	import SegmentMenu from '../../../components/segmentMenu.svelte';
 
 	let {
 		completed,
@@ -18,7 +18,7 @@
 		segment: string;
 		translation: string;
 		open: boolean;
-		comment: string | null;
+		comment: string;
 	} = $props();
 
 	let inProgress: boolean = $derived(translation.length > 0);
@@ -78,9 +78,7 @@
 
 				<span class="text-xs font-semibold italic text-stone-500">{label}</span>
 			</button>
-			<a href="/{label}">
-			{label}
-			</a>
+			<!--<a href="/{label}"></a>-->
 
 			<!--Completion Indicator-->
 			<div class="w-4 h-4 stroke-stone-500 fill-stone-500">
@@ -201,7 +199,7 @@
 					<div class=" w-2/3 px-2">{translation}</div>
 				{:else}
 					<textarea
-					placeholder="Translate segment here..."
+						placeholder="Translate segment here..."
 						class="bg-white rounded-r dark:bg-black w-2/3 px-2 min-h-full"
 						rows="1"
 						bind:value={translation}

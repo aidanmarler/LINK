@@ -11,7 +11,7 @@
 		addVote,
 		removeVotesFromAll
 	} from '$lib/supabase/user';
-	import type { AvailableLanguages, ListAddress, TranslationLanguage } from '$lib/types';
+	import type { AvailableLanguage, ListAddress, TranslationLanguage } from '$lib/types';
 	import { tick } from 'svelte';
 	import { quintOut } from 'svelte/easing';
 	import { draw, fly } from 'svelte/transition';

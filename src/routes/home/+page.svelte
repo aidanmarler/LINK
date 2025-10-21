@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { AvailableLanguages, Category, TranslationLanguage } from '$lib/types';
+	import type { AvailableLanguage, Category, TranslationLanguage } from '$lib/types';
 	import {
 		global_address,
 		global_lists,
@@ -18,7 +18,7 @@
 
 	let infoOpen = $state(false);
 
-	let language: AvailableLanguages = $derived(
+	let language: AvailableLanguage = $derived(
 		userProfile.user ? userProfile.user.language : 'spanish'
 	);
 

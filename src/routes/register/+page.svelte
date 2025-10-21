@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
-	import type { AvailableLanguages } from '../../lib/types';
+	import type { AvailableLanguage } from '../../lib/types';
 
 	let name: string = '';
 	let email: string = '';
 	let password: string = '';
 	let confirmPassword: string = '';
-	let language: AvailableLanguages = 'none';
+	let language: AvailableLanguage = 'none';
 	let clinical = false;
 
 	async function handleSignUp(event: Event) {

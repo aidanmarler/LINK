@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import {
-		address,
 		addressBook,
 		formTableTree,
 		global_address,

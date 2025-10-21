@@ -4,30 +4,25 @@
 		addressBook,
 		answerTableTree,
 		definitionTableTree,
-		formTableTree,
-		global_address,
 		guideTableTree,
 		loadedStatus,
 		questionTableTree,
-		reset_address,
-		sectionTableTree,
 		userProfile
 	} from '$lib/global.svelte';
-	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import type {
 		ForwardTranslation,
-		LabelAddress,
 		TranslationLanguage,
 		VariableCategory,
 		GuideItem,
 		QuestionItem,
-		BaseItem
+		BaseItem,
+		UserForm
 	} from '$lib/types';
+	
 	import ForwardTranslationsForm from '../../../../components/forms/forwardTranslationsForm.svelte';
 	import ToggleSwitch from '../../../../components/toggleSwitch.svelte';
 
-	type UserForm = 'Forward Translate' | 'Review' | 'Backward Translate';
 	let currentForm: UserForm = $state('Forward Translate');
 	let forms: UserForm[] = ['Forward Translate', 'Review', 'Backward Translate'];
 

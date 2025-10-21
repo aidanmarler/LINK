@@ -7,8 +7,7 @@ import {
 } from '$lib/supabase/admin';
 import {
 	type ARCHData,
-	type Category,
-	type Language,
+	type GithubLanguage,
 	type ListTranslation,
 	type BaseItem,
 	type Table,
@@ -79,6 +78,7 @@ async function fetchAndParseListCSV(
 	return csvData;
 }
 
+
 async function fetchAndParseARCHCSV(owner: string, repo: string, path: string): Promise<ARCHData> {
 	console.log('Fetching ARCH at ' + path);
 	const response = await fetch('https://api.github.com/graphql', {
@@ -89,16 +89,16 @@ async function fetchAndParseARCHCSV(owner: string, repo: string, path: string): 
 		},
 		body: JSON.stringify({
 			query: `
-          query GetCSVContents($owner: String!, $repo: String!, $path: String!) {
-            repository(owner: $owner, name: $repo) {
-              object(expression: $path) {
-                ... on Blob {
-                  text
-                }
-              }
-            }
-          }
-        `,
+		  query GetCSVContents($owner: String!, $repo: String!, $path: String!) {
+			repository(owner: $owner, name: $repo) {
+			  object(expression: $path) {
+				... on Blob {
+				  text
+				}
+			  }
+			}
+		  }
+		`,
 			variables: {
 				owner,
 				repo,
@@ -157,8 +157,8 @@ async function fetchAndParseARCHCSV(owner: string, repo: string, path: string): 
 
 // Function to update category repository for specified language
 export async function PullCategory(
-	category: Category,
-	language: Language,
+	category: 'Lists' | 'ARC' | 'Questions',
+	language: GithubLanguage,
 	version: string = '1.1.0'
 ) {
 	const owner = 'ISARICResearch';
@@ -173,7 +173,7 @@ export async function PullCategory(
 	}
 }
 
-async function PullLists(language: Language, version: string, owner: string, repo: string) {
+async function PullLists(language: GithubLanguage, version: string, owner: string, repo: string) {
 	async function verifyListTranslations(
 		listTranslations: ListTranslation[],
 		translationLanguage: TranslationLanguage
@@ -265,7 +265,8 @@ async function PullLists(language: Language, version: string, owner: string, rep
 	console.log(' -- Complete!', language, version);
 }
 
-async function PullARCH(ARCHlanguage: Language, version: string, owner: string, repo: string) {
+
+async function PullARCH(ARCHlanguage: GithubLanguage, version: string, owner: string, repo: string) {
 	console.log('Pulling ARCH...');
 	// 1. Get ARCH for language and version
 	const pathEnglish = `main:ARCH${version}/English/ARCH.csv`;

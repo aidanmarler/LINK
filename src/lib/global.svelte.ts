@@ -127,7 +127,7 @@ class TableTree {
 					const guideRow = row as BaseRow & GuideItem;
 					const { id, form, section, segment, variable_id } = guideRow;
 					// If no form, add form
-					if (!guideData.forms[form]) guideData.forms[form] = { sections: {} };
+					if (!guideData.forms[form]) guideData.forms[form] = { sections: {} };				
 					// If no section, add section
 					if (!guideData.forms[form].sections[section])
 						guideData.forms[form].sections[section] = { segments: {} };
@@ -138,6 +138,23 @@ class TableTree {
 							completionStatus: 'incomplete',
 							variableId: variable_id
 						};
+
+						/*
+
+						// If no section, add section
+					if (!guideData.forms[form].sections[section])
+						guideData.forms[form].sections[section] = { variables: {} };
+					// If no variable, add variable
+					if (!guideData.forms[form].sections[section].variables[variable])
+						guideData.forms[form].sections[section].variables[variable] = { segments: {} };
+					// If no segment, add segment
+					if (!guideData.forms[form].sections[section].variables[variable].segments[segment])
+						guideData.forms[form].sections[section].variables[variable].segments[segment] = {
+							translations: {},
+							completionStatus: 'incomplete',
+							variableId: variable_id
+						};
+						*/
 
 					// At location, add row to list of translations
 					guideData.forms[form].sections[section].segments[segment].translations[id] = guideRow;
@@ -322,7 +339,30 @@ export async function updateAddressBook() {
 								id: section,
 								id_label: makeFolderLabel(section),
 								id_nav: section_nav
-							}
+							},
+							variables:{}
+						};
+				}
+			}
+		}
+	});
+
+	await tick().then(() => {
+		if (guideTableTree.hasSections()) {
+			for (const form in guideTableTree.data?.forms) {
+				const form_nav = makeFolderNav(form);
+
+				for (const section in guideTableTree.data?.forms[form_nav].sections) {
+					const section_nav = makeFolderNav(section);
+
+					if (!addressBook.forms[form_nav].sections[section_nav])
+						addressBook.forms[form_nav].sections[section_nav] = {
+							branch: {
+								id: section,
+								id_label: makeFolderLabel(section),
+								id_nav: section_nav
+							},
+							variables:{}
 						};
 				}
 			}

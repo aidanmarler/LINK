@@ -1,10 +1,10 @@
 //#region Languages
 
 // For user creation - what are you an expert in...
-export type AvailableLanguages = 'none' | 'spanish' | 'french' | 'portuguese';
+export type AvailableLanguage = 'none' | 'spanish' | 'french' | 'portuguese';
 
 // List of languages that are used in both front end and the ARC-Translations repo
-export type Language = 'English' | 'Spanish' | 'French' | 'Portuguese';
+export type GithubLanguage = 'English' | 'Spanish' | 'French' | 'Portuguese';
 
 // List of languages that can be translated into
 export type TranslationLanguage = 'spanish' | 'french' | 'portuguese';
@@ -14,7 +14,7 @@ export type Profile = {
 	created_at: '2025-02-26T14:48:01.319251+00:00';
 	id: string;
 	is_admin: false;
-	language: AvailableLanguages;
+	language: AvailableLanguage;
 	name: string;
 };
 
@@ -200,7 +200,11 @@ export type AddressBook = {
 		// Addressess for each form
 		[formId: string]: { branch: Branch } & {
 			sections: {
-				[sectionId: string]: { branch: Branch };
+				[sectionId: string]: { branch: Branch } & {
+					variables: {
+						[variable_id: string]: { branch: Branch };
+					};
+				};
 			};
 		};
 	};
@@ -383,3 +387,9 @@ export type CompletionReports_Guides = {
 };
 
 //#endregion Lists
+
+//#region Forms
+
+export type UserForm = 'Forward Translate' | 'Review' | 'Backward Translate';
+
+//#endregion Forms
