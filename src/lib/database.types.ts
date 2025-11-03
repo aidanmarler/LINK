@@ -379,6 +379,7 @@ export type Database = {
           created_at: string
           id: number
           location: string[] | null
+          presets: string[]
           segment: string
           type: Database["public"]["Enums"]["SegmentType"]
         }
@@ -388,6 +389,7 @@ export type Database = {
           created_at?: string
           id?: number
           location?: string[] | null
+          presets: string[]
           segment: string
           type: Database["public"]["Enums"]["SegmentType"]
         }
@@ -397,6 +399,7 @@ export type Database = {
           created_at?: string
           id?: number
           location?: string[] | null
+          presets?: string[]
           segment?: string
           type?: Database["public"]["Enums"]["SegmentType"]
         }
@@ -410,6 +413,8 @@ export type Database = {
           is_admin: boolean
           language: string | null
           name: string | null
+          profession: string | null
+          selected_preset: string | null
         }
         Insert: {
           clinical_expertise?: boolean | null
@@ -418,6 +423,8 @@ export type Database = {
           is_admin?: boolean
           language?: string | null
           name?: string | null
+          profession?: string | null
+          selected_preset?: string | null
         }
         Update: {
           clinical_expertise?: boolean | null
@@ -426,6 +433,8 @@ export type Database = {
           is_admin?: boolean
           language?: string | null
           name?: string | null
+          profession?: string | null
+          selected_preset?: string | null
         }
         Relationships: []
       }

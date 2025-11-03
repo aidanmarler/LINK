@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import type { LayoutLoad } from './home2/$types';
+import type { LayoutLoad } from './home/$types';
 //import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async () => {

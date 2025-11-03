@@ -5,7 +5,8 @@ import { createSlugMapping } from '$lib/utils/slug';
 import type { LayoutLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
-import type { SegmentMap } from '$lib/supabase/types';
+import type { LinkPreset, SegmentMap } from '$lib/supabase/types';
+import { presetOptions } from '$lib/supabase/presets';
 
 export const ssr = false; // Force client-side for authentication
 
@@ -14,21 +15,30 @@ export const load: LayoutLoad = async ({ parent }) => {
 
 	if (!session || !profile) throw redirect(505, '/login');
 	const language = profile.language as TranslationLanguage;
-	const segmentMap: SegmentMap = {};
+
+	const selectedPreset =
+		profile.selected_preset && Object.values(presetOptions).includes(profile.selected_preset)
+			? profile.selected_preset as LinkPreset
+			: undefined;
 
 	// Now we ALWAYS return data (never early return)
 	return {
 		profile,
-		segmentMap,
-		dataPromise: loadDataProgressively(session.user.id, language)
+		dataPromise: loadDataProgressively(session.user.id, language, selectedPreset)
 	};
 };
 
-async function loadDataProgressively(userId: string, language: TranslationLanguage) {
+async function loadDataProgressively(
+	userId: string,
+	language: TranslationLanguage,
+	preset: undefined | LinkPreset
+) {
 	const segmentMap: SegmentMap = {};
 
 	// Step 1: Load original segments
-	const original_segments = await pullOriginalSegments();
+	const original_segments = await pullOriginalSegments(undefined, preset);
+
+	const presets: string[] = [];
 
 	// Create base map
 	(original_segments || []).forEach((segment) => {
@@ -37,7 +47,18 @@ async function loadDataProgressively(userId: string, language: TranslationLangua
 			translationProgress: null as never,
 			forwardTranslation: null
 		};
+
+		// Debug preset options
+		if (segment.presets) {
+			for (const preset of segment.presets) {
+				if (!presets.includes(preset)) {
+					presets.push(preset);
+				}
+			}
+		}
 	});
+
+	console.log('All presets found:', presets);
 
 	// Build tree and mapping
 	const locationTree = buildLocationTree(original_segments || []);

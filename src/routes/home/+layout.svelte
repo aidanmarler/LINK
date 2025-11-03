@@ -1,39 +1,20 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { supabase } from '../../supabaseClient';
 	import type { AuthSession } from '@supabase/supabase-js';
-	import type { Profile, TranslationLanguage } from '$lib/types';
-	import { getProfile } from '$lib/supabase/auth';
-	import { updateGlobalTables, userProfile } from '$lib/global.svelte';
 	import { page } from '$app/state';
 	import { scale } from 'svelte/transition';
 	import { makeFolderLabel } from '$lib/utils/utils';
 	import KabobMenu from '../components/kabobMenu.svelte';
+	import type { derived } from 'svelte/store';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
-	let session: AuthSession | null = $state(null);
-	onMount(() => {
-		supabase.auth.getSession().then(async ({ data }) => {
-			session = data.session;
-			if (session == null) {
-				window.location.href = '../login';
-			}
-			// Set profile data
-			userProfile.user = (await getProfile(session)) satisfies Profile | null;
-			if (!userProfile.user) return;
-			updateGlobalTables(userProfile.user.language as TranslationLanguage);
-		});
+	let profile = $derived(data.profile);
 
-		supabase.auth.onAuthStateChange((_event, _session) => {
-			session = _session;
-			if (session == null) {
-				userProfile.user = null;
-				window.location.href = '../login';
-			}
-		});
-	});
+	// Data loads progressively
+	let isLoading = $state(true);
+	let loadingError = $state<string | null>(null);
 
+	// Get nav working
 	let pathSegments = $derived(page.url.pathname.split('/').filter(Boolean));
 
 	let breadCrumbs = $derived(
@@ -46,10 +27,10 @@
 	);
 </script>
 
-{#if session}
+{#if profile}
 	<div class="w-full p-4 md:max-w-4xl md:mx-auto">
 		<div in:scale={{ duration: 500, opacity: 0 }} class="w-full flex h-10 justify-between">
-			<div class="text-lg pt-1 font-medium flex">
+			<nav class="text-lg pt-1 font-medium flex">
 				{#each breadCrumbs as crumb, i (crumb)}
 					<a
 						data-sveltekit-preload-code="eager"
@@ -62,7 +43,7 @@
 						<span> >&nbsp</span>
 					{/if}
 				{/each}
-			</div>
+			</nav>
 
 			<div class="h-50">
 				<KabobMenu />

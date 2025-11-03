@@ -17,3 +17,6 @@ export const card_static: string = cardLight + cardDark + ' border ';
 
 export const form_element: string =
 	' font-medium rounded-lg bg-stone-100 hover:bg-stone-50 dark:bg-stone-800 dark:hover:bg-stone-700 px-2 py-0.5 rounded ';
+
+export const button_simple_active: string = ' border-stone-400 cursor-pointer hover:bg-stone-50 hover:shadow-xs shadow-stone-200 rounded-sm hover:border-stone-500 hover:underline '
+export const button_simple_inactive: string = ' border-stone-400 opacity-80 font-medium rounded-sm bg-stone-300 '

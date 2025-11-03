@@ -40,3 +40,21 @@ export type SegmentData = {
 };
 
 export type SegmentMap = Record<number, SegmentData>;
+
+export type LinkPreset =
+	| 'ARChetype Disease CRF_Covid'
+	| 'ARChetype Disease CRF_Dengue'
+	| 'ARChetype Disease CRF_Mpox'
+	| 'ARChetype Disease CRF_Mpox-Pregnancy&Paediatrics'
+	| 'ARChetype Disease CRF_Mpox-Pregnancy&Paediatrics+extended'
+	| 'ARChetype Disease CRF_H5Nx'
+	| 'ARChetype Syndromic CRF_ARI'
+	| 'UserGenerated_Oropouche'
+	| 'Recommended Outcomes_Dengue'
+	| 'Hospitalsed Outcomes_Dengue'
+	| 'Early Stage Outcomes_Dengue'
+	| 'Syndrome_VHF'
+	| 'always-show'
+	| 'Score_CharlsonCI'
+	| 'Score_mSOFA'
+	| 'Score_mSOFA_Dengue';

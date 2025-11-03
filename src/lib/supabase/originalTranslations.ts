@@ -1,17 +1,20 @@
 import type { ARCHData } from '$lib/types';
 import { supabase } from '../../supabaseClient';
-import type { OriginalSegmentInsert, OriginalSegmentRow } from './types';
+import type { LinkPreset, OriginalSegmentInsert, OriginalSegmentRow } from './types';
 
 // Function to map csvEnglish ARCHData to OriginalSegmentInsert Type
 export async function MapListToOriginalSegmentInsert(
 	version: string,
 	list: string,
-	listData: { [sublist: string]: string[][] }
+	listData: { [sublist: string]: string[][] },
+	listPresetMap: { [sublist: string]: Record<string, string[]> }
 ) {
 	list = list.trim();
 	const allInserts: OriginalSegmentInsert[] = [];
 	for (let sublist in listData) {
 		sublist = sublist.trim();
+
+		const presetMap = listPresetMap[sublist];
 
 		const inserts: OriginalSegmentInsert[] = listData[sublist].map((item) => {
 			const segment = item[0].trim();
@@ -20,7 +23,8 @@ export async function MapListToOriginalSegmentInsert(
 				arc_versions: [version],
 				segment: segment,
 				type: 'listItem',
-				location: baseLocation
+				location: baseLocation,
+				presets: presetMap[segment]
 			};
 		});
 		allInserts.push(...inserts);
@@ -28,7 +32,11 @@ export async function MapListToOriginalSegmentInsert(
 	return allInserts;
 }
 
-export async function MapArchToOriginalSegmentInsert(version: string, archData: ARCHData) {
+export async function MapArchToOriginalSegmentInsert(
+	version: string,
+	archData: ARCHData,
+	arcPresetMap: Record<string, string[]>
+) {
 	const answersAdded = new Set<string>();
 	const formsAdded = new Set<string>();
 	const sectionsAdded = new Set<string>();
@@ -39,6 +47,7 @@ export async function MapArchToOriginalSegmentInsert(version: string, archData: 
 			details.question = details.question.trim();
 			details.definition = details.definition.trim();
 			details.completionGuide = details.completionGuide.trim();
+			const basePresets = arcPresetMap[variable];
 			const baseLocation = ['ARC', details.form, details.section, variable].filter(Boolean);
 			const segments: OriginalSegmentInsert[] = [
 				// Question
@@ -46,23 +55,27 @@ export async function MapArchToOriginalSegmentInsert(version: string, archData: 
 					arc_versions: [version],
 					segment: details.question,
 					type: 'question',
-					location: baseLocation
+					location: baseLocation,
+					presets: basePresets
 				},
 				// Definition
 				{
 					arc_versions: [version],
 					segment: details.definition,
 					type: 'definition',
-					location: baseLocation
+					location: baseLocation,
+					presets: basePresets
 				},
 				// Completion Guide
 				{
 					arc_versions: [version],
 					segment: details.completionGuide,
 					type: 'completionGuide',
-					location: baseLocation
+					location: baseLocation,
+					presets: basePresets
 				}
 			];
+
 			// Form Label
 			if (details.form.length > 0 && !formsAdded.has(details.form)) {
 				formsAdded.add(details.form);
@@ -70,9 +83,11 @@ export async function MapArchToOriginalSegmentInsert(version: string, archData: 
 					arc_versions: [version],
 					segment: details.form,
 					type: 'formLabel',
-					location: ['ARC', details.form, 'Labels']
+					location: ['ARC', details.form, 'Labels'],
+					presets: ['always-show']
 				});
 			}
+
 			// Section Label
 			if (details.section.length > 0 && !sectionsAdded.has(details.section)) {
 				sectionsAdded.add(details.section);
@@ -80,9 +95,11 @@ export async function MapArchToOriginalSegmentInsert(version: string, archData: 
 					arc_versions: [version],
 					segment: details.section,
 					type: 'sectionLabel',
-					location: ['ARC', details.form, 'Labels']
+					location: ['ARC', details.form, 'Labels'],
+					presets: ['always-show']
 				});
 			}
+
 			// Add answer options if they exist
 			if (details.answerOptions) {
 				// Add answer options to the question segment
@@ -97,7 +114,8 @@ export async function MapArchToOriginalSegmentInsert(version: string, archData: 
 							arc_versions: [version],
 							segment: answerText.trim(),
 							type: 'answerOption',
-							location: null
+							location: null,
+							presets: []
 						});
 						answersAdded.add(answerText.trim());
 					}
@@ -169,6 +187,9 @@ export async function UpdateOriginalSegments(
 
 		if (!existing) {
 			// Brand new segment
+			if (newSegment.presets == null) newSegment.presets = [];
+			if (newSegment.presets == null) console.log('null', newSegment);
+
 			toInsert.push(newSegment);
 		} else {
 			// Exists - check if we need to add this arc_version
@@ -227,7 +248,7 @@ export async function UpdateOriginalSegments(
 	return { inserted: toInsert.length, updated: toUpdate.length, unchanged: doNothing.length };
 }
 
-export async function pullOriginalSegments(typeFilter?: 'listItem' | 'exclude-listItem' | null) {
+export async function pullOriginalSegments(typeFilter?: 'listItem' | 'exclude-listItem' | null, preset?: LinkPreset) {
 	const segments: OriginalSegmentRow[] = [];
 	const pageSize = 1000;
 	let page = 0;
@@ -241,6 +262,12 @@ export async function pullOriginalSegments(typeFilter?: 'listItem' | 'exclude-li
 			query = query.eq('type', 'listItem');
 		} else if (typeFilter === 'exclude-listItem') {
 			query = query.neq('type', 'listItem');
+		}
+
+		// Add preset filter to query
+		if (preset) {
+			// Get if preset is null, 'always-show', or given preset is in list
+			query = query.or(`presets.cs.{${preset}},presets.cs.{always-show},presets.is.null`)
 		}
 
 		const { data, error: fetchError } = await query.range(

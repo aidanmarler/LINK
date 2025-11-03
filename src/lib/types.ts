@@ -11,9 +11,9 @@ export type TranslationLanguage = 'spanish' | 'french' | 'portuguese';
 
 export type Profile = {
 	clinical_expertise: boolean;
-	created_at: '2025-02-26T14:48:01.319251+00:00';
+	created_at: string;
 	id: string;
-	is_admin: false;
+	is_admin: boolean;
 	language: AvailableLanguage;
 	name: string;
 };

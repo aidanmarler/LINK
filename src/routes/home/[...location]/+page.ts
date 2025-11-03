@@ -35,7 +35,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		breadcrumbs.push({
 			name: currentNode.name,
 			slug: slug,
-			path: '/home2/' + pathSegments.slice(0, i + 1).join('/')
+			path: '/home/' + pathSegments.slice(0, i + 1).join('/')
 		});
 	}
 

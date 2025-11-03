@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SegmentMap } from '$lib/supabase/types.js';
-	import type { UserForm } from '$lib/types.js';
+	import type { Profile, UserForm } from '$lib/types.js';
 	import ForwardTranslationsForm from './components/forwardTranslationsForm.svelte';
 
 	let { data } = $props();
@@ -26,8 +26,8 @@
 	{@const currentNode = data.currentNode}
 	{@const segmentMap = resolvedData.segmentMap}
 	{@const currentPath =
-		data.pathSegments.length > 0 ? `/home2/${data.pathSegments.join('/')}` : '/home2'}
-	{@const profile = data.profile}
+		data.pathSegments.length > 0 ? `/home/${data.pathSegments.join('/')}` : '/home'}
+	{@const profile = data.profile as Profile}
 
 	{@const pageSegments = (() => {
 		if (!currentNode) return {} as SegmentMap;
@@ -43,7 +43,7 @@
 	{#if data.notFound}
 		<div>
 			<h1>Location Not Found</h1>
-			<a href="/home2">Return to Home</a>
+			<a href="/home">Return to Home</a>
 		</div>
 	{:else if currentNode}
 		<!-- Child locations -->
