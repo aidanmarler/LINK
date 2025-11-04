@@ -2,6 +2,7 @@
 	import { userProfile } from '$lib/global.svelte';
 	import { fly, scale } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
+	import { goto } from '$app/navigation';
 
 	let menuContainer: HTMLDivElement;
 	let menuOpen = $state(false);
@@ -49,7 +50,7 @@
 			class="flex z-10 flex-col font-semibold text-sm overflow-hidden border shadow w-44 h-auto absolute -translate-x-36 -translate-y-1 rounded-lg
             dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
 		>
-			<div class="border-b border-inherit p-1 space-y-0.5 flex flex-col">
+			<div class="border-inherit p-1 space-y-0.5 flex flex-col">
 				<button
 					class={buttonStyle}
 					title={isDark ? 'Light Theme' : 'Dark Theme'}
@@ -71,20 +72,22 @@
 					class={buttonStyle}
 					title="Logout"
 					onclick={() => {
-						userProfile.user = null;
 						supabase.auth.signOut();
+						// load href="/login"
+						goto('/login');
 					}}
 				>
 					<img class="dark:invert w-9 p-1" alt="Menu" src="/interaction/logout.svg" />
 					<div class="h-full pt-1">Logout</div>
 				</button>
 			</div>
+			<!--
 			<div class=" p-1 space-y-0.5 flex flex-col">
 				<select class="{buttonStyle} pl-2"
 					>CRF: <option>Dengue</option><option>All Questions</option><option>All Questions</option
 					></select
 				>
-			</div>
+			</div>-->
 		</div>
 	{/if}
 </div>

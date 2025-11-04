@@ -9,7 +9,7 @@
 	let password: string = '';
 	let confirmPassword: string = '';
 	let language: AvailableLanguage = 'none';
-	let clinical = false;
+	let profession: string = '';
 
 	const inputStyle =
 		'w-full text-sm font-medium rounded-md p-1 border-2 border-stone-400 dark:border-stone-500 text-black dark:text-white';
@@ -32,7 +32,7 @@
 				data: {
 					name,
 					language,
-					clinical_expertise: clinical
+					profession
 				}
 			}
 		});
@@ -47,14 +47,8 @@
 			password = '';
 			confirmPassword = '';
 			language = 'none';
-			clinical = false;
+			profession = 'none';
 		}
-	}
-
-	function colorEntry(isCorrect: boolean, isIncorrect: boolean = false) {
-		if (isIncorrect) return 'border-red-500 bg-red-950';
-		if (isCorrect) return 'border-green-500 bg-green-950';
-		return 'border-stone-500 bg-stone-950';
 	}
 </script>
 
