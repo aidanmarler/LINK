@@ -18,7 +18,7 @@ export const load: LayoutLoad = async ({ parent }) => {
 
 	const selectedPreset =
 		profile.selected_preset && Object.values(presetOptions).includes(profile.selected_preset)
-			? profile.selected_preset as LinkPreset
+			? (profile.selected_preset as LinkPreset)
 			: undefined;
 
 	// Now we ALWAYS return data (never early return)
@@ -51,8 +51,11 @@ async function loadDataProgressively(
 		// Debug preset options
 		if (segment.presets) {
 			for (const preset of segment.presets) {
-				if (!presets.includes(preset)) {
-					presets.push(preset);
+				if (segment.location) {
+					console.log(segment.location[0]);
+					if (segment.location[0] == 'ARC' && !presets.includes(preset)) {
+						presets.push(preset);
+					}
 				}
 			}
 		}

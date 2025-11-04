@@ -7,6 +7,8 @@
 
 	let currentForm: UserForm = $state('Forward Translate');
 	let forms: UserForm[] = ['Forward Translate', 'Review', 'Backward Translate'];
+
+	$inspect(data.currentNode?.children)
 </script>
 
 <!-- Breadcrumbs 

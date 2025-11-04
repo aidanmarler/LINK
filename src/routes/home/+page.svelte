@@ -36,60 +36,60 @@
 
 {#if profile}
 	<div in:fade={{ duration: 500, delay: 100 }} out:fade={{ duration: 100 }}>
-		<div class="mx-auto w-full justify-center flex mt-8 mb-4 opacity-70">
-			<img alt="LINK icon" class="dark:invert-0 invert w-10" src="/link.svg" />
-			<h1 class="font-bold text-5xl">LINK</h1>
+		<div class="mx-auto w-full justify-center flex mt-8 opacity-70">
+			<img alt="LINK icon" class="dark:invert-0 invert w-12" src="/link.svg" />
+			<h1 class="font-bold text-6xl">LINK</h1>
 		</div>
-		<h2 class="text-center">
-			Welcome, <em in:fade={{ duration: 1000 }}>{profile.name}</em>
-		</h2>
 	</div>
 
 	<div in:fly={{ y: 20, duration: 500, delay: 100 }} out:fly={{ y: 10, duration: 100 }}>
-		<div class="w-full mt-5">
-			<div class=" rounded-lg {card_static}">
-				<div class="w-full text-stone-800 dark:text-stone-300">
-					<div class="flex justify-between items-end p-2 px-4 border-inherit">
-						<button
-							onclick={() => {
-								infoOpen = !infoOpen;
-							}}
-							data-sveltekit-preload-code="eager"
-							class="text-xl cursor-pointer hover:underline font-semibold"
+		<div class="w-full">
+			<div class="w-full text-stone-800 dark:text-stone-300">
+				<div class="max-w-3xl p-2 m-auto text-lg font-normal">
+					<h3 class="italic text-3xl p-0 font-medium w-full mb-10 text-center">
+						<span class=""
+							><span class="font-bold">L</span>anguage
+							<span class="font-bold">I</span>ntegration
+							<span class="font-bold">N</span>etwork
+							<span class="font-bold">K</span>it</span
 						>
-							Info
-						</button>
-					</div>
-					{#if infoOpen}
-						<div class="p-3 font-normal">
-							<h3 class="text-xl mb-2">
-								This is <span class="font-bold">LINK</span>, the
-								<span class="italic">Language Integration Network Kit</span>.
-							</h3>
-							<p class="mb-4">
-								Thank you for helping us translate ARC from English into {capitalizeFirstLetter(
-									profile.language ? profile.language : ''
-								)}.
-							</p>
+					</h3>
+					<p class="text-center">
+						Welcome, <em in:fade={{ duration: 1000 }}>{profile.name}</em>
+					</p>
+					<p class="mb-8 w-full italic text-center text-base">
+						Thank you ❤️ for helping to translate ARC from English into {capitalizeFirstLetter(
+							profile.language ? profile.language : ''
+						)}.
+					</p>
 
-							<p>Translation requires three steps:</p>
-							<ol>
-								<li>
-									1. <span class="font-bold"> Forward Translation:</span> translating phrases from English.
-								</li>
-								<li>
-									2. <span class="font-bold"> Review:</span> choosing the best translation offered so
-									far, or creating a new better one.
-								</li>
-								<li>
-									3. <span class="font-bold"> Backward Translation:</span> translating reviewed translations
-									back into English.
-								</li>
-							</ol>
-						</div>
-					{/if}
+					<p>High-quality translations require three steps:</p>
+					<ol class="p-3">
+						<li>
+							1. <span class="font-bold"> Forward Translation:</span> translate phrases from English
+							into {capitalizeFirstLetter(profile.language ? profile.language : '')}.
+						</li>
+						<li>
+							2. <span class="font-bold"> Review:</span> select the correct translation, or write a new
+							one with a justification.
+						</li>
+						<li>
+							3. <span class="font-bold"> Backward Translation:</span> translating reviewed translations
+							back into English.
+						</li>
+					</ol>
+					<p class="text-base text-center py-6">
+						All translations will be reviewed, and the ones that are agreed by your peers to be best
+						will be added to the ARC database to be used around the world!
+					</p>
+					<p class="text-base text-center">If you do not know, <span class="font-bold"> skip</span></p>
+					<p class="text-base text-center">If you have something to say, <span class="font-bold">leave a comment</span></p>
+
+					<p class="text-center text-xl font-medium py-6">Thank you, good luck, and happy translating!</p>
 				</div>
-				<div class=" border-inherit border-t w-full text-stone-800 dark:text-stone-300">
+			</div>
+			<div class=" rounded-lg {card_static}">
+				<div class=" border-inherit w-full text-stone-800 dark:text-stone-300">
 					<div class=" flex justify-between items-end p-2 px-4 border-inherit">
 						<button
 							onclick={() => {
@@ -111,7 +111,9 @@
 							<p class="mb-2 text-lg font-normal italic text-center">
 								Which CRF would you like to review?
 							</p>
-							<div class=" p-1 grid grid-cols-1 sm:grid-cols-2 rounded-md border-inherit gap-0.5 font-normal">
+							<div
+								class=" p-1 grid grid-cols-1 sm:grid-cols-2 rounded-md border-inherit gap-0.5 font-normal"
+							>
 								{#each Object.keys(presetOptions) as presetOption}
 									{@const selected = presetOptions[presetOption] == profile.selected_preset}
 									<button

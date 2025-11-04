@@ -12,15 +12,15 @@
 	let translationsToPush: Record<number, { translation: string; comment: string }> = $state({});
 
 	onMount(() => {
-		console.log('segmentMap!', segmentMap);
+		//console.log('segmentMap!', segmentMap);
 		Object.entries(segmentMap).forEach(([id, segmentData]) => {
-			console.log('id...', id);
+			//console.log('id...', id);
 			if (!segmentData.forwardTranslation) {
 				const numId = Number(id);
 				if (!translationsToPush[numId]) {
 					translationsToPush[numId] = { translation: '', comment: '' };
 				}
-				console.log(numId, translationsToPush);
+				//console.log(numId, translationsToPush);
 			}
 		});
 	});
@@ -39,12 +39,12 @@
 				skipped: false
 			});
 		}
-		console.log('newForwardTranslations', newForwardTranslations);
+		//console.log('newForwardTranslations', newForwardTranslations);
 
 		await InsertForwardTranslations(newForwardTranslations);
 
 		await invalidateAll();
-		
+
 		return;
 	}
 </script>
