@@ -4,6 +4,7 @@
 	import TranslateSegment from './translateSegment.svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { InsertForwardTranslations } from '$lib/supabase/forwardTranslations';
+	import { invalidateAll } from '$app/navigation';
 
 	let { segmentMap, profile }: { segmentMap: SegmentMap; profile: Profile } = $props();
 
@@ -28,6 +29,7 @@
 		const newForwardTranslations: ForwardTranslationInsert[] = [];
 
 		for (const id in translationsToPush) {
+			if (translationsToPush[id].translation == '' ) continue;
 			newForwardTranslations.push({
 				original_id: Number(id),
 				user_id: profile.id,
@@ -39,8 +41,10 @@
 		}
 		console.log('newForwardTranslations', newForwardTranslations);
 
-		InsertForwardTranslations(newForwardTranslations);
+		await InsertForwardTranslations(newForwardTranslations);
 
+		await invalidateAll();
+		
 		return;
 	}
 </script>

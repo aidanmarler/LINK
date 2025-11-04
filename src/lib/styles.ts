@@ -27,4 +27,4 @@ export const button_B: string =
 	'  border-stone-400 hover:border-stone-300 opacity-70 hover:opacity-100 border-2 bg-stone-100 p-1 font-medium cursor-pointer hover:bg-stone-50 hover:shadow-xs shadow-stone-300 rounded-lg  ';
 
 export const button_green =
-	'bg-green-500/20 border-green-700 hover:bg-green-500/60 hover:border-green-800 hover:shadow-xsx dark:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 dark:bg-green-900/50 ';
+	'border-green-900 bg-green-700/20 hover:bg-green-600/50 hover:border-green-800 hover:shadow-xsx dark:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 dark:bg-green-900/50 ';
