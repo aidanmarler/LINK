@@ -14,7 +14,7 @@
 	const inputStyle =
 		'w-full text-sm font-medium rounded-md p-1 border-2 border-stone-400 dark:border-stone-500 text-black dark:text-white';
 	//const labelStyle = 'leading-1.5 w-full block font-bold text-stone-800 dark:text-stone-300 bg-green-300 m-auto';
-	const labelStyle = 'grid items-center font-bold text-stone-800 dark:text-stone-300 ';
+	const labelStyle = 'grid items-center w-full font-bold text-stone-800 dark:text-stone-300 ';
 	const sublabelStyle = 'grid items-center font-normal text-stone-800 dark:text-stone-300 text-xs';
 
 	async function handleSignUp(event: Event) {
@@ -52,7 +52,7 @@
 	}
 </script>
 
-<div class=" max-w-96 mt-20 mx-auto border-inherit">
+<div class=" max-w-96 p-2 mt-20 mx-auto border-inherit">
 	<h1 class="text-3xl font-bold w-full text-center mb-2 mt-6">Register New Account</h1>
 	<div
 		class="
@@ -158,12 +158,12 @@
 		</form>
 	</div>
 
-	<div class="mt-8 w-full">
+	<div class="mt-8 w-full text-lg">
 		<p class="w-full text-center font-medium mb-2">Already Registered?</p>
-		<div class="w-full px-6">
+		<div class="w-full">
 			<a
 				data-sveltekit-preload-code="eager"
-				class="w-full max-w-60 m-auto block text-md text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
+				class="w-full max-w-60 m-auto block text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
 				href="/login"
 			>
 				Login

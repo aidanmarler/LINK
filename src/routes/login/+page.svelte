@@ -46,7 +46,7 @@
 	}
 </script>
 
-<div class="p-5">
+<div class="p-4">
 	<div class="mx-auto w-full text-center my-20">
 		<h1 class="font-bold text-7xl">LINK</h1>
 		<h4 class="italic my-3 text-lg">Language Integration Network Kit</h4>
@@ -56,15 +56,15 @@
 		{card_static}
 		"
 	>
-		<div class="p-4">
+		<div class="p-5">
 			<!--
 			<h1 class="text-4xl w-full text-center p-2">Login</h1>
 			-->
-			<form onsubmit={handleSignIn}>
+			<form class="text-xl" onsubmit={handleSignIn}>
 				<line class="w-full"> </line>
-				<label class="font-medium">
+				<label class="font-medium ">
 					<input
-						class={'w-full  mb-1  text-xl' + form_element}
+						class={'w-full  mb-1  ' + form_element}
 						required
 						name="email"
 						type="email"
@@ -76,7 +76,7 @@
 				</label>
 				<label class="font-medium">
 					<input
-						class={'w-full mb-4 text-xl' + form_element}
+						class={'w-full mb-4 ' + form_element}
 						required
 						name="password"
 						type="password"
@@ -88,7 +88,7 @@
 				<label>
 					<button
 						type="submit"
-						class="w-full block max-w-60 m-auto text-xl font-semibold rounded-xl border-2 cursor-pointer p-1 {button_green}"
+						class="w-full block max-w-60 mt-3 mb-1 m-auto text-2xl font-semibold rounded-xl border-2 cursor-pointer p-1 {button_green}"
 					>
 						Login
 					</button>
@@ -96,11 +96,11 @@
 			</form>
 		</div>
 	</div>
-	<div class="flex-wrap border-inherit p-4">
+	<div class="flex-wrap border-inherit text-lg p-4">
 		<p class="font-semibold w-full text-center">New User?</p>
 		<a
 			data-sveltekit-preload-code="eager"
-			class="w-full max-w-60 m-auto block text-md text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
+			class="w-full max-w-60 m-auto block text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
 			href="/register"
 		>
 			Create Account
