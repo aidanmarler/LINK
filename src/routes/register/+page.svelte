@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
 	import type { AvailableLanguage } from '../../lib/types';
+	import { button_B, button_green, form_element } from '$lib/styles';
+	import ThemeManager from '../components/themeManager.svelte';
 
 	let name: string = '';
 	let email: string = '';
@@ -8,6 +10,12 @@
 	let confirmPassword: string = '';
 	let language: AvailableLanguage = 'none';
 	let clinical = false;
+
+	const inputStyle =
+		'w-full text-sm font-medium rounded-md p-1 border-2 border-stone-400 dark:border-stone-500 text-black dark:text-white';
+	//const labelStyle = 'leading-1.5 w-full block font-bold text-stone-800 dark:text-stone-300 bg-green-300 m-auto';
+	const labelStyle = 'grid items-center font-bold text-stone-800 dark:text-stone-300 ';
+	const sublabelStyle = 'grid items-center font-normal text-stone-800 dark:text-stone-300 text-xs';
 
 	async function handleSignUp(event: Event) {
 		event.preventDefault();
@@ -50,41 +58,49 @@
 	}
 </script>
 
-<div class="p-3">
+<div class=" max-w-96 mt-20 mx-auto border-inherit">
+	<h1 class="text-3xl font-bold w-full text-center mb-2 mt-6">Register New Account</h1>
 	<div
 		class="
-		px-3 py-4 shadow-md border-2 border-stone-700 rounded-lg w-full bg-stone-800 max-w-96 my-5 mx-auto
+		px-7 my-5 py-7 shadow-sm border border-stone-400 dark:border-stone-800 rounded-xl w-full
 		"
 	>
-		<h1 class="text-4xl w-full text-center mb-8 mt-4">Register</h1>
-		<form onsubmit={handleSignUp} class="border border-stone-600 p-3 rounded-xs">
-			<label class="font-medium leading-1.5">
-				User Information
+		<form onsubmit={handleSignUp}>
+			<label title="Please provide your full name as 'First Last'" class="{labelStyle} mb-3">
+				Full Name
 				<input
-					class=" w-full text-sm rounded-xs mb-1 p-1 border {colorEntry(name.length < 0)} "
+					class=" {form_element} "
 					required
 					name="name"
 					autocomplete="name"
 					type="text"
-					placeholder="Full Name"
+					placeholder="First Last"
 					bind:value={name}
 				/>
+			</label>
+
+			<label
+				title="Please provide an email through which we can verify your account"
+				class="{labelStyle} mb-3"
+			>
+				Email
+
 				<input
-					class="w-full text-sm rounded-xs mb-4 p-1 bg-stone-950 border border-stone-500"
+					class={form_element}
 					required
 					name="email"
 					type="email"
 					id="email"
-					placeholder="Email"
+					placeholder="your@email.com"
 					autocomplete="email"
 					bind:value={email}
 				/>
 			</label>
 
-			<label class="font-medium leading-1.5">
+			<label title="Please create a password" class={labelStyle}>
 				Password
 				<input
-					class="w-full text-sm font-medium rounded-xs mb-1 p-1 bg-stone-950 border border-stone-500"
+					class={form_element}
 					required
 					name="password"
 					type="password"
@@ -92,8 +108,11 @@
 					placeholder="Password"
 					bind:value={password}
 				/>
+			</label>
+
+			<label title="Please create a password" class="{labelStyle} mt-1 mb-3">
 				<input
-					class="w-full text-sm font-medium rounded-xs mb-3 p-1 bg-stone-950 border border-stone-500"
+					class={form_element}
 					required
 					name="password"
 					type="password"
@@ -103,86 +122,60 @@
 				/>
 			</label>
 
-			<label class="font-medium leading-1.5">
-				Language Expertise
+			<label
+				title="Please select which language you are a native speaker or have bilingual fluency"
+				class="{labelStyle} mb-3"
+			>
+				Native Language
 				<select
-					class="w-full text-sm font-medium rounded-xs mb-3 p-1 bg-stone-950 border border-stone-500"
+					class="{form_element} cursor-pointer"
 					name="language"
 					required
 					bind:value={language}
 				>
-					<option value="none">None</option>
+					<!--<option value="none">None</option>-->
 					<option value="spanish">Español</option>
 					<option value="french">Français</option>
 					<option value="portuguese">Português</option>
 				</select>
 			</label>
-			<label class="font-medium leading-1.5">
-				Country
-				<select
-					class="w-full text-sm font-medium rounded-xs mb-3 p-1 bg-stone-950 border border-stone-500"
-					name="questions"
-					required
-				>
-					<option value="All">All</option>
-					<option value="Covid">Covid</option>
-					<option value="Dengue">Dengue</option>
-					<option value="MPox">MPox</option>
-					<option value="H5Nx">H5Nx</option>
-					<option value="ARI">ARI</option>
-					<option value="Oropouche">Oropouche</option>
-					<option value="CharlsonCI">CharlsonCI</option>
-				</select>
-			</label>
-			<br />
-			<label class="font-medium leading-1.5">
-				Question Preference
-				<select
-					class="w-full text-sm font-medium rounded-xs mb-3 p-1 bg-stone-950 border border-stone-500"
-					name="questions"
-					required
-				>
-					<option value="All">All</option>
-					<option value="Covid">Covid</option>
-					<option value="Dengue">Dengue</option>
-					<option value="MPox">MPox</option>
-					<option value="H5Nx">H5Nx</option>
-					<option value="ARI">ARI</option>
-					<option value="Oropouche">Oropouche</option>
-					<option value="CharlsonCI">CharlsonCI</option>
-				</select>
-			</label>
-			<label class="font-medium leading-1.5 content-center text-center items-center h-10">
-				Clinical Expertise?
-				<input
-					type="checkbox"
-					class="font-medium accent-green-500/70 mb-4 rounded-xs h-4 w-4 cursor-pointer p-1 bg-stone-950 border border-stone-500"
-					name="clinical"
-					bind:checked={clinical}
-				/>
-			</label>
-			<label>
-				<button
-					type="submit"
-					class="w-full font-medium rounded-xs mt-8 hover:bg-green-700 cursor-pointer mb-2 p-1 bg-green-800 border border-stone-500"
-				>
-					Register
-				</button>
-			</label>
-		</form>
 
-		<div class="mt-8 w-full">
-			<div class="w-full flex mb-8 h-0 border border-stone-500"></div>
-			<p class="w-full text-center font-medium mb-2">Already Registered?</p>
-			<div class="w-full">
-				<a
-					data-sveltekit-preload-code="eager"
-					class="w-full block text-center font-medium rounded-xs hover:bg-stone-700 cursor-pointer mb-2 p-1 bg-stone-800 border border-stone-500"
-					href="/"
-				>
-					Login
-				</a>
-			</div>
+			<label
+				title="Please select your profession, if not offered simply select 'Other'"
+				class="{labelStyle} mb-3"
+			>
+				Profession
+				<select class="{form_element} cursor-pointer" name="profession" required>
+					<option value="clinical">Clinical Staff</option>
+					<option value="researcher">Disease/Clinical Researcher</option>
+					<option value="translator">Translator</option>
+					<option value="survey">Survey/Questionnaire Expert</option>
+					<option value="other">Other</option>
+				</select>
+			</label>
+
+			<button
+				type="submit"
+				title="Register Account"
+				class="w-full block max-w-60 m-auto text-xl font-semibold mt-8 rounded-xl border-2 cursor-pointer p-1 {button_green}"
+			>
+				Create Account
+			</button>
+		</form>
+	</div>
+
+	<div class="mt-8 w-full">
+		<p class="w-full text-center font-medium mb-2">Already Registered?</p>
+		<div class="w-full px-6">
+			<a
+				data-sveltekit-preload-code="eager"
+				class="w-full max-w-60 m-auto block text-md text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
+				href="/login"
+			>
+				Login
+			</a>
 		</div>
 	</div>
+
+	<div class="w-full flex justify-center pt-10"><ThemeManager /></div>
 </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { button_simple_active, button_simple_inactive, card_dynamic, card_static } from '$lib/styles.js';
+	import { button_A_active, button_A_inactive, card_dynamic, card_static } from '$lib/styles.js';
 	import { presetOptions } from '$lib/supabase/presets';
 	import type { LinkPreset, OriginalSegmentRow, SegmentMap } from '$lib/supabase/types.js';
 	import { createSlug } from '$lib/utils/slug.js';
@@ -115,7 +115,7 @@
 								{#each Object.keys(presetOptions) as presetOption}
 									{@const selected = presetOptions[presetOption] == profile.selected_preset}
 									<button
-										class="px-3 text-left {selected ? button_simple_inactive : button_simple_active}"
+										class="px-3 text-left {selected ? button_A_inactive : button_A_active}"
 										onclick={() => handlePresetChange(presetOptions[presetOption])}
 									>
 										{presetOption}

@@ -4,7 +4,7 @@
 	import type { AuthSession, User, WeakPassword } from '@supabase/supabase-js';
 	import DataView from '../components/dataView.svelte';
 	import ThemeManager from '../components/themeManager.svelte';
-	import { card_static, form_element } from '$lib/styles';
+	import { button_green, card_static, form_element } from '$lib/styles';
 	import { checkAdminStatus } from '$lib/supabase/auth';
 
 	let session: AuthSession | null;
@@ -88,26 +88,23 @@
 				<label>
 					<button
 						type="submit"
-						class="w-full font-medium rounded-md hover:bg-green-800 cursor-pointer p-1 bg-green-900 border-2 border-green-700"
+						class="w-full block max-w-60 m-auto text-xl font-semibold rounded-xl border-2 cursor-pointer p-1 {button_green}"
 					>
 						Login
 					</button>
 				</label>
 			</form>
 		</div>
-
-		<div class="flex-wrap border-t border-inherit p-4">
-			<p class="font-medium w-full text-center mb-2">New User?</p>
-			<a
-				data-sveltekit-preload-code="eager"
-				class="w-full block text-center font-medium rounded-md cursor-pointer mb-2 p-1 border-2
-				bg-stone-200 dark:bg-stone-800 border-stone-500 dark:hover:bg-stone-700"
-				href="/register"
-			>
-				Register Here
-			</a>
-		</div>
-		<div></div>
+	</div>
+	<div class="flex-wrap border-inherit p-4">
+		<p class="font-semibold w-full text-center">New User?</p>
+		<a
+			data-sveltekit-preload-code="eager"
+			class="w-full max-w-60 m-auto block text-md text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
+			href="/register"
+		>
+			Create Account
+		</a>
 	</div>
 	<div class="w-full flex justify-center pt-5"><ThemeManager /></div>
 </div>
