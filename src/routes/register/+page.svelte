@@ -56,7 +56,7 @@
 	<h1 class="text-3xl font-bold w-full text-center mb-2 mt-6">Register New Account</h1>
 	<div
 		class="
-		px-7 my-5 py-7 shadow-sm border border-stone-400 dark:border-stone-800 rounded-xl w-full
+		px-7 my-5 py-7 shadow-sm border border-stone-400 dark:border-stone-800 rounded-xl text-xl w-full
 		"
 	>
 		<form onsubmit={handleSignUp}>

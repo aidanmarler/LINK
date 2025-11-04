@@ -48,8 +48,8 @@
 
 <div class="p-5">
 	<div class="mx-auto w-full text-center my-20">
-		<h1 class="font-bold text-6xl">LINK</h1>
-		<h4 class="italic my-3">Language Integration Network Kit</h4>
+		<h1 class="font-bold text-7xl">LINK</h1>
+		<h4 class="italic my-3 text-lg">Language Integration Network Kit</h4>
 	</div>
 	<div
 		class="shadow-md rounded-lg w-full max-w-96 my-auto mx-auto
@@ -64,7 +64,7 @@
 				<line class="w-full"> </line>
 				<label class="font-medium">
 					<input
-						class={'w-full  mb-1 ' + form_element}
+						class={'w-full  mb-1  text-xl' + form_element}
 						required
 						name="email"
 						type="email"
@@ -76,7 +76,7 @@
 				</label>
 				<label class="font-medium">
 					<input
-						class={'w-full mb-4 ' + form_element}
+						class={'w-full mb-4 text-xl' + form_element}
 						required
 						name="password"
 						type="password"
