@@ -14,6 +14,13 @@ export function createSlug(locationString: string): string {
 		.trim();
 }
 
+export function createLabel(locationString: string): string {
+	// Take everything before ":" if it exists
+	const beforeColon = locationString.split(':')[0].trim();
+	// Convert to slug: lowercase, replace spaces/special chars with hyphens
+	return beforeColon.trim();
+}
+
 export function createSlugMapping(segments: OriginalSegmentRow[]): Map<string, string> {
 	const mapping = new Map<string, string>();
 

@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { button_A_active, button_B, button_green, card_dynamic } from '$lib/styles';
 	import type { SegmentMap } from '$lib/supabase/types.js';
 	import type { Profile, UserForm } from '$lib/types.js';
+	import CompletionChart from './completionChart.svelte';
 	import ForwardTranslationsForm from './components/forwardTranslationsForm.svelte';
 
 	let { data } = $props();
@@ -8,19 +11,8 @@
 	let currentForm: UserForm = $state('Forward Translate');
 	let forms: UserForm[] = ['Forward Translate', 'Review', 'Backward Translate'];
 
-	$inspect(data.currentNode?.children)
+	//class="grid p-2 gap-1 gap-x-2 grid-cols-2"
 </script>
-
-<!-- Breadcrumbs 
-	<nav class="breadcrumbs">
-		<a href="/home2">Home</a>
-		{#each data.breadcrumbs as crumb}
-			<span> / </span>
-			<a href={crumb.path}>{crumb.name}</a>
-		{/each}
-	</nav>
-
-	<h1>{data.currentNode?.name || 'Home2'}</h1>-->
 
 {#await data.dataPromise}
 	<div>Loading...</div>
@@ -51,16 +43,34 @@
 		<!-- Child locations -->
 		{#if currentNode.children.size > 0}
 			<section>
-				<!--<h2>Sections</h2>-->
-				<ul>
+				<div class="grid p-2 gap-2 sm:grid-cols-2">
 					{#each [...currentNode.children.values()] as child}
-						<li>
-							<a class="hover:underline cursor-pointer" href="{currentPath}/{child.slug}"
-								>{child.name}</a
-							>
-						</li>
+						<!--<h2>Filter data to only </h2>-->
+						{@const nodeSegments = (() => {
+							if (!currentNode) return {} as SegmentMap;
+
+							const filtered: SegmentMap = {};
+							for (const id of currentNode.segmentIds) {
+								if (segmentMap[id]) {
+									filtered[id] = segmentMap[id];
+								}
+							}
+							return segmentMap;
+						})()}
+						<button
+							class="w-full cursor-pointer {button_A_active}  p-2 rounded-lg"
+							onclick={() => {
+								goto(currentPath + '/' + child.slug);
+							}}
+						>
+							<p class="w-full text-center">{child.name}</p>
+							<div class="w-full px-2">
+								<CompletionChart completion={child.completion} options={{ showKey: true }}
+								></CompletionChart>
+							</div>
+						</button>
 					{/each}
-				</ul>
+				</div>
 			</section>
 		{/if}
 
@@ -93,7 +103,7 @@
 	{/if}
 {:catch error}
 	<!-- Error state -->
-	<div class="p-8 text-red-600">
+	<div class="p-8 font-medium text-red-800 dark:text-red-400">
 		<h2>Error loading data</h2>
 		<p>{error.message}</p>
 	</div>

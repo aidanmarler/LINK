@@ -1,6 +1,6 @@
 import { supabase } from '../../supabaseClient';
 import type { TranslationLanguage } from '$lib/types';
-import { buildLocationTree } from '$lib/utils/locationTree';
+import { buildLocationTree, computeCompletion, type LocationNode } from '$lib/utils/locationTree';
 import { createSlugMapping } from '$lib/utils/slug';
 import type { LayoutLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
@@ -90,6 +90,15 @@ async function loadDataProgressively(
 			segmentMap[ft.original_id].forwardTranslation = ft;
 		}
 	});
+
+	// Step 4: Compute completion for all nodes
+	function computeNodeCompletions(node: LocationNode) {
+		node.completion = computeCompletion(node, segmentMap);
+		console.log('Computing ' + node.name, node.completion);
+		node.children.forEach((child) => computeNodeCompletions(child));
+	}
+
+	computeNodeCompletions(locationTree);
 
 	return {
 		segmentMap,
