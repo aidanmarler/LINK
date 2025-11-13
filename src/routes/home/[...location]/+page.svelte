@@ -58,7 +58,7 @@
 							return segmentMap;
 						})()}
 						<button
-							class="w-full cursor-pointer {button_A_active}  p-2 rounded-lg"
+							class="w-full shadow-sm cursor-pointer {button_A_active}  p-2 rounded-lg"
 							onclick={() => {
 								goto(currentPath + '/' + child.slug);
 							}}

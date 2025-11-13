@@ -7,6 +7,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
 	import { invalidate, invalidateAll } from '$app/navigation';
+	import CompletionChart from './[...location]/completionChart.svelte';
 
 	let { data } = $props();
 	let { profile } = data;
@@ -17,7 +18,7 @@
 	let routes = ['arc', 'lists'];
 
 	async function handlePresetChange(preset: null | string) {
-		console.log('handlePresetChange');
+		//console.log('handlePresetChange');
 		const { error } = await supabase
 			.from('profiles')
 			.update({ selected_preset: preset })
@@ -82,10 +83,16 @@
 						All translations will be reviewed, and the ones that are agreed by your peers to be best
 						will be added to the ARC database to be used around the world!
 					</p>
-					<p class="text-base text-center">If you do not know, <span class="font-bold"> skip</span></p>
-					<p class="text-base text-center">If you have something to say, <span class="font-bold">leave a comment</span></p>
+					<p class="text-base text-center">
+						If you do not know, <span class="font-bold"> skip</span>
+					</p>
+					<p class="text-base text-center">
+						If you have something to say, <span class="font-bold">leave a comment</span>
+					</p>
 
-					<p class="text-center text-xl font-medium py-6">Thank you, good luck, and happy translating!</p>
+					<p class="text-center text-xl font-medium py-6">
+						Thank you, good luck, and happy translating!
+					</p>
 				</div>
 			</div>
 			<div class=" rounded-lg {card_static}">
@@ -147,13 +154,27 @@
 							<div class="loading">
 								<p>Loading...</p>
 							</div>
-							<!-- {:then loadedData} -->
+						{:then loadedData}
+							{@const locationNode = loadedData.locationTree.children.get(route)}
+							{#if locationNode != undefined}
+								<CompletionChart
+									completion={locationNode.completion}
+									options={{ showKey: true, large: true }}
+								/>
+							{/if}
 						{:catch error}
 							<div class="error">
 								<p>Failed to load data: {error.message}</p>
 								<button onclick={() => window.location.reload()}>Retry</button>
 							</div>
 						{/await}
+
+						{#if route == "arc"}
+							ARC is a repository of medical questionnaire Questions, Answers, Definitions, and Completion Guides.
+
+						{:else if route =="lists"}
+							Lists are our lists of items that can be selected when filling out one of these medical questionnaires.
+						{/if}
 					</div>
 				</div>
 			</div>
