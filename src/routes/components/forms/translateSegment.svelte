@@ -3,7 +3,7 @@
 	import type { forwardStatus } from '$lib/types';
 	import { quintInOut, quintOut } from 'svelte/easing';
 	import { blur, draw, fade, fly, scale } from 'svelte/transition';
-	import SegmentMenu from '../segmentMenu.svelte';
+	import SegmentMenu from '../segmentMenuold.svelte';
 
 	let {
 		completed,

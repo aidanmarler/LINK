@@ -3,7 +3,7 @@
 	import type { forwardStatus } from '$lib/types';
 	import { quintInOut, quintOut } from 'svelte/easing';
 	import { blur, draw, fade, fly, scale } from 'svelte/transition';
-	import SegmentMenu from '../../../components/segmentMenu.svelte';
+	import SegmentMenu from './segmentMenu.svelte';
 
 	let {
 		completed,
@@ -11,7 +11,8 @@
 		segment,
 		translation = $bindable(),
 		open = $bindable(),
-		comment = $bindable()
+		comment = $bindable(),
+		skipped = $bindable()
 	}: {
 		completed: boolean;
 		label: string;
@@ -19,6 +20,7 @@
 		translation: string;
 		open: boolean;
 		comment: string;
+		skipped: boolean;
 	} = $props();
 
 	let inProgress: boolean = $derived(translation.length > 0);
@@ -26,7 +28,7 @@
 	let completion: forwardStatus = $derived.by(() => {
 		if (translation.length > 1) return 'inProgress';
 		if (completed) return 'forwardTranslated';
-		if (false) return 'skipped';
+		if (skipped) return 'skipped';
 		return 'toForwardTranslate';
 	});
 </script>
@@ -208,7 +210,7 @@
 			</div>
 
 			<div class="w-6 p-0.5 h-5">
-				<SegmentMenu bind:comment />
+				<SegmentMenu bind:comment bind:skipped />
 			</div>
 		{/if}
 	</div>

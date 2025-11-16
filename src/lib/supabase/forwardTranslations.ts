@@ -176,7 +176,7 @@ export async function MapListToForwardTranslationInsert(
 		for (const item in listEnglish[sublist]) {
 			const segment = listEnglish[sublist][item][0].trim();
 			const translation = listTarget[sublist]?.[item]?.[0].trim();
-			const location = ['Lists', list, sublist, segment];
+			const location = ['Options', list, sublist, segment];
 			const key = `${segment}|${location}`;
 
 			if ((!translation || translation === '') && (!segment || segment === '')) {

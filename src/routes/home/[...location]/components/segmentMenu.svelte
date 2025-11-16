@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { fly, scale } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 
 	let {
-		//skipped = $bindable(),
+		skipped = $bindable(),
 		comment = $bindable()
 	}: {
-		//skipped: boolean;
+		skipped: boolean;
 		comment: string | null;
 	} = $props();
 
@@ -70,7 +70,14 @@
             dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
 		>
 			<div class="border-inherit border-b p-1 flex flex-col">
-				<button class={buttonStyle} title="Choose not to translate segment." onclick={() => {}}>
+				<button
+					class={buttonStyle}
+					title="Choose not to translate segment."
+					onclick={() => {
+						console.log('skip!', skipped);
+						skipped = !skipped;
+					}}
+				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class=" h-full dark:invert w-9 p-1.5"

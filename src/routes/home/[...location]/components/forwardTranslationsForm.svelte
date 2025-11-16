@@ -5,11 +5,29 @@
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { InsertForwardTranslations } from '$lib/supabase/forwardTranslations';
 	import { invalidateAll } from '$app/navigation';
+	import { button, style } from '$lib/styles';
 
-	let { segmentMap, profile }: { segmentMap: SegmentMap; profile: Profile } = $props();
+	let {
+		segmentMap,
+		profile,
+		onsubmit
+	}: {
+		segmentMap: SegmentMap;
+		profile: Profile;
+		onsubmit: (shouldContinue: boolean) => Promise<void>;
+	} = $props();
 
 	// Translations to push - bind to translation segments
-	let translationsToPush: Record<number, { translation: string; comment: string }> = $state({});
+	let translationsToPush: Record<
+		number,
+		{ translation: string; comment: string; skipped: boolean }
+	> = $state({});
+
+	let canSave: boolean = $derived.by(() => {
+		return Object.values(translationsToPush).some(
+			(t) => t.translation.trim().length > 0 || t.skipped
+		);
+	});
 
 	onMount(() => {
 		//console.log('segmentMap!', segmentMap);
@@ -18,32 +36,33 @@
 			if (!segmentData.forwardTranslation) {
 				const numId = Number(id);
 				if (!translationsToPush[numId]) {
-					translationsToPush[numId] = { translation: '', comment: '' };
+					translationsToPush[numId] = { translation: '', comment: '', skipped: false };
 				}
 				//console.log(numId, translationsToPush);
 			}
 		});
 	});
 
-	async function handleSubmit() {
+	async function handleSubmit(shouldContinue: boolean) {
 		const newForwardTranslations: ForwardTranslationInsert[] = [];
 
 		for (const id in translationsToPush) {
-			if (translationsToPush[id].translation == '' ) continue;
+			if (translationsToPush[id].translation == '') continue;
 			newForwardTranslations.push({
 				original_id: Number(id),
 				user_id: profile.id,
 				language: profile.language as TranslationLanguage,
 				translation: translationsToPush[id].translation,
 				comment: translationsToPush[id].comment,
-				skipped: false
+				skipped: translationsToPush[id].skipped
 			});
 		}
-		//console.log('newForwardTranslations', newForwardTranslations);
 
 		await InsertForwardTranslations(newForwardTranslations);
 
 		await invalidateAll();
+
+		await onsubmit(shouldContinue);
 
 		return;
 	}
@@ -63,6 +82,7 @@
 				? segmentData.forwardTranslation.translation
 				: ''}
 			comment={segmentData.forwardTranslation.comment}
+			skipped={segmentData.forwardTranslation.skipped}
 		/>
 	{:else if Object.entries(translationsToPush).length > 0}
 		<!-- Incomplete -->
@@ -73,15 +93,31 @@
 			segment={segmentData.originalSegment.segment}
 			bind:translation={translationsToPush[Number(id)].translation}
 			bind:comment={translationsToPush[Number(id)].comment}
+			bind:skipped={translationsToPush[Number(id)].skipped}
 		/>{/if}
 	<br />
 {/each}
 
-<div class="w-full mt-2 justify-center flex">
+<div class="w-full mt-2 justify-between max-w-2xl px-3 m-auto flex">
 	<button
-		onclick={handleSubmit}
-		class="border-[3px] text-lg justify-right right-0 font-semibold border-green-900 bg-green-700/20 opacity-90 hover:opacity-100 hover:bg-green-600/50 hover:shadow-sm px-4 cursor-pointer rounded-xl"
+		onclick={() => {
+			handleSubmit(false);
+		}}
+		class="{button.stone} border-[3px] text-lg right-0 font-semibold {canSave
+			? 'opacity-90 hover:opacity-100 hover:shadow-sm'
+			: 'opacity-60'} px-4 cursor-pointer rounded-xl"
 	>
-		Submit Translations
+		Save
+	</button>
+
+	<button
+		onclick={() => {
+			handleSubmit(true);
+		}}
+		class="{button.green} border-[3px] text-lg right-0 font-semibold {canSave
+			? 'opacity-90 hover:opacity-100 hover:shadow-sm'
+			: 'opacity-60'} px-4 cursor-pointer rounded-xl"
+	>
+		Save & Continue
 	</button>
 </div>

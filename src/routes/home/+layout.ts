@@ -52,7 +52,7 @@ async function loadDataProgressively(
 		if (segment.presets) {
 			for (const preset of segment.presets) {
 				if (segment.location) {
-					console.log(segment.location[0]);
+					//console.log(segment.location[0]);
 					if (segment.location[0] == 'ARC' && !presets.includes(preset)) {
 						presets.push(preset);
 					}
@@ -94,7 +94,7 @@ async function loadDataProgressively(
 	// Step 4: Compute completion for all nodes
 	function computeNodeCompletions(node: LocationNode) {
 		node.completion = computeCompletion(node, segmentMap);
-		console.log('Computing ' + node.name, node.completion);
+		//console.log('Computing ' + node.name, node.completion);
 		node.children.forEach((child) => computeNodeCompletions(child));
 	}
 

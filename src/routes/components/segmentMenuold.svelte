@@ -4,11 +4,11 @@
 	import { supabase } from '../../supabaseClient';
 
 	let {
-		//skipped = $bindable(),
-		comment = $bindable()
+		comment = $bindable(),
+		skipped = $bindable()
 	}: {
-		//skipped: boolean;
 		comment: string | null;
+		skipped: boolean;
 	} = $props();
 
 	let menuContainer: HTMLDivElement;
@@ -72,7 +72,13 @@
             dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
 		>
 			<div class="border-inherit border-b p-1 flex flex-col">
-				<button class={buttonStyle} title="Choose not to translate segment." onclick={() => {}}>
+				<button
+					class={buttonStyle}
+					title="Choose not to translate segment."
+					onclick={() => {
+						skipped = !skipped;
+					}}
+				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class=" h-full dark:invert w-9 p-1.5"

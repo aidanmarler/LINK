@@ -1,18 +1,16 @@
 <script lang="ts">
-	import { button_A_active, button_A_inactive, card_dynamic, card_static } from '$lib/styles.js';
+	import { button, style } from '$lib/styles.js';
 	import { presetOptions } from '$lib/supabase/presets';
-	import type { LinkPreset, OriginalSegmentRow, SegmentMap } from '$lib/supabase/types.js';
-	import { createSlug } from '$lib/utils/slug.js';
 	import { capitalizeFirstLetter } from '$lib/utils/utils.js';
 	import { fade, fly } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
-	import { invalidate, invalidateAll } from '$app/navigation';
+	import { goto, invalidate, invalidateAll } from '$app/navigation';
 	import CompletionChart from './[...location]/completionChart.svelte';
+	import { findNextSegment, findNextSegment2 } from '$lib/utils/nextSegment';
 
 	let { data } = $props();
 	let { profile } = data;
 
-	let infoOpen = $state(false);
 	let presetsOpen = $state(!profile.selected_preset);
 
 	let routes = ['arc', 'lists'];
@@ -36,14 +34,17 @@
 </script>
 
 {#if profile}
-	<div in:fade={{ duration: 500, delay: 100 }} out:fade={{ duration: 100 }}>
+	<div in:fade|global={{ duration: 500, delay: 100 }} out:fade|global={{ duration: 100 }}>
 		<div class="mx-auto w-full justify-center flex mt-8 opacity-70">
 			<img alt="LINK icon" class="dark:invert-0 invert w-12" src="/link.svg" />
 			<h1 class="font-bold text-6xl">LINK</h1>
 		</div>
 	</div>
 
-	<div in:fly={{ y: 20, duration: 500, delay: 100 }} out:fly={{ y: 10, duration: 100 }}>
+	<div
+		in:fly|global={{ y: 20, duration: 500, delay: 100 }}
+		out:fly|global={{ y: 10, duration: 100 }}
+	>
 		<div class="w-full">
 			<div class="w-full text-stone-800 dark:text-stone-300">
 				<div class="max-w-3xl p-2 m-auto text-lg font-normal">
@@ -95,61 +96,69 @@
 					</p>
 				</div>
 			</div>
-			<div class=" rounded-lg {card_static}">
-				<div class=" border-inherit w-full text-stone-800 dark:text-stone-300">
-					<div class=" flex justify-between items-end p-2 px-4 border-inherit">
-						<button
-							onclick={() => {
-								presetsOpen = !presetsOpen;
-							}}
-							data-sveltekit-preload-code="eager"
-							class="text-xl cursor-pointer flex hover:underline font-semibold"
-						>
-							CRF to Translate
-						</button>
-						<p>
-							{Object.keys(presetOptions).find(
-								(key) => presetOptions[key] === profile.selected_preset
-							) ?? 'None'}
+
+			<div class=" border-inherit w-full text-stone-800 dark:text-stone-300">
+				<button
+					onclick={() => {
+						presetsOpen = !presetsOpen;
+					}}
+					title="{presetsOpen ? 'Close' : 'Open'} Preset Options"
+					data-sveltekit-preload-code="eager"
+					class=" w-full {button.stanley} {presetsOpen
+						? 'rounded-t-lg'
+						: 'rounded-lg'} flex justify-between items-end p-2 px-4 border-inherit text-xl cursor-pointer hover:underline font-semibold"
+				>
+					<p>CRF to Translate</p>
+
+					<p>
+						{Object.keys(presetOptions).find(
+							(key) => presetOptions[key] === profile.selected_preset
+						) ?? 'None'}
+					</p>
+				</button>
+
+				{#if presetsOpen}
+					<div class=" rounded-b-lg {style.border} border-x border-b">
+						<p class="mb-2 text-lg font-normal italic text-center">
+							Which CRF would you like to review?
 						</p>
-					</div>
-					{#if presetsOpen}
-						<div class=" border-inherit">
-							<p class="mb-2 text-lg font-normal italic text-center">
-								Which CRF would you like to review?
-							</p>
-							<div
-								class=" p-1 grid grid-cols-1 sm:grid-cols-2 rounded-md border-inherit gap-0.5 font-normal"
-							>
-								{#each Object.keys(presetOptions) as presetOption}
-									{@const selected = presetOptions[presetOption] == profile.selected_preset}
-									<button
-										class="px-3 text-left {selected ? button_A_inactive : button_A_active}"
-										onclick={() => handlePresetChange(presetOptions[presetOption])}
-									>
-										{presetOption}
-									</button>
-								{/each}
-							</div>
+						<div
+							class=" p-1 grid grid-cols-1 sm:grid-cols-2 rounded-md border-inherit gap-0.5 font-normal"
+						>
+							{#each Object.keys(presetOptions) as presetOption}
+								{@const selected = presetOptions[presetOption] == profile.selected_preset}
+								{@const title = selected ? '' : 'Review ' + presetOption}
+								<button
+									{title}
+									class="px-3 text-left {selected ? button.simple.inactive : button.simple.active}"
+									onclick={() => handlePresetChange(presetOptions[presetOption])}
+								>
+									{presetOption}
+								</button>
+							{/each}
 						</div>
-					{/if}
-				</div>
+					</div>
+				{/if}
 			</div>
 		</div>
 
 		{#each routes as route}
 			<div class="w-full mt-5">
-				<div class="w-full rounded-lg {card_static}">
-					<div class="flex justify-between items-end p-2 px-4 mb-3 border-b border-inherit">
-						<a
-							data-sveltekit-preload-code="eager"
-							class="text-3xl hover:underline font-semibold"
-							href="/home/{route}"
-						>
-							{route}
-						</a>
-					</div>
-					<div class="p-3 text-lg">
+				<div class="w-full">
+					<button
+						onclick={() => {
+							goto('/home/' + route);
+						}}
+						title="See {route == 'arc' ? 'ARC Questions' : 'Listed Options'}"
+						data-sveltekit-preload-code="eager"
+						class=" text-stone-800 dark:text-stone-300 w-full {button.stanley}
+							rounded-t-lg flex justify-between items-end p-2 px-4 border-inherit text-xl cursor-pointer hover:underline font-semibold"
+					>
+						<p data-sveltekit-preload-code="eager" class="text-3xl font-semibold">
+							{route == 'arc' ? 'ARC Questions' : 'Listed Options'}
+						</p>
+					</button>
+					<div class="p-3 rounded-b-lg border-x border-b border-inherit text-lg {style.border}">
 						{#await data.dataPromise}
 							<div class="loading">
 								<p>Loading...</p>
@@ -169,15 +178,52 @@
 							</div>
 						{/await}
 
-						{#if route == "arc"}
-							ARC is a repository of medical questionnaire Questions, Answers, Definitions, and Completion Guides.
-
-						{:else if route =="lists"}
-							Lists are our lists of items that can be selected when filling out one of these medical questionnaires.
+						{#if route == 'arc'}
+							<a
+								class={style.href}
+								target="_blank"
+								href="https://github.com/ISARICResearch/ARC/blob/main/README.md">ARC</a
+							> is a repository of medical questionnaire Questions, Answers, Definitions, and Completion
+							Guides.
+						{:else if route == 'lists'}
+							Listed options are options that can be selected when filling out one of these medical
+							questionnaires.
 						{/if}
 					</div>
 				</div>
 			</div>
 		{/each}
+		<div class="w-full flex justify-center">
+			{#await data.dataPromise}
+				<button
+					class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+				>
+					Go to Next Segment
+				</button>
+			{:then loadedData}
+				{@const nextSegment = findNextSegment2(
+					loadedData.locationTree,
+					loadedData.segmentMap,
+					'/home'
+				)}
+
+				{#if nextSegment}
+					<button
+						onclick={() => {
+							goto(nextSegment);
+						}}
+						class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+					>
+						Go to Next Segment
+					</button>
+				{:else}
+					<div
+						class=" border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+					>
+						No more segments to translate!
+					</div>
+				{/if}
+			{/await}
+		</div>
 	</div>
 {/if}

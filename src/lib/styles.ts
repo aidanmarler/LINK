@@ -28,3 +28,28 @@ export const button_B: string =
 
 export const button_green =
 	'border-green-900 bg-green-700/20 hover:bg-green-600/50 hover:border-green-800 hover:shadow-xsx dark:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 dark:bg-green-900/50 ';
+
+export const style = {
+	href: ' hover:underline text-blue-800 visited:text-purple-800 dark:text-blue-400 dark:visited:text-purple-400 ',
+	border: ' border-stone-700 dark:border-stone-600 ',
+	border_interactive:
+		' border-stone-700 dark:border-stone-600 hover:border-stone-600 hover:dark:border-stone-400 '
+};
+
+export const button = {
+	simple: {
+		active:
+			'  cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white rounded-sm hover:border-stone-500 hover:underline ',
+		inactive: ' opacity-80 font-medium rounded-sm bg-stone-300 dark:bg-stone-700 '
+	},
+	green:
+		'border-green-900 bg-green-700/20 hover:bg-green-600/50 hover:border-green-800 dark:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 dark:bg-green-900/50 ',
+	stanley:
+		style.border_interactive +
+		' border cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white hover:underline ',
+	stone:
+		'border-stone-900 bg-stone-500/30 hover:bg-stone-100 hover:border-stone-800 dark:border-stone-800 dark:hover:bg-stone-900 dark:hover:border-stone-600 dark:bg-stone-900/50 '
+
+	//'border border-stone-800 dark:border-stone-600 hover:border-stone-900 hover:dark:border-stone-400' +
+	//'  cursor-pointer hover:bg-stone-100/20 dark:hover:bg-stone-900 hover:text-black dark:hover:text-white '
+};
