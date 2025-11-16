@@ -6,7 +6,7 @@
 	import { supabase } from '../../supabaseClient';
 	import { goto, invalidate, invalidateAll } from '$app/navigation';
 	import CompletionChart from './[...location]/completionChart.svelte';
-	import { findNextSegment, findNextSegment2 } from '$lib/utils/nextSegment';
+	import { findNextSegment } from '$lib/utils/nextSegment';
 
 	let { data } = $props();
 	let { profile } = data;
@@ -57,7 +57,7 @@
 						>
 					</h3>
 					<p class="text-center">
-						Welcome, <em in:fade={{ duration: 1000 }}>{profile.name}</em>
+						Welcome, <em in:fade={{ duration: 1000, delay: 100 }}>{profile.name}</em>
 					</p>
 					<p class="mb-8 w-full italic text-center text-base">
 						Thank you ❤️ for helping to translate ARC from English into {capitalizeFirstLetter(
@@ -201,7 +201,7 @@
 					Go to Next Segment
 				</button>
 			{:then loadedData}
-				{@const nextSegment = findNextSegment2(
+				{@const nextSegment = findNextSegment(
 					loadedData.locationTree,
 					loadedData.segmentMap,
 					'/home'

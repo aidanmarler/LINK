@@ -58,11 +58,13 @@
 			});
 		}
 
-		await InsertForwardTranslations(newForwardTranslations);
+		if (newForwardTranslations.length > 0) {
+			await InsertForwardTranslations(newForwardTranslations);
 
-		await invalidateAll();
+			await invalidateAll();
+		}
 
-		await onsubmit(shouldContinue);
+		if (shouldContinue) await onsubmit(shouldContinue);
 
 		return;
 	}

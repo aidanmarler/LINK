@@ -3,7 +3,7 @@
 	import { button } from '$lib/styles';
 	import type { SegmentMap } from '$lib/supabase/types.js';
 	import type { Profile, UserForm } from '$lib/types.js';
-	import { findNextSegment2 } from '$lib/utils/nextSegment';
+	import { findNextSegment } from '$lib/utils/nextSegment';
 	import { fade, fly } from 'svelte/transition';
 	import CompletionChart from './completionChart.svelte';
 	import ForwardTranslationsForm from './components/forwardTranslationsForm.svelte';
@@ -19,10 +19,11 @@
 
 		const resolvedData = await data.dataPromise;
 
-		const nextSegment = findNextSegment2(
+		const nextSegment = findNextSegment(
 			resolvedData.locationTree,
 			resolvedData.segmentMap,
-			'/home'
+			'/home',
+			data.currentNode
 		);
 
 		if (nextSegment) {
@@ -128,7 +129,6 @@
 					out:fly|global={{ x: -10, duration: 100 }}
 				>
 					{#if currentForm == 'Forward Translate'}
-						<!-- Can we call a re-load of forward transltions form?-->
 						{#key currentPath}
 							<ForwardTranslationsForm segmentMap={pageSegments} {profile} {onsubmit} />
 						{/key}
