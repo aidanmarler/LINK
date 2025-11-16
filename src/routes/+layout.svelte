@@ -6,7 +6,7 @@
 </script>
 
 <span
-	class="bg-blue-400 text-blue-700 font-normal border-stone-600 dark:text-green-300 dark:bg-green-950"
+	class="font-normal border-stone-600 dark:border-stone-600 bg-stone-200 dark:bg-stone-950 text-stone-950 dark:text-stone-100"
 >
 	<!-- Main content -->
 	<main class="min-h-[90vh] flex-grow">
