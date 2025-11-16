@@ -57,7 +57,7 @@ export function findNextSegment(
 			}
 		} else {
 			if (segment.translationProgress && !startLocation?.segmentIds.includes(numericId)) {
-				console.log(segment);
+				//console.log(segment);
 				const step = segment.translationProgress.translation_step;
 				if (step == 'forward' && !segment.forwardTranslation) {
 					// find slug

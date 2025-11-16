@@ -248,7 +248,10 @@ export async function UpdateOriginalSegments(
 	return { inserted: toInsert.length, updated: toUpdate.length, unchanged: doNothing.length };
 }
 
-export async function pullOriginalSegments(typeFilter?: 'listItem' | 'exclude-listItem' | null, preset?: LinkPreset) {
+export async function pullOriginalSegments(
+	typeFilter?: 'listItem' | 'exclude-listItem' | null,
+	preset?: LinkPreset
+) {
 	const segments: OriginalSegmentRow[] = [];
 	const pageSize = 1000;
 	let page = 0;
@@ -264,10 +267,17 @@ export async function pullOriginalSegments(typeFilter?: 'listItem' | 'exclude-li
 			query = query.neq('type', 'listItem');
 		}
 
+		// How do we ignore presets if type answerOption?
+
 		// Add preset filter to query
 		if (preset) {
 			// Get if preset is null, 'always-show', or given preset is in list
-			query = query.or(`presets.cs.{${preset}},presets.cs.{always-show},presets.is.null`)
+			query = query.or(
+				`presets.cs.{${preset}},` +
+					`presets.cs.{always-show},` +
+					//`and(presets->0.is.null,type.eq.listItem),` +
+					`and(presets->0.is.null,type.eq.answerOption)`
+			);
 		}
 
 		const { data, error: fetchError } = await query.range(

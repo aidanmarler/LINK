@@ -34,6 +34,14 @@ export function buildLocationTree(segments: OriginalSegmentRow[]): LocationNode 
 		}
 	};
 
+	const answer_options: Record<string, OriginalSegmentRow> = {};
+
+	segments.forEach((segment) => {
+		if (segment.type == 'answerOption') {
+			answer_options[segment.segment] = segment;
+		}
+	});
+
 	segments.forEach((segment) => {
 		if (!segment.location || segment.location.length === 0) return;
 
@@ -69,6 +77,19 @@ export function buildLocationTree(segments: OriginalSegmentRow[]): LocationNode 
 				if (segment.type === 'question' && segment.segment) {
 					currentNode.name = segment.segment;
 				}
+				// Add answer options if this is a question with them
+				if (
+					segment.type === 'question' &&
+					segment.answer_options &&
+					segment.answer_options.length > 0
+				) {
+					segment.answer_options.forEach((optionText) => {
+						const answerOption = answer_options[optionText];
+						if (answerOption) {
+							currentNode.segmentIds.push(answerOption.id);
+						}
+					});
+				}
 			}
 		});
 	});
@@ -99,7 +120,6 @@ export function computeCompletion(node: LocationNode, segmentMap: SegmentMap): L
 		} else {
 			completion.forwardNeeded++;
 		}
-		
 	});
 
 	return completion;

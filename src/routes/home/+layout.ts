@@ -42,6 +42,7 @@ async function loadDataProgressively(
 
 	// Create base map
 	(original_segments || []).forEach((segment) => {
+		
 		segmentMap[segment.id] = {
 			originalSegment: segment,
 			translationProgress: null as never,
@@ -61,7 +62,9 @@ async function loadDataProgressively(
 		}
 	});
 
-	console.log('All presets found:', presets);
+	console.log('Original Segments loaded:', original_segments?.length);
+
+	//console.log('All presets found:', presets);
 
 	// Build tree and mapping
 	const locationTree = buildLocationTree(original_segments || []);
@@ -72,6 +75,8 @@ async function loadDataProgressively(
 		.from('translation_progress')
 		.select('*')
 		.eq('language', language);
+
+	console.log('Translation progress loaded:', translation_progress?.length);
 
 	(translation_progress || []).forEach((t) => {
 		if (segmentMap[t.original_id]) {
