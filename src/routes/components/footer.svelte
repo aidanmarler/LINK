@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { button_A_active } from "$lib/styles";
+	import { button_A_active } from '$lib/styles';
 
 	const footerTextStyle = ' text-stone-600 dark:text-stone-400 ';
 	const footerHeaderStyle = ' italic text-sm ';
@@ -9,6 +9,10 @@
 <footer class="w-full flex max-w-40 m-auto flex-col text-center {footerTextStyle} my-[100px]">
 	<span class={footerHeaderStyle}>Brought to you by</span>
 	<a target="_blank" class="{button_A_active} " href="https://www.contagio.network/">CONTAGIO</a>
+	<p>
+		CONTAGIO is funded by the European Union’s Horizon Europe programme under Grant Agreement N.
+		101137283
+	</p>
 	<a target="_blank" class={button_A_active} href="https://isaric.org/">ISARIC</a>
 	<div class="h-5"></div>
 
