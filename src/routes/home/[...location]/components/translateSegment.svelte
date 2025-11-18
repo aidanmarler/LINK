@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { card_static } from '$lib/styles';
+	import { card, card_static } from '$lib/styles';
 	import type { forwardStatus } from '$lib/types';
 	import { quintInOut, quintOut } from 'svelte/easing';
 	import { blur, draw, fade, fly, scale } from 'svelte/transition';
-	import SegmentMenu from './segmentMenu.svelte';
+	import type { Database } from '$lib/database.types';
+	import CommentViewer from './commentViewer.svelte';
 
 	let {
 		completed,
@@ -15,7 +16,7 @@
 		skipped = $bindable()
 	}: {
 		completed: boolean;
-		label: string;
+		label: Database['public']['Enums']['SegmentType'];
 		segment: string;
 		translation: string;
 		open: boolean;
@@ -24,6 +25,16 @@
 	} = $props();
 
 	let inProgress: boolean = $derived(translation.length > 0);
+
+	const typeLabels: Record<Database['public']['Enums']['SegmentType'], string> = {
+		formLabel: 'Form',
+		sectionLabel: 'Section',
+		question: 'Question',
+		answerOption: 'Answer',
+		definition: 'Definition',
+		completionGuide: 'Completion Guide',
+		listItem: 'Option'
+	};
 
 	let completion: forwardStatus = $derived.by(() => {
 		if (translation.length > 1) return 'inProgress';
@@ -78,16 +89,57 @@
 						</svg>{/if}
 				</div>
 
-				<span class="text-xs font-semibold italic text-stone-500">{label}</span>
+				<span class="text-sm font-semibold italic text-stone-600">{typeLabels[label]}</span>
 			</button>
 			<!--<a href="/{label}"></a>-->
+			{#if !completed}
+				<button
+					class=" flex px-2.5 {skipped
+						? ' opacity-90 hover:opacity-100 text-stone-200 bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
+						: 'text-stone-800 dark:text-stone-400 opacity-50 hover:opacity-60'} hover:shadow-xs rounded-full ml-4 group border-2 border-stone-800 dark:border-stone-400 cursor-pointer"
+					onclick={() => {
+						skipped = !skipped;
+					}}
+				>
+					<span class="text-sm font-bold">Skip Translation</span>
 
+					<div class="w-5 p-0.5 text-inherit h-full">
+						<svg
+							class="w-full h-full"
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 28 28"
+						>
+							<path
+								fill="currentColor"
+								d="M15.637 4.857c-1.066-.845-2.635-.086-2.635 1.273v4.57L5.636 4.858c-1.065-.845-2.634-.086-2.634 1.273V21.87c0 1.359 1.57 2.118 2.634 1.273l7.366-5.84v4.565c0 1.359 1.57 2.118 2.634 1.273l9.637-7.64a1.917 1.917 0 0 0 0-3.004z"
+							/>
+						</svg>
+					</div>
+				</button>
+			{/if}
 			<!--Completion Indicator-->
-			<div class="w-4 h-4 stroke-stone-500 fill-stone-500">
-				{#if completed}
+			<div class="w-5 h-5 ml-1 stroke-stone-500 fill-stone-500">
+				{#if completed && skipped}
+					<span title="Translation skipped">
+						<svg
+							class="w-full p-[2px] h-full border bg-stone-700/10 border-stone-700 stroke-stone-700 fill-stone-700 dark:bg-stone-500/10 dark:border-stone-500 dark:stroke-stone-500 dark:fill-stone-500"
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 28 28"
+						>
+							<path
+								fill="currentColor"
+								d="M15.637 4.857c-1.066-.845-2.635-.086-2.635 1.273v4.57L5.636 4.858c-1.065-.845-2.634-.086-2.634 1.273V21.87c0 1.359 1.57 2.118 2.634 1.273l7.366-5.84v4.565c0 1.359 1.57 2.118 2.634 1.273l9.637-7.64a1.917 1.917 0 0 0 0-3.004z"
+							/>
+						</svg>
+					</span>
+				{:else if completed}
 					<span title="Translated">
 						<svg
-							class="w-full p-[1px] h-full stroke-green-700 fill-green-700"
+							class="w-full p-[1px] h-full bg-green-700/10 border border-green-700 rounded-full stroke-green-700 fill-green-700"
 							xmlns="http://www.w3.org/2000/svg"
 							width="24"
 							height="24"
@@ -152,7 +204,7 @@
 							</path>
 						</svg>
 					</span>
-				{:else if completion == 'skipped'}
+				{:else if completion == 'skipped' && completed}
 					<span title="Skipped">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -168,6 +220,7 @@
 						</svg>
 					</span>
 				{:else}
+					<!--
 					<span title="Not yet translated">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -182,6 +235,7 @@
 							/>
 						</svg>
 					</span>
+				-->
 				{/if}
 			</div>
 		</div>
@@ -193,11 +247,17 @@
 			: 'max-h-0'}"
 	>
 		{#if open}
-			<div in:fade={{ duration: 200 }} class={'rounded border-2 w-full flex ' + card_static}>
+			<div
+				in:fade={{ duration: 200 }}
+				class="rounded border-2 w-full flex {completed ? 'opacity-70' : '  '} {card.translate
+					.complete}"
+			>
 				<div class="w-1/3 border-r-2 border-inherit px-2">
 					{segment}
 				</div>
-				{#if completed}
+				{#if skipped}
+					<div class=" w-2/3 px-2 italic opacity-60">Translation Skipped</div>
+				{:else if completed}
 					<div class=" w-2/3 px-2">{translation}</div>
 				{:else}
 					<textarea
@@ -210,7 +270,7 @@
 			</div>
 
 			<div class="w-6 p-0.5 h-5">
-				<SegmentMenu bind:comment bind:skipped />
+				<CommentViewer bind:completed bind:comment />
 			</div>
 		{/if}
 	</div>

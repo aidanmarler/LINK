@@ -53,3 +53,10 @@ export const button = {
 	//'border border-stone-800 dark:border-stone-600 hover:border-stone-900 hover:dark:border-stone-400' +
 	//'  cursor-pointer hover:bg-stone-100/20 dark:hover:bg-stone-900 hover:text-black dark:hover:text-white '
 };
+
+export const card = {
+	translate: {
+		complete: ' border font-medium border-stone-800 dark:border-stone-400 ',
+		incomplete: ' border font-medium border-stone-500 dark:border-stone-500 '
+	}
+};

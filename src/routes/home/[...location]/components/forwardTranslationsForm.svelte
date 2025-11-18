@@ -47,6 +47,16 @@
 		const newForwardTranslations: ForwardTranslationInsert[] = [];
 
 		for (const id in translationsToPush) {
+			if (translationsToPush[id].skipped == true) {
+				newForwardTranslations.push({
+					original_id: Number(id),
+					user_id: profile.id,
+					language: profile.language as TranslationLanguage,
+					translation: '',
+					comment: translationsToPush[id].comment,
+					skipped: translationsToPush[id].skipped
+				});
+			}
 			if (translationsToPush[id].translation == '') continue;
 			newForwardTranslations.push({
 				original_id: Number(id),

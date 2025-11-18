@@ -2,10 +2,10 @@
 	import { fly } from 'svelte/transition';
 
 	let {
-		skipped = $bindable(),
+		completed = $bindable(),
 		comment = $bindable()
 	}: {
-		skipped: boolean;
+		completed: boolean;
 		comment: string | null;
 	} = $props();
 
@@ -16,6 +16,7 @@
 		'h-7 flex justify-left cursor-pointer hover:bg-white dark:hover:bg-stone-800 rounded-md opacity-70 hover:opacity-100';
 
 	const textStyle = ' min-h-7 flex bg-stone-50 p-0.5 px-2 dark:bg-stone-800 rounded-md ';
+	const completeStyle = ' min-h-7 flex bg-stone-200 p-0.5 px-2 dark:bg-stone-950 rounded-md ';
 
 	// Handle clicks outside the menu
 	function handleClickOutside(event: MouseEvent) {
@@ -51,25 +52,43 @@
 </script>
 
 <div bind:this={menuContainer}>
-	<button
-		onclick={() => {
-			menuOpen = !menuOpen;
-		}}
-		class="opacity-50 hover:opacity-100 w-full h-full cursor-pointer"
-		title="Menu"
-		><img
-			alt="Menu"
-			class="dark:invert rotate-90 h-full w-full"
-			src="/interaction/kabob.svg"
-		/></button
-	>
+	{#if completed}
+		<button
+			onclick={() => {
+				menuOpen = !menuOpen;
+			}}
+			class="opacity-60 hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
+			title="See comment"
+			><img
+				alt="See comment"
+				class="dark:invert h-full w-full"
+				src="/interaction/comment.svg"
+			/></button
+		>
+	{:else}
+		<button
+			onclick={() => {
+				menuOpen = !menuOpen;
+			}}
+			class="opacity-60 hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
+			title="Add a comment"
+			><img
+				alt="Add comment"
+				class="dark:invert h-full w-full"
+				src="/interaction/addComment.svg"
+			/></button
+		>
+	{/if}
 	{#if menuOpen}
 		<div
 			transition:fly={{ x: 15, duration: 75 }}
-			class="flex z-10 flex-col font-semibold text-sm overflow-hidden border shadow w-66 h-auto absolute -translate-x-60 -translate-y-1.5 rounded-lg
+			class="flex z-10 flex-col font-semibold text-sm overflow-hidden border shadow w-100 h-auto absolute -translate-x-94 -translate-y-1.5 rounded-lg
             dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
 		>
+			<!--
 			<div class="border-inherit border-b p-1 flex flex-col">
+				
+
 				<button
 					class={buttonStyle}
 					title="Choose not to translate segment."
@@ -91,7 +110,7 @@
 					</svg>
 					<div class="h-full pt-1">Skip</div>
 				</button>
-				<!--
+				
 				<button
 					class={buttonStyle}
 					title="Write a comment for reviewers/admins."
@@ -111,11 +130,18 @@
 						/>
 					</svg>
 					<div class="h-full pt-1">Write Comment</div>
-				</button>-->
+				</button>
 			</div>
+		-->
 			<div class=" p-1 flex flex-col">
-				<textarea placeholder="Leave comment here..." class={textStyle} bind:value={comment}
-				></textarea>
+				{#if completed == true && comment == ''}
+					<p class="{completeStyle} italic opac">No comment provided</p>
+				{:else if completed == true}
+					<p class={completeStyle}>{comment}</p>
+				{:else}
+					<textarea placeholder="Leave comment here..." class={textStyle} bind:value={comment}
+					></textarea>
+				{/if}
 			</div>
 		</div>
 	{/if}

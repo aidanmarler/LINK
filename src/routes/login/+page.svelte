@@ -14,6 +14,9 @@
 	onMount(() => {
 		supabase.auth.getSession().then(({ data }) => {
 			session = data.session;
+			if (session) {
+				window.location.href = '/home';
+			}
 		});
 
 		supabase.auth.onAuthStateChange((_event, _session) => {
