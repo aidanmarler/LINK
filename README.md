@@ -29,7 +29,7 @@ In TRAPD, the steps would be
 3. **Backward Translation** - translate accepted translation back from language B to language A.
 4. **Adjudication** - have one central adjudicator determine if translation is good or not and needs to be re-done.
 5. **Pre-Test** - field test the translation.
-6. **Documentation** - Not just at the end but from the very start, document meeting and descistions - which documents 
+6. **Documentation** - Not just at the end but from the very start, document meetings and descisions. _Which translations were accepted and rejected? Why? Who did what?_
 
 ### Technology Used
 LINK uses Svelte, Typescript, TailwindCSS, Supabase, and GitHub GraphQL.
