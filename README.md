@@ -1,11 +1,24 @@
 # LINK
 Welcome to **LINK**, the Language Integration Network Kit!
 
-Proudly presented by CONAGIO and ISARIC, LINK is our tool for verifying automatic machine translations of the ARC database. 
+Proudly presented by [CONAGIO](contagio.network) and [ISARIC](isaric.org), LINK is our tool for verifying automatic machine translations of the [ARC](https://github.com/ISARICResearch/ARC) database. 
 
 Our goal is to create a system that can translate segements into any language using best-practices translation methodology. Specifically, we look to the TRAPD translation framework for methodological guidance.
 
-With the help of users from around the world, we hope to make the BRIDGE application as accessible and helpful to clinicians and researchers everywhere.
+With the help of users from around the world, we hope to make the [BRIDGE](bridge.isaric.org) application as accessible and helpful to clinicians and researchers everywhere.
+
+## Background
+ISARIC has developed a suite of tools to aid researchers from data collection through to analysis. Developed in a pandemic and kept up to ensure we are prepared for the next one.
+- ARC is the library of variables complete with questions, answers, definitions, and compltion guides. 
+- BRIDGE is the interactive data dictionary and CRF generator, allowing users to add and remove variables at will.
+- VERTEX allows researchers analyze thier RedCap data, and even pool processed data for shared analysis.
+
+ISARIC and CONTAGIO both focus on global connection and reach, empowering people to do research at the local level that can be compared and analyzed globally.
+
+So CONTAGIO has partnered with ISARIC to translate the entire ARC library into Spanish, French, and Portuguese with LINK. 
+All processes and procedures developed for these translations can, and will, be adapted to any other language from Arabic to Albanian!
+
+CONTAGIO is a larger project, and we are also working with ISARIC to develop several new CRFs for BRIDGE as well as a variable manager, enabling users to create their own custom questions and submit them for review so that even if ARC doesn't have a specific question you need, you will still be able to easily connect and use the entire suite of ISARIC's tools.
 
 ## How does it work?
 LINK works by first pulling in the ARC database into a SupaBase relational database, letting users interact with segments by adding Forward Translations, Reviews, and Backward Translations. 
