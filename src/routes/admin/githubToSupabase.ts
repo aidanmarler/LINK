@@ -419,9 +419,8 @@ export async function UpdateFromARC() {
 		/* Step 2: Forward Translations */
 
 		// 2A. Get all original segments with their IDs
-		const originalArchSegments: OriginalSegmentRow[] =
-			await pullOriginalSegments('exclude-listItem');
-		const originalListSegments: OriginalSegmentRow[] = await pullOriginalSegments('listItem');
+		const originalArchSegments: OriginalSegmentRow[] = await pullOriginalSegments(false); // all non list items
+		const originalListSegments: OriginalSegmentRow[] = await pullOriginalSegments(true); // all list items
 
 		// 2B. Create lookup map: composite key -> original_id & row
 
@@ -580,7 +579,7 @@ export async function UpdateFromARC() {
 
 	updateStatus('retrieve arc version');
 	const repos = { main: 'ARC', translations: 'ARC-Translations' };
-	const languages: GithubLanguage[] = ['French','Portuguese','Spanish'];
+	const languages: GithubLanguage[] = ['French', 'Portuguese', 'Spanish'];
 	const owner = 'ISARICResearch';
 	const version = await getArcLatestVersion(owner, repos.main);
 

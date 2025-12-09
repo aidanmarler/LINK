@@ -249,8 +249,10 @@ export async function UpdateOriginalSegments(
 }
 
 export async function pullOriginalSegments(
-	typeFilter?: 'listItem' | 'exclude-listItem' | null,
-	preset?: LinkPreset
+	listItem?: boolean,//'listItem' | 'exclude-listItem' | null,
+	answerOption?: boolean,
+	preset?: LinkPreset,
+	
 ) {
 	const segments: OriginalSegmentRow[] = [];
 	const pageSize = 1000;
@@ -260,11 +262,22 @@ export async function pullOriginalSegments(
 	while (hasMore) {
 		let query = supabase.from('original_segments').select('*');
 
-		// Apply type filter if provided
-		if (typeFilter === 'listItem') {
+		// Apply listItem filter if provided
+		if (listItem === true) {
+			console.log("type must be listItem!");
 			query = query.eq('type', 'listItem');
-		} else if (typeFilter === 'exclude-listItem') {
+		} else if (listItem === false) {
+			console.log("type must NOT be listItem!");
 			query = query.neq('type', 'listItem');
+		}
+
+		// Apply listItem filter if provided
+		if (answerOption === true) {
+			console.log("type must be answerOption!");
+			query = query.eq('type', 'answerOption');
+		} else if (answerOption === false) {
+			console.log("type must NOT be answerOption!");
+			query = query.neq('type', 'answerOption');
 		}
 
 		// How do we ignore presets if type answerOption?
@@ -301,3 +314,35 @@ export async function pullOriginalSegments(
 
 	return segments as OriginalSegmentRow[];
 }
+
+export async function pullOriginalAnswerSegments(segmentsToFind:string[]) {
+	const segments: OriginalSegmentRow[] = [];
+	const pageSize = 1000;
+	let page = 0;
+	let hasMore = true;
+
+	while (hasMore) {
+		const query = supabase.from('original_segments').select('*').in('segment', segmentsToFind);
+
+		const { data, error: fetchError } = await query.range(
+			page * pageSize,
+			(page + 1) * pageSize - 1
+		);
+
+		if (fetchError) {
+			console.error('Error fetching existing segments:', fetchError);
+			return [];
+		}
+
+		if (data) {
+			segments.push(...data);
+			hasMore = data.length === pageSize;
+			page++;
+		} else {
+			hasMore = false;
+		}
+	}
+
+	return segments as OriginalSegmentRow[];
+}
+

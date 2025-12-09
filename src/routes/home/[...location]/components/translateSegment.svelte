@@ -54,7 +54,9 @@
 				}}
 			>
 				<div
-					class="w-4 p-0.5 group-hover:bg-stone-100/70 group-hover:fill-stone-600 group-hover:stroke-stone-600 fill-stone-500 stroke-stone-500 h-4 rounded-full"
+					class="w-4 p-0.5 h-4 rounded-full
+					group-hover:bg-white group-hover:fill-stone-600 group-hover:stroke-stone-600 stroke-stone-500
+					dark:group-hover:bg-stone-800 dark:group-hover:fill-stone-400 dark:group-hover:stroke-stone-400 dark:stroke-stone-300"
 				>
 					{#if open}
 						<svg
@@ -182,11 +184,11 @@
 							</g>
 						</svg>-->
 					</span>
-				{:else if inProgress}
+				{:else if inProgress && !skipped}
 					<span title="Translation to submit">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="w-full h-full p-0.5 stroke-green-700 fill-stone-700"
+							class="w-full h-full p-0.5 stroke-green-700 fill-green-700"
 							width="24"
 							height="24"
 							viewBox="0 0 24 24"

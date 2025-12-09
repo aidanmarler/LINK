@@ -214,7 +214,7 @@
 						}}
 						class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
 					>
-						Go to Next Segment
+						Go to Next Segment: {nextSegment}
 					</button>
 				{:else}
 					<div

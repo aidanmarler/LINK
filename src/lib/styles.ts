@@ -56,7 +56,7 @@ export const button = {
 
 export const card = {
 	translate: {
-		complete: ' border font-medium border-stone-800 dark:border-stone-400 ',
-		incomplete: ' border font-medium border-stone-500 dark:border-stone-500 '
+		complete: ' border font-medium border-stone-800 dark:border-stone-700 dark:bg-stone-950 ',
+		incomplete: ' border font-medium border-stone-500 dark:border-stone-300 '
 	}
 };

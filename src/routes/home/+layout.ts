@@ -7,6 +7,7 @@ import { redirect } from '@sveltejs/kit';
 import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
 import type { LinkPreset, SegmentMap } from '$lib/supabase/types';
 import { presetOptions } from '$lib/supabase/presets';
+import { pullTranslationProgressForSegments } from '$lib/supabase/translationProgress';
 
 export const ssr = false; // Force client-side for authentication
 
@@ -36,13 +37,14 @@ async function loadDataProgressively(
 	const segmentMap: SegmentMap = {};
 
 	// Step 1: Load original segments
-	const original_segments = await pullOriginalSegments(undefined, preset);
+	const original_segments = await pullOriginalSegments(undefined, false, preset);
+
+	console.log("original_segments", original_segments)
 
 	const presets: string[] = [];
 
 	// Create base map
 	(original_segments || []).forEach((segment) => {
-		
 		segmentMap[segment.id] = {
 			originalSegment: segment,
 			translationProgress: null as never,
@@ -62,7 +64,7 @@ async function loadDataProgressively(
 		}
 	});
 
-	console.log('Original Segments loaded:', original_segments?.length);
+	console.log('Original Segments loaded:', Object.keys(segmentMap));
 
 	//console.log('All presets found:', presets);
 
@@ -71,10 +73,11 @@ async function loadDataProgressively(
 	const slugMapping = createSlugMapping(original_segments || []);
 
 	// Step 2: Load translation progress
-	const { data: translation_progress } = await supabase
-		.from('translation_progress')
-		.select('*')
-		.eq('language', language);
+	const segmentIds: number[] = Object.keys(segmentMap)
+		.map((key) => Number(key))
+		.filter((num) => !isNaN(num));
+	// !-- Gets all progress when should only get ones for loaded original segments, and should paginate
+	const translation_progress = await pullTranslationProgressForSegments(language, segmentIds);
 
 	console.log('Translation progress loaded:', translation_progress?.length);
 
@@ -85,6 +88,7 @@ async function loadDataProgressively(
 	});
 
 	// Step 3: Load forward translations
+	// !-- Gets all progress when should only get ones for loaded original segments, and should paginate
 	const { data: forward_translations } = await supabase
 		.from('forward_translations')
 		.select('*')

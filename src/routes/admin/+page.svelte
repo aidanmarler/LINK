@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { card_static } from '$lib/styles';
 	import { UpdateFromARC } from './githubToSupabase';
-
-	let ARCHVersion = $state('1.1.2');
 </script>
 
 <div class="max-w-96 flex-wrap space-x-2 flex p-2 rounded-lg {card_static}">
@@ -16,11 +14,4 @@
 	>
 		Update LINK from ARC
 	</button>
-
-	<!--
-	<input
-		class=" border-2 px-3 w-20 font-semibold rounded-lg
-						"
-		bind:value={ARCHVersion}
-	/>-->
 </div>
