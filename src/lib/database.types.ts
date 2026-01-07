@@ -565,34 +565,31 @@ export type Database = {
       }
       translation_reviews: {
         Row: {
-          comment: string | null
+          comments: Json
           created_at: string
           id: number
           language: Database["public"]["Enums"]["Language"]
           original_id: number
           reviewer_id: string
-          translation_id: number
-          voted_best: boolean
+          translation_id: number | null
         }
         Insert: {
-          comment?: string | null
+          comments: Json
           created_at?: string
           id?: number
           language: Database["public"]["Enums"]["Language"]
           original_id: number
           reviewer_id: string
-          translation_id: number
-          voted_best?: boolean
+          translation_id?: number | null
         }
         Update: {
-          comment?: string | null
+          comments?: Json
           created_at?: string
           id?: number
           language?: Database["public"]["Enums"]["Language"]
           original_id?: number
           reviewer_id?: string
-          translation_id?: number
-          voted_best?: boolean
+          translation_id?: number | null
         }
         Relationships: [
           {

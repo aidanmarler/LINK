@@ -100,7 +100,25 @@ async function loadDataProgressively(
 		}
 	});
 
-	// Step 4: Compute completion for all nodes
+	// Step 4: Load reviews! 
+	/*
+
+	To do this, we need to load all items from superbase that have an id in SegmentMap and are this language - IE, all reviews for a given segment
+
+	Actually, we care about if the user has completed a translation, just them, and then ALL translations separately.
+	Unique to user if "original_id & language & user"... really just "original_id & user", but then we double check it is the right language, just to be safe
+
+	What is the process?
+		1. Pull all ForwardTranslations for a given segment and language
+			* this is to show all options to select from
+		2. Pull all TranslationReviews for a given segment and language
+			* this is to show all comments made thus far on them by reviewers
+
+
+	In one review, a user will look at all questions, make comments about them that they find to be true "oh this one is wrong this way, or this one is wrong this way"
+	*/
+
+	// Step 5: Compute completion for all nodes
 	function computeNodeCompletions(node: LocationNode) {
 		node.completion = computeCompletion(node, segmentMap);
 		//console.log('Computing ' + node.name, node.completion);
