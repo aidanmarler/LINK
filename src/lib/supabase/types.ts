@@ -35,7 +35,7 @@ export type SegmentData = {
 	originalSegment: OriginalSegmentRow;
 	translationProgress: TranslationProgressRow;
 	forwardTranslation: ForwardTranslationRow | null;
-	//translationReview: TranslationReviewRow | null;
+	translationReview: TranslationReviewRow | null;
 	//relaventTranslations: ForwardTransaltionRow[] | null;
 };
 
@@ -58,3 +58,6 @@ export type LinkPreset =
 	| 'Score_CharlsonCI'
 	| 'Score_mSOFA'
 	| 'Score_mSOFA_Dengue';
+
+// original segment ID -> translation text -> forward translations rows with above text
+export type RelatedTranslations = Record<number, Record<string, ForwardTranslationRow[]>>;

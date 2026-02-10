@@ -1,5 +1,7 @@
 //#region Languages
 
+import type { Database } from "./database.types";
+
 // For user creation - what are you an expert in...
 export type AvailableLanguage = 'none' | 'spanish' | 'french' | 'portuguese';
 
@@ -393,3 +395,15 @@ export type CompletionReports_Guides = {
 export type UserForm = 'Forward Translate' | 'Review' | 'Backward Translate';
 
 //#endregion Forms
+
+
+// On segments to translate, this is the label for the type of segment that it is
+export const typeLabels: Record<Database['public']['Enums']['SegmentType'], string> = {
+	formLabel: 'Form Title',
+	sectionLabel: 'Section Title',
+	question: 'Question',
+	answerOption: 'Answer',
+	definition: 'Definition',
+	completionGuide: 'Completion Guide',
+	listItem: 'Option'
+};

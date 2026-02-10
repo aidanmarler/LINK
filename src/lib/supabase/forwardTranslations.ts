@@ -176,7 +176,7 @@ export async function MapListToForwardTranslationInsert(
 		for (const item in listEnglish[sublist]) {
 			const segment = listEnglish[sublist][item][0].trim();
 			const translation = listTarget[sublist]?.[item]?.[0].trim();
-			const location = ['Options', list, sublist, segment];
+			const location = ['Lists', list, sublist, segment]; // list location
 			const key = `${segment}|${location}`;
 
 			if ((!translation || translation === '') && (!segment || segment === '')) {
@@ -189,7 +189,6 @@ export async function MapListToForwardTranslationInsert(
 				continue;
 			}
 			//console.log(`Success! List: ${list}, ${sublist} | english: ${segment} | ${language}: ${translation} | `,key);
-
 			inserts.push({
 				translation: translation,
 				language: language,
@@ -328,10 +327,57 @@ export async function UpdateForwardTranslations(
 	return { success: true, inserted: toInsert.length };
 }
 
-export async function InsertForwardTranslations(forwardTranslations: ForwardTranslationInsert[]) {
-	const { error: insertError } = await supabase
-		.from('forward_translations')
-		.insert(forwardTranslations);
-	if (insertError) return insertError;
-	return;
+// Get Forward Translations for given segments
+export async function pullForwardTranslationsForSegments(
+	language: TranslationLanguage,
+	segmentIds: number[]
+) {
+	console.log('01 pullForwardTranslationsForSegments', segmentIds.length);
+	const translations: Array<ForwardTranslationRow> = [];
+	const batchSize = 1000; // segmentIDs
+	const pageSize = 1000;
+
+	// Create a set of remaining IDs to check
+	const remainingIds = new Set(segmentIds);
+
+	// Process in batches
+	for (let batchStart = 0; batchStart < segmentIds.length; batchStart += batchSize) {
+		const batchIds = segmentIds.slice(batchStart, batchStart + batchSize);
+
+		// Filter to only IDs we haven't found yet
+		const idsToCheck = batchIds.filter((id) => remainingIds.has(id));
+
+		if (idsToCheck.length === 0) continue;
+
+		let page = 0;
+		let hasMore = true;
+
+		while (hasMore) {
+			const { data, error: fetchError } = await supabase
+				.from('forward_translations')
+				.select('*')
+				.eq('language', language)
+				.in('original_id', idsToCheck)
+				.range(page * pageSize, (page + 1) * pageSize - 1);
+
+			if (fetchError) {
+				console.error('Error fetching existing translations:', fetchError);
+				return [];
+			}
+
+			if (data) {
+				translations.push(...data);
+				data.forEach((row) => remainingIds.delete(row.original_id));
+				hasMore = data.length === pageSize;
+				page++;
+			} else {
+				hasMore = false;
+			}
+		}
+		// Early exit if we've found all IDs
+		if (remainingIds.size === 0) break;
+	}
+
+	console.log('02 pullForwardTranslationsForSegments', translations.length);
+	return translations;
 }

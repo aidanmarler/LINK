@@ -9,6 +9,10 @@ import type {
 	UserComment
 } from '../types';
 
+
+/*
+AIDAN: I think old version code
+	*/
 export async function retrieveTable(table: Table | 'lists', language: TranslationLanguage) {
 	const columns = idColumns.concat(tableColumns[table]).join(', ') as '*';
 
@@ -35,6 +39,7 @@ export async function retrieveTable(table: Table | 'lists', language: Translatio
 			...row
 		})) as Row[];
 	}
+		
 
 	let totalData: Row[] = [];
 	let page = 1;
@@ -169,7 +174,9 @@ export async function addVote(table: Table | 'lists', userId: string, translatio
 	console.log('successfully added vote!');
 	return { success: true };
 }
-
+/*
+AIDAN: I think old version code
+*/
 // AIDAN NOT DONE
 // Function handles adding a single list item by a user
 export async function addOption(
@@ -374,6 +381,9 @@ export async function lists_addOption(
 	return { success: true };
 }
 
+/*
+AIDAN: I think old version code
+	*/
 // Insert Translations into Supabase of specified type for table.
 export async function addItems<T extends Table>(
 	userId: string,
@@ -395,3 +405,4 @@ export async function addItems<T extends Table>(
 	if (error) return error;
 	return;
 }
+

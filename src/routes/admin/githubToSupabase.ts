@@ -446,6 +446,8 @@ export async function UpdateFromARC() {
 			const pathArch = `ARCH${version}/${language}/ARCH.csv`;
 			const archTarget: ARCHData = await fetchAndParseArchCSV(owner, repo, 'main', pathArch);
 
+			console.log(language + " archTarget", archTarget);
+
 			// iii. Map to ForwardTranslationInsert with original_ids
 			const archForwardTranslations = await MapArchToForwardTranslationInsert(
 				language.toLowerCase() as TranslationLanguage,
@@ -453,6 +455,8 @@ export async function UpdateFromARC() {
 				archTarget,
 				archOriginalIdMap // Pass the lookup map
 			);
+
+			console.log(language + " archForwardTranslations", archForwardTranslations);
 
 			// iv. For each list, pull the target csv and map to ForwardTranslationInsert
 			const listsForwardTranslations = [];
@@ -581,7 +585,9 @@ export async function UpdateFromARC() {
 	const repos = { main: 'ARC', translations: 'ARC-Translations' };
 	const languages: GithubLanguage[] = ['French', 'Portuguese', 'Spanish'];
 	const owner = 'ISARICResearch';
-	const version = await getArcLatestVersion(owner, repos.main);
+	const version = "1.1.5";//await getArcLatestVersion(owner, repos.main); // manually setting it...
+
+	console.log("arc version: ", version)
 
 	updateStatus('retrieve lists');
 	const lists = await fetchFolderNames(owner, repos.main, 'main', 'Lists');

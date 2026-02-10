@@ -8,6 +8,7 @@ import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
 import type { LinkPreset, SegmentMap } from '$lib/supabase/types';
 import { presetOptions } from '$lib/supabase/presets';
 import { pullTranslationProgressForSegments } from '$lib/supabase/translationProgress';
+import { paginateQuery } from '$lib/supabase/utils';
 
 export const ssr = false; // Force client-side for authentication
 
@@ -39,7 +40,7 @@ async function loadDataProgressively(
 	// Step 1: Load original segments
 	const original_segments = await pullOriginalSegments(undefined, false, preset);
 
-	console.log("original_segments", original_segments)
+	console.log('original_segments', original_segments);
 
 	const presets: string[] = [];
 
@@ -47,8 +48,9 @@ async function loadDataProgressively(
 	(original_segments || []).forEach((segment) => {
 		segmentMap[segment.id] = {
 			originalSegment: segment,
-			translationProgress: null as never,
-			forwardTranslation: null
+			translationProgress: undefined as never,
+			forwardTranslation: null,
+			translationReview: null
 		};
 
 		// Debug preset options
@@ -87,20 +89,17 @@ async function loadDataProgressively(
 		}
 	});
 
-	// Step 3: Load forward translations
-	// !-- Gets all progress when should only get ones for loaded original segments, and should paginate
-	const { data: forward_translations } = await supabase
-		.from('forward_translations')
-		.select('*')
-		.eq('user_id', userId);
-
+	// Get all of users forward translations
+	const ft_query = supabase.from('forward_translations').select('*').eq('user_id', userId);
+	const { data: forward_translations } = await paginateQuery(ft_query, 1000);
+	// Add forward translations to segmentMap
 	(forward_translations || []).forEach((ft) => {
 		if (segmentMap[ft.original_id]) {
 			segmentMap[ft.original_id].forwardTranslation = ft;
 		}
 	});
 
-	// Step 4: Load reviews! 
+	// Step 4: Load reviews!
 	/*
 
 	To do this, we need to load all items from superbase that have an id in SegmentMap and are this language - IE, all reviews for a given segment
@@ -117,6 +116,17 @@ async function loadDataProgressively(
 
 	In one review, a user will look at all questions, make comments about them that they find to be true "oh this one is wrong this way, or this one is wrong this way"
 	*/
+
+	// Get all of users reviews
+	const review_query = supabase.from('translation_reviews').select('*').eq('reviewer_id', userId);
+	const { data: translation_reviews } = await paginateQuery(review_query, 1000);
+
+	// Add reviews to the segmentMap
+	(translation_reviews || []).forEach((review) => {
+		if (segmentMap[review.original_id]) {
+			segmentMap[review.original_id].translationReview = review;
+		}
+	});
 
 	// Step 5: Compute completion for all nodes
 	function computeNodeCompletions(node: LocationNode) {

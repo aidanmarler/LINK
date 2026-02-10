@@ -178,7 +178,7 @@ export async function UpdateOriginalSegments(
 	console.log('existingMap', existingMap);
 
 	const toInsert: OriginalSegmentInsert[] = [];
-	const toUpdate: { id: number; arc_versions: string[] }[] = [];
+	const toUpdateVersion: { id: number; arc_versions: string[] }[] = [];
 	const doNothing: OriginalSegmentInsert[] = [];
 
 	for (const newSegment of allOriginalSegments) {
@@ -194,7 +194,7 @@ export async function UpdateOriginalSegments(
 		} else {
 			// Exists - check if we need to add this arc_version
 			if (!existing.arc_versions.includes(version)) {
-				toUpdate.push({
+				toUpdateVersion.push({
 					id: existing.id,
 					arc_versions: [...existing.arc_versions, version]
 				});
@@ -207,10 +207,10 @@ export async function UpdateOriginalSegments(
 	}
 
 	console.log('toInsert', toInsert);
-	console.log('toUpdate', toUpdate);
+	console.log('toUpdateVersion', toUpdateVersion);
 	console.log('doNothing', doNothing);
 	console.log(
-		`Total processed: ${toInsert.length + toUpdate.length + doNothing.length} (should equal ${allOriginalSegments.length})`
+		`Total processed: ${toInsert.length + toUpdateVersion.length + doNothing.length} (should equal ${allOriginalSegments.length})`
 	);
 
 	/* Step 3: Add and Update Supabase Original Segments */
@@ -227,10 +227,10 @@ export async function UpdateOriginalSegments(
 	}
 
 	// Batch update existing segments
-	if (toUpdate.length > 0) {
+	if (toUpdateVersion.length > 0) {
 		// Supabase doesn't support bulk updates easily, so we'll need to do this in chunks
 		// or use a PostgreSQL function. For now, Promise.all works:
-		const updatePromises = toUpdate.map((update) =>
+		const updatePromises = toUpdateVersion.map((update) =>
 			supabase
 				.from('original_segments')
 				.update({ arc_versions: update.arc_versions })
@@ -242,10 +242,10 @@ export async function UpdateOriginalSegments(
 		if (errors.length > 0) {
 			console.error('Update errors:', errors);
 		}
-		console.log(`Updated ${toUpdate.length} existing segments.`);
+		console.log(`Updated ${toUpdateVersion.length} existing segments.`);
 	}
 
-	return { inserted: toInsert.length, updated: toUpdate.length, unchanged: doNothing.length };
+	return { inserted: toInsert.length, updated: toUpdateVersion.length, unchanged: doNothing.length };
 }
 
 export async function pullOriginalSegments(
@@ -264,19 +264,19 @@ export async function pullOriginalSegments(
 
 		// Apply listItem filter if provided
 		if (listItem === true) {
-			console.log("type must be listItem!");
+			//console.log("type must be listItem!");
 			query = query.eq('type', 'listItem');
 		} else if (listItem === false) {
-			console.log("type must NOT be listItem!");
+			//console.log("type must NOT be listItem!");
 			query = query.neq('type', 'listItem');
 		}
 
 		// Apply listItem filter if provided
 		if (answerOption === true) {
-			console.log("type must be answerOption!");
+			//console.log("type must be answerOption!");
 			query = query.eq('type', 'answerOption');
 		} else if (answerOption === false) {
-			console.log("type must NOT be answerOption!");
+			//console.log("type must NOT be answerOption!");
 			query = query.neq('type', 'answerOption');
 		}
 

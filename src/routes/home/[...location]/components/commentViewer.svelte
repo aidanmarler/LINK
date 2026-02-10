@@ -52,7 +52,7 @@
 </script>
 
 <div bind:this={menuContainer}>
-	{#if completed}
+	{#if completed && comment && comment.length > 0}
 		<button
 			onclick={() => {
 				menuOpen = !menuOpen;
@@ -65,18 +65,23 @@
 				src="/interaction/comment.svg"
 			/></button
 		>
-	{:else}
+	{:else if !completed}
 		<button
 			onclick={() => {
 				menuOpen = !menuOpen;
 			}}
 			class="opacity-60 hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
 			title="Add a comment"
-			><img
-				alt="Add comment"
-				class="dark:invert h-full w-full"
-				src="/interaction/addComment.svg"
-			/></button
+			aria-label="Add comment"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+				<path
+					class=" h-full stroke-2 w-full {comment != undefined && comment?.length > 1
+						? ' fill-green-700 dark:fill-green-300 '
+						: ' fill-black dark:fill-white '}"
+					d="M5 8a1 1 0 0 0 2 0V7h1a1 1 0 0 0 0-2H7V4a1 1 0 0 0-2 0v1H4a1 1 0 0 0 0 2h1Zm13-3h-6a1 1 0 0 0 0 2h6a1 1 0 0 1 1 1v9.72l-1.57-1.45a1 1 0 0 0-.68-.27H8a1 1 0 0 1-1-1v-3a1 1 0 0 0-2 0v3a3 3 0 0 0 3 3h8.36l3 2.73A1 1 0 0 0 20 21a1.1 1.1 0 0 0 .4-.08A1 1 0 0 0 21 20V8a3 3 0 0 0-3-3"
+				/>
+			</svg></button
 		>
 	{/if}
 	{#if menuOpen}

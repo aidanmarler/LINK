@@ -212,9 +212,10 @@
 						onclick={() => {
 							goto(nextSegment);
 						}}
-						class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+						class="{button.green.default} {button.green
+							.hover} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
 					>
-						Go to Next Segment: {nextSegment}
+						Go to Next Segment: {nextSegment.split('/').at(-1)}
 					</button>
 				{:else}
 					<div
