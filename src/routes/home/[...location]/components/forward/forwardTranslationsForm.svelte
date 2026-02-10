@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ForwardTranslationInsert, SegmentMap } from '$lib/supabase/types';
+	import type { ForwardTranslationInsert, SegmentData, SegmentMap } from '$lib/supabase/types';
 	import { onMount } from 'svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { invalidateAll } from '$app/navigation';
@@ -7,6 +7,7 @@
 	import { UpdateProgress_ForwardSubmission } from '$lib/supabase/translationProgress';
 	import TranslateSegment from './translateSegment.svelte';
 	import { InsertForwardTranslations } from '$lib/supabase/utils';
+	import { sortSegmentMap } from '$lib/utils/utils';
 
 	let {
 		segmentMap,
@@ -45,6 +46,12 @@
 			)
 		);
 	});
+
+	let sortedSegments: [number, SegmentData][] = $derived.by(() => {
+		return sortSegmentMap(segmentMap);
+	});
+
+	$inspect(sortedSegments);
 
 	onMount(() => {
 		//console.log('segmentMap!', segmentMap);
@@ -110,7 +117,7 @@
 
 <br />
 
-{#each Object.entries(segmentMap) as [id, segmentData], i (id)}
+{#each sortedSegments as [id, segmentData], i (id)}
 	{#if segmentData.forwardTranslation}
 		<!-- Complete -->
 		<TranslateSegment
@@ -132,10 +139,10 @@
 			open={true}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
-			saving={saving && Object.keys(translationsToPushFiltered).includes(id)}
-			bind:translation={translationsToPush[Number(id)].translation}
-			bind:comment={translationsToPush[Number(id)].comment}
-			bind:skipped={translationsToPush[Number(id)].skipped}
+			saving={saving && Object.keys(translationsToPushFiltered).includes(String(id))}
+			bind:translation={translationsToPush[id].translation}
+			bind:comment={translationsToPush[id].comment}
+			bind:skipped={translationsToPush[id].skipped}
 		/>{/if}
 	<br />
 {/each}

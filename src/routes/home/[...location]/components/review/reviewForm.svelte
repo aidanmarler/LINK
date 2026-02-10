@@ -1,10 +1,12 @@
 <script lang="ts">
-	import type { RelatedTranslations, SegmentMap } from '$lib/supabase/types';
+	import type { RelatedTranslations, SegmentData, SegmentMap } from '$lib/supabase/types';
 	import { onMount } from 'svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { button } from '$lib/styles';
 	import ReviewSegment from './reviewSegment.svelte';
 	import { countComments, getRelatedTranslations, handleSubmit } from './reviewForm';
+	import type { Database } from '$lib/database.types';
+	import { sortSegmentMap } from '$lib/utils/utils';
 
 	let {
 		segmentMap,
@@ -35,7 +37,7 @@
 
 	let errors: Record<number, string> = $state({});
 
-	//$inspect(reviewsToPush, relatedTranslations);
+	$inspect(segmentMap);
 
 	// Reviewer can save review if a translation is suggested or a comment is given.
 	// AIDAN: this can be an issue... Shouldn't we also allow a submission if a forward translation is provided?
@@ -59,7 +61,9 @@
 		);
 	});
 
-	$inspect(reviewsToPushFiltered);
+	let sortedSegments: [number, SegmentData][] = $derived.by(() => {
+		return sortSegmentMap(segmentMap);
+	});
 
 	onMount(async () => {
 		// set up review to push
@@ -88,7 +92,7 @@
 	}
 </script>
 
-{#each Object.entries(segmentMap) as [id, segmentData], i (id)}
+{#each sortedSegments as [id, segmentData], i (id)}
 	{#if segmentData.translationReview}
 		<!-- Complete -->
 		<ReviewSegment
@@ -113,11 +117,11 @@
 			segment={segmentData.originalSegment.segment}
 			options={relatedTranslations[+id]}
 			error={errors[+id]}
-			saving={saving && Object.keys(reviewsToPushFiltered).includes(id)}
-			bind:selectedTranslation={reviewsToPush[Number(id)].translation_id}
-			bind:comments={reviewsToPush[Number(id)].comments}
-			bind:ftranslation={reviewsToPush[Number(id)].ftranslation}
-			bind:fcomment={reviewsToPush[Number(id)].fcomment}
+			saving={saving && Object.keys(reviewsToPushFiltered).includes(String(id))}
+			bind:selectedTranslation={reviewsToPush[id].translation_id}
+			bind:comments={reviewsToPush[id].comments}
+			bind:ftranslation={reviewsToPush[id].ftranslation}
+			bind:fcomment={reviewsToPush[id].fcomment}
 		/>
 	{/if}
 	<br />

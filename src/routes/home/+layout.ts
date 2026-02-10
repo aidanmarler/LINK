@@ -38,7 +38,7 @@ async function loadDataProgressively(
 	const segmentMap: SegmentMap = {};
 
 	// Step 1: Load original segments
-	const original_segments = await pullOriginalSegments(undefined, false, preset);
+	const original_segments = await pullOriginalSegments(undefined, true, preset);
 
 	console.log('original_segments', original_segments);
 

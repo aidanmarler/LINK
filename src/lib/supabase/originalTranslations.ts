@@ -274,7 +274,7 @@ export async function pullOriginalSegments(
 		// Apply listItem filter if provided
 		if (answerOption === true) {
 			//console.log("type must be answerOption!");
-			query = query.eq('type', 'answerOption');
+			//query = query.eq('type', 'answerOption');
 		} else if (answerOption === false) {
 			//console.log("type must NOT be answerOption!");
 			query = query.neq('type', 'answerOption');

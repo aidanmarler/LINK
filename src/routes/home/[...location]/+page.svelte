@@ -9,7 +9,6 @@
 	import ForwardTranslationsForm from './components/forward/forwardTranslationsForm.svelte';
 	import { makeFolderLabel } from '$lib/utils/utils';
 	import TranslationReviewForm from './components/review/reviewForm.svelte';
-	import { onMount } from 'svelte';
 
 	let { data } = $props();
 
@@ -93,6 +92,7 @@
 				
 			}
 		}
+		
 		return sorted;
 	})()}
 
