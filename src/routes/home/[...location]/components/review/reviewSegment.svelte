@@ -97,7 +97,7 @@
 		</button>
 		<!--Skip Button-->
 		<!--Completion Indicator-->
-		<CompletionIndicator {completed} {inProgress} skipped={false} {saving} />
+		<CompletionIndicator {completed} {inProgress} skipped={false} {saving} completedText={"reviewed"} />
 		<!-- Error Message-->
 		{#if error}
 			<span class="text-red-800 h-5 font-semibold px-3 ml-2 border border-red-800 text-sm">

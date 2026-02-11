@@ -3,13 +3,15 @@
 		completed, // has segment already been reviewed?
 		skipped, // like "question", "answer", "label", etc./
 		inProgress, // original segment
-		saving // original segment
+		saving, // original segment
+		completedText
 		//state
 	}: {
 		completed: boolean;
 		skipped: boolean;
 		inProgress: boolean;
 		saving: boolean;
+		completedText: string;
 		//state: 'complete' | 'skipped' | 'inProgress' | 'saving';
 	} = $props();
 </script>
@@ -53,7 +55,7 @@
 				clip-rule="evenodd"
 			/>
 		</svg>
-		<span>reviewed</span>
+		<span>{completedText}</span>
 	</div>
 {:else if saving}
 	<div
@@ -98,6 +100,24 @@
 				fill-rule="evenodd"
 				d="M10.78 2.62a.75.75 0 0 1 0 1.06L4.683 9.777a.75.75 0 0 1-1.069-.009L1.211 7.284a.75.75 0 0 1 1.078-1.043l1.873 1.936L9.72 2.62a.75.75 0 0 1 1.06 0"
 				clip-rule="evenodd"
+			/>
+		</svg>
+		unsaved
+	</div>
+{:else if skipped}
+	<div
+		title="Will skip"
+		class="h-5 flex items-center rounded-full border ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default border-yellow-800 bg-yellow-800/10 text-yellow-700"
+	>
+		<svg
+			class="w-5 px-0.5 h-full stroke-2 stroke-yellow-800 fill-yellow-800/0"
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 28 28"
+		>
+			<path
+				d="M15.637 4.857c-1.066-.845-2.635-.086-2.635 1.273v4.57L5.636 4.858c-1.065-.845-2.634-.086-2.634 1.273V21.87c0 1.359 1.57 2.118 2.634 1.273l7.366-5.84v4.565c0 1.359 1.57 2.118 2.634 1.273l9.637-7.64a1.917 1.917 0 0 0 0-3.004z"
 			/>
 		</svg>
 		unsaved
