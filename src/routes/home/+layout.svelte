@@ -45,7 +45,7 @@
 				{/each}
 			</nav>
 
-			<div class="h-50">
+			<div class="h-50 min-w-9">
 				<KabobMenu />
 			</div>
 		</div>

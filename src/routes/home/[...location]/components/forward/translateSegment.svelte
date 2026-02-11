@@ -37,13 +37,13 @@
 	});
 </script>
 
-<div>
+<div class=" md:ml-4">
 	<div class="w-full flex justify-between">
-		<div class="flex w-full justify-between items-center">
-			<div class="flex w-1/3">
+		<div class="flex mr-7 w-full justify-between items-center">
+			<div class="flex  w-1/3">
 				<!-- Open/Close Button -->
 				<button
-					class=" flex ml-4 group hover:underline cursor-pointer"
+					class=" flex group hover:underline cursor-pointer"
 					onclick={() => {
 						open = !open;
 					}}
@@ -99,7 +99,7 @@
 				/>
 			</div>
 
-			<div class="flex pl-0.5 h-6 w-2/3">
+			<div class="flex h-6 w-2/3">
 				<!-- Skip button -->
 				{#if !completed && open}
 					<button
@@ -136,9 +136,7 @@
 	</div>
 
 	<div
-		class="flex pl-4 w-full h-full transition-all {open
-			? ' max-h-[1200px] duration-[.5s] '
-			: 'max-h-0'}"
+		class="flex w-full h-full transition-all {open ? ' max-h-[1200px] duration-[.5s] ' : 'max-h-0'}"
 	>
 		{#if open}
 			<div

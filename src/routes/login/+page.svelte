@@ -6,6 +6,7 @@
 	import ThemeManager from '../components/themeManager.svelte';
 	import { button_green, card_static, form_element } from '$lib/styles';
 	import { checkAdminStatus } from '$lib/supabase/auth';
+	import { goto } from '$app/navigation';
 
 	let session: AuthSession | null;
 	let email: string = '';
@@ -42,9 +43,9 @@
 		console.log('isAdmin', isAdmin);
 
 		if (isAdmin) {
-			window.location.href = '/admin';
+			goto('/admin');
 		} else {
-			window.location.href = '/home';
+			goto('/home');
 		}
 	}
 </script>
@@ -65,7 +66,7 @@
 			-->
 			<form class="text-xl" onsubmit={handleSignIn}>
 				<line class="w-full"> </line>
-				<label class="font-medium ">
+				<label class="font-medium">
 					<input
 						class={'w-full  mb-1  ' + form_element}
 						required

@@ -399,11 +399,11 @@ export type UserForm = 'Forward Translate' | 'Review' | 'Backward Translate';
 
 // On segments to translate, this is the label for the type of segment that it is
 export const typeLabels: Record<Database['public']['Enums']['SegmentType'], string> = {
-	formLabel: 'Form Title',
-	sectionLabel: 'Section Title',
+	formLabel: 'Form',
+	sectionLabel: 'Section',
 	question: 'Question',
 	answerOption: 'Answer',
 	definition: 'Definition',
-	completionGuide: 'Completion Guide',
+	completionGuide: 'Guide',
 	listItem: 'Option'
 };

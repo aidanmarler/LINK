@@ -50,7 +50,7 @@
 	<div class="flex p-0.5">
 		<!-- Open/Close Button-->
 		<button
-			class=" flex ml-4 group hover:underline cursor-pointer"
+			class=" flex md:ml-4 group hover:underline cursor-pointer"
 			onclick={() => {
 				open = !open;
 			}}
