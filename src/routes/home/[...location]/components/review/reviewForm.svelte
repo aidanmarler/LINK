@@ -1,11 +1,20 @@
 <script lang="ts">
-	import type { RelatedTranslations, SegmentData, SegmentMap } from '$lib/supabase/types';
+	import type {
+		RelatedTranslations,
+		SegmentData,
+		SegmentMap,
+		TranslationReviewRow
+	} from '$lib/supabase/types';
 	import { onMount } from 'svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { button } from '$lib/styles';
 	import ReviewSegment from './reviewSegment.svelte';
-	import { countComments, getRelatedTranslations, handleSubmit } from './reviewForm';
-	import type { Database } from '$lib/database.types';
+	import {
+		countComments,
+		getRelatedReviews,
+		getRelatedTranslations,
+		handleSubmit
+	} from './reviewForm';
 	import { sortSegmentMap } from '$lib/utils/utils';
 
 	let {
@@ -23,6 +32,7 @@
 
 	// Store translations related to the set of original ids
 	let relatedTranslations: RelatedTranslations = $state({});
+	let relatedReviews: Record<number, TranslationReviewRow[]> = $state({});
 
 	// Translations to push - bind to translation segments
 	let reviewsToPush: Record<
@@ -73,6 +83,11 @@
 			Object.keys(segmentMap).map(Number),
 			profile.language as TranslationLanguage
 		);
+		// pull other reviews for these segments
+		relatedReviews = await getRelatedReviews(
+			Object.keys(segmentMap).map(Number),
+			profile.language as TranslationLanguage
+		);
 	});
 
 	// Set up blank reviews "To be reviewed" by itterating through data provided
@@ -93,6 +108,7 @@
 </script>
 
 {#each sortedSegments as [id, segmentData], i (id)}
+	{@const reviews = relatedReviews[+id] ?? []}
 	{#if segmentData.translationReview}
 		<!-- Complete -->
 		<ReviewSegment
@@ -101,6 +117,7 @@
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			options={relatedTranslations[+id]}
+			relatedReviews={reviews}
 			error={undefined}
 			saving={false}
 			selectedTranslation={segmentData.translationReview.translation_id}
@@ -116,6 +133,7 @@
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			options={relatedTranslations[+id]}
+			relatedReviews={reviews}
 			error={errors[+id]}
 			saving={saving && Object.keys(reviewsToPushFiltered).includes(String(id))}
 			bind:selectedTranslation={reviewsToPush[id].translation_id}

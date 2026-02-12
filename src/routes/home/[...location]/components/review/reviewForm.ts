@@ -4,7 +4,8 @@ import type {
 	ForwardTranslationInsert,
 	ForwardTranslationRow,
 	RelatedTranslations,
-	TranslationReviewInsert
+	TranslationReviewInsert,
+	TranslationReviewRow
 } from '$lib/supabase/types';
 import {
 	InsertForwardTranslations,
@@ -104,6 +105,9 @@ export async function handleSubmit(
 				cleanedReviews[+id].fcomment = reviewsToPush[+id].fcomment;
 			}
 		}
+
+		// Show error if no option selected
+		if (reviewsToPush[+id].translation_id == null) errors[+id] = 'No translation selected';
 	}
 	console.log(reviewsToPush, cleanedReviews, errors);
 	const newTranslations: ForwardTranslationInsert[] = [];
@@ -162,4 +166,26 @@ export async function handleSubmit(
 	}
 
 	return errors;
+}
+
+export async function getRelatedReviews(
+	original_ids: number[],
+	language: TranslationLanguage
+): Promise<Record<number, TranslationReviewRow[]>> {
+	const relatedReviews: Record<number, TranslationReviewRow[]> = {};
+	const RelatedReviewsList: TranslationReviewRow[] = await pullRowsForOriginalId(
+		language,
+		'translation_reviews',
+		original_ids
+	);
+
+	// map list to relatedTranslations type (id -> text -> row)
+	for (const r of RelatedReviewsList) {
+		const id = r.original_id;
+
+		if (relatedReviews[id]) {
+			relatedReviews[id].push(r);
+		} else relatedReviews[id] = [r];
+	}
+	return relatedReviews;
 }

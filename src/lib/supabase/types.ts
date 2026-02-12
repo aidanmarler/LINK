@@ -61,3 +61,8 @@ export type LinkPreset =
 
 // original segment ID -> translation text -> forward translations rows with above text
 export type RelatedTranslations = Record<number, Record<string, ForwardTranslationRow[]>>;
+
+// Comments are stored in the database as "Json",
+//    but they are always a pair { translation_id: string | null }
+//    ( the forward translation being reviewed: comment )
+export type ReviewComment = Record<number, string | null>;

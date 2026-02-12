@@ -1,7 +1,12 @@
 <script lang="ts">
 	import type { Database } from '$lib/database.types';
 	import { card, card_dynamic, newStyle } from '$lib/styles';
-	import type { ForwardTranslationRow, RelatedTranslations } from '$lib/supabase/types';
+	import type {
+		ForwardTranslationRow,
+		RelatedTranslations,
+		ReviewComment,
+		TranslationReviewRow
+	} from '$lib/supabase/types';
 	import { getEarliestEvent } from '$lib/supabase/utils';
 	import { typeLabels } from '$lib/types';
 	import { quintInOut } from 'svelte/easing';
@@ -15,22 +20,24 @@
 		label, // like "question", "answer", "label", etc./
 		segment, // original segment
 		options, // options to select
+		relatedReviews,
 		error,
+		saving,
 		open = $bindable(), // is segment form open or hidden
-		saving = $bindable(),
 		selectedTranslation = $bindable(), //id of translation selected as best (if not providing a new one)
 		comments = $bindable(),
 		ftranslation = $bindable(), // if providing a new translation, text will be here
-		fcomment = $bindable() // if providing a new translation, comment is required and will be here
+		fcomment = $bindable() // if providing a new translation, comment is required and will be her
 		//skipped = $bindable() // if skipped... if we have that
 	}: {
 		completed: boolean;
 		label: Database['public']['Enums']['SegmentType'];
 		segment: string;
 		options: Record<string, ForwardTranslationRow[]>;
+		relatedReviews: TranslationReviewRow[];
 		error: string | undefined;
-		open: boolean;
 		saving: boolean;
+		open: boolean;
 		selectedTranslation: number | null | string;
 		comments: Record<number, string | null>;
 		ftranslation: string | null;
@@ -38,10 +45,42 @@
 		//skipped: boolean;
 	} = $props();
 
-	let newSuggestionText: string = $state('');
 	let inProgress: boolean = $derived.by(() => {
 		if (selectedTranslation) return true;
 		return false;
+	});
+
+	//
+
+	/*
+									{#each option as translation, i}
+										{@render commentView(translation.comment)}
+
+										<!-- Get other review's comments of the translation-->
+										{#each relatedReviews as review}
+											{@const comment = (review.comments as ReviewComment)[translation.id]}
+											{#if comment}
+												{@render commentView(comment!)}
+											{/if}
+										{/each}
+									{/each}
+	*/
+	let commentMap: Record<string, string[]> = $derived.by(() => {
+		const cMap: Record<string, string[]> = {};
+
+		for (const [text, translations] of Object.entries(options)) {
+			cMap[text] = [];
+			for (const ft of translations) {
+				if (ft.comment.length > 0) cMap[text].push(ft.comment);
+				for (const r of relatedReviews) {
+					const rComments = r.comments as ReviewComment;
+					if (rComments[ft.id]) cMap[text].push(rComments[ft.id]!);
+				}
+			}
+			cMap[text].push();
+		}
+
+		return cMap;
 	});
 </script>
 
@@ -97,7 +136,13 @@
 		</button>
 		<!--Skip Button-->
 		<!--Completion Indicator-->
-		<CompletionIndicator {completed} {inProgress} skipped={false} {saving} completedText={"reviewed"} />
+		<CompletionIndicator
+			{completed}
+			{inProgress}
+			skipped={false}
+			{saving}
+			completedText={'reviewed'}
+		/>
 		<!-- Error Message-->
 		{#if error}
 			<span class="text-red-800 h-5 font-semibold px-3 ml-2 border border-red-800 text-sm">
@@ -123,7 +168,7 @@
 					: '  '} {card.translate.complete}"
 			>
 				<!--Original Segment-->
-				<h3 class="w-full border-b-2 border-inherit px-2">
+				<h3 class="w-full border-b border-inherit px-2">
 					{segment}
 				</h3>
 
@@ -137,7 +182,7 @@
 								<label
 									class="w-1/2 {completed
 										? ' '
-										: ' hover:bg-stone-100  cursor-pointer '}  border-r border-inherit px-2"
+										: ' hover:bg-stone-100  cursor-pointer '}  border-r border-t border-inherit px-2"
 								>
 									<input
 										type="radio"
@@ -160,12 +205,19 @@
 									/>
 									{text}
 								</label>
+
+								{#snippet commentView(text: string)}
+									{text}
+								{/snippet}
 								<!-- Option's Comments -->
-								<div class="w-1/2 border-l font-normal italic border-inherit overflow-y-auto">
-									{#each option as translation}
-										<div class="mx-1 px-1 text-stone-800 rounded-sm">
-											{translation.comment}
-										</div>
+								<div
+									class="w-1/2 border-l px-2 flex font-normal text-stone-800 italic border-t border-inherit overflow-y-auto"
+								>
+									{#each commentMap[text] as comment, i}
+										{comment}
+										{#if i < commentMap[text].length - 1}
+											&nbsp;| &nbsp;
+										{/if}
 									{/each}
 								</div>
 							</fieldset>

@@ -90,7 +90,9 @@ export async function InsertTranslationProgress(progresses: TranslationProgressI
 //export async function pullRowsForOriginalId<T extends { original_id: number, language: TranslationLanguage }>(
 //export async function pullRowsForOriginalId<T extends TablesWithIdAndLanguage>(
 
-type tables = 'forward_translations' | 'translation_progress' | 'accepted_translations';
+type tables = 'forward_translations' | 'translation_progress' | 'accepted_translations' | 'translation_reviews';
+
+//const myVar: Database['public']['Tables']['translation_reviews']
 
 export async function pullRowsForOriginalId<
 	TRow extends { created_at: string; language: TranslationLanguage }
