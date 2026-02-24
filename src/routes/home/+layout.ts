@@ -38,9 +38,16 @@ async function loadDataProgressively(
 	const segmentMap: SegmentMap = {};
 
 	// Step 1: Load original segments
+	const timeStamp: number[] = [];
+	timeStamp[0] = performance.now();
+
 	const original_segments = await pullOriginalSegments(undefined, true, preset);
 
-	console.log('original_segments', original_segments);
+	timeStamp[1] = performance.now();
+
+	console.log('original_segments found in', timeStamp[1] - timeStamp[0], 'ms');
+
+	//console.log('original_segments', original_segments.length);
 
 	const presets: string[] = [];
 
@@ -66,13 +73,16 @@ async function loadDataProgressively(
 		}
 	});
 
-	console.log('Original Segments loaded:', Object.keys(segmentMap));
+	//console.log('Original Segments loaded:', Object.keys(segmentMap));
 
 	//console.log('All presets found:', presets);
 
 	// Build tree and mapping
 	const locationTree = buildLocationTree(original_segments || []);
 	const slugMapping = createSlugMapping(original_segments || []);
+
+	timeStamp[2] = performance.now();
+	console.log('starting translation progress after', timeStamp[2] - timeStamp[1], 'ms');
 
 	// Step 2: Load translation progress
 	const segmentIds: number[] = Object.keys(segmentMap)
@@ -81,13 +91,19 @@ async function loadDataProgressively(
 	// !-- Gets all progress when should only get ones for loaded original segments, and should paginate
 	const translation_progress = await pullTranslationProgressForSegments(language, segmentIds);
 
-	console.log('Translation progress loaded:', translation_progress?.length);
+	timeStamp[3] = performance.now();
+	console.log('translation progress pulled in', timeStamp[3] - timeStamp[2], 'ms');
+
+	//console.log('Translation progress loaded:', translation_progress?.length);
 
 	(translation_progress || []).forEach((t) => {
 		if (segmentMap[t.original_id]) {
 			segmentMap[t.original_id].translationProgress = t;
 		}
 	});
+
+	timeStamp[4] = performance.now();
+	console.log('pulling forward_translations after ', timeStamp[4] - timeStamp[3], 'ms');
 
 	// Get all of users forward translations
 	const ft_query = supabase.from('forward_translations').select('*').eq('user_id', userId);
@@ -98,6 +114,9 @@ async function loadDataProgressively(
 			segmentMap[ft.original_id].forwardTranslation = ft;
 		}
 	});
+
+	timeStamp[5] = performance.now();
+	console.log('forward_translations pulled and mapped in', timeStamp[5] - timeStamp[4], 'ms');
 
 	// Step 4: Load reviews!
 	/*
@@ -128,6 +147,9 @@ async function loadDataProgressively(
 		}
 	});
 
+	timeStamp[6] = performance.now();
+	console.log('translation_reviews pulled and mapped in', timeStamp[6] - timeStamp[5], 'ms');
+
 	// Step 5: Compute completion for all nodes
 	function computeNodeCompletions(node: LocationNode) {
 		node.completion = computeCompletion(node, segmentMap);
@@ -136,6 +158,9 @@ async function loadDataProgressively(
 	}
 
 	computeNodeCompletions(locationTree);
+
+	timeStamp[7] = performance.now();
+	console.log('computeNodeCompletions computed in', timeStamp[7] - timeStamp[6], 'ms');
 
 	return {
 		segmentMap,

@@ -40,31 +40,32 @@ export function findNextSegmentOld(
 	return null;
 }
 
+// Find next segment from segmentMap given a starting route,
 export function findNextSegment(
 	locationTree: LocationNode,
 	segmentMap: SegmentMap,
 	startingRoute: string,
 	startLocation?: LocationNode
 ) {
-	let startSearch = false;
-	if (!startLocation) startSearch = true;
-	for (const [id, segment] of Object.entries(segmentMap)) {
-		const numericId = Number(id);
+	// Searching: is currently searching for next incomplete segment
+	let searching = false;
+	if (!startLocation) searching = true;
 
-		if (!startSearch) {
-			if (startLocation?.segmentIds.includes(numericId)) {
-				startSearch = true;
-			}
+	// Itereate through every entry of segmentMap
+	for (const [id, segment] of Object.entries(segmentMap)) {
+		if (searching) {
+			// - skip location if this is the starting location
+			if (startLocation?.segmentIds.includes(+id)) continue;
+			// - skip if this is an answer option... they do not actually have a location
+			if (segment.originalSegment.type == 'answerOption') continue;
+			// - if no forward translation, this is the next to go to
+			if (segment.forwardTranslation) continue;
+
+			// == Searching is Over! == //
+			return getSegmentSlug(+id, locationTree, startingRoute);
 		} else {
-			if (segment.translationProgress && !startLocation?.segmentIds.includes(numericId)) {
-				//console.log(segment);
-				const step = segment.translationProgress.translation_step;
-				if (step == 'forward' && !segment.forwardTranslation) {
-					// find slug
-					//console.log('go to:', segment);
-					return getSegmentSlug(numericId, locationTree, startingRoute);
-				}
-			}
+			// if not yet starting search, start search if start location has been found
+			if (startLocation?.segmentIds.includes(+id)) searching = true;
 		}
 	}
 }

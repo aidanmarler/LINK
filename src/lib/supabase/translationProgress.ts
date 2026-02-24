@@ -44,7 +44,7 @@ export async function pullTranslationProgressForSegments(
 	language: TranslationLanguage,
 	segmentIds: number[]
 ) {
-	console.log('01 pullTranslationProgressForSegments', segmentIds.length);
+	//console.log('01 pullTranslationProgressForSegments', segmentIds.length);
 	const translations: Array<TranslationProgressRow> = [];
 	const batchSize = 1000; // segmentIDs
 	const pageSize = 1000;
@@ -90,7 +90,7 @@ export async function pullTranslationProgressForSegments(
 		if (remainingIds.size === 0) break;
 	}
 
-	console.log('02 pullTranslationProgressForSegments', translations.length);
+	//console.log('02 pullTranslationProgressForSegments', translations.length);
 	return translations;
 }
 

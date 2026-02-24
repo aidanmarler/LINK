@@ -33,16 +33,12 @@
 			password: password
 		});
 
-		console.log( data, error )
-
 		if (error) {
 			alert(error.message);
 			return;
 		}
 
 		const isAdmin = await checkAdminStatus(data.user.id);
-
-		console.log('isAdmin', isAdmin);
 
 		if (isAdmin) {
 			goto('/admin');

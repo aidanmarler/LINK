@@ -51,7 +51,7 @@
 		return sortSegmentMap(segmentMap);
 	});
 
-	$inspect(sortedSegments);
+	//$inspect(sortedSegments);
 
 	onMount(() => {
 		//console.log('segmentMap!', segmentMap);
@@ -148,6 +148,7 @@
 {/each}
 
 <div class="w-full mt-2 justify-between max-w-2xl px-3 m-auto flex">
+	<!-- Save -->
 	<button
 		onclick={async () => {
 			saving = true;
@@ -171,20 +172,17 @@
 	>
 		Save ({saveCount})
 	</button>
-
+	<!-- Save & Continue -->
 	<button
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(true);
 			translationsToPush = {};
 			Object.entries(segmentMap).forEach(([id, segmentData]) => {
-				//console.log('id...', id);
 				if (!segmentData.forwardTranslation) {
-					const numId = Number(id);
-					if (!translationsToPush[numId]) {
-						translationsToPush[numId] = { translation: '', comment: '', skipped: false };
+					if (!translationsToPush[+id]) {
+						translationsToPush[+id] = { translation: '', comment: '', skipped: false };
 					}
-					//console.log(numId, translationsToPush);
 				}
 			});
 			saving = false;

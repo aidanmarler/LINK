@@ -4,14 +4,13 @@
 	import { capitalizeFirstLetter } from '$lib/utils/utils.js';
 	import { fade, fly } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
-	import { goto, invalidate, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import CompletionChart from './[...location]/completionChart.svelte';
 	import { findNextSegment } from '$lib/utils/nextSegment';
 
 	let { data } = $props();
-	let { profile } = data;
-
-	let presetsOpen = $state(!profile.selected_preset);
+	let profile = $derived(data.profile);
+	let presetsOpen = $derived(!profile.selected_preset);
 
 	let routes = ['arc', 'lists'];
 
@@ -193,6 +192,7 @@
 				</div>
 			</div>
 		{/each}
+
 		<div class="w-full flex justify-center">
 			{#await data.dataPromise}
 				<button
@@ -209,6 +209,7 @@
 
 				{#if nextSegment}
 					<button
+						title={'Next segment ' + nextSegment}
 						onclick={() => {
 							goto(nextSegment);
 						}}

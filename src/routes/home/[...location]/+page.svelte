@@ -26,7 +26,11 @@
 	async function onsubmit(shouldContinue: boolean) {
 		if (!shouldContinue) return; // ignore if only a "save"
 
+		console.log("onsubmit")
+
 		const resolvedData = await data.dataPromise; // get current data
+
+		console.log("find next segment")
 
 		// find next segment
 		const nextSegment = findNextSegment(
@@ -38,7 +42,7 @@
 
 		// if next segment found, go to it
 		if (nextSegment) {
-			await goto(nextSegment, { invalidateAll: true });
+			await goto(nextSegment);
 		} else {
 			return;
 		}
@@ -60,7 +64,6 @@
 
 	<!-- Now, filter down segments on this page and sort them by step -->
 	{@const pageSegments:  Record<string, SegmentMap> = (() => {
-		console.log('loading pageSegments...');
 		if (!currentNode) return {} as SegmentMap;
 		// Store segmentMap for each translation step
 		const sorted: Record<string, SegmentMap> = {'forward': {}, 'review': {}, 'backward': {}};

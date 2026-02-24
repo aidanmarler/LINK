@@ -47,7 +47,7 @@
 
 	let errors: Record<number, string> = $state({});
 
-	$inspect(segmentMap);
+	//$inspect(segmentMap);
 
 	// Reviewer can save review if a translation is suggested or a comment is given.
 	// AIDAN: this can be an issue... Shouldn't we also allow a submission if a forward translation is provided?
