@@ -33,8 +33,10 @@
 			password: password
 		});
 
+		console.log( data, error )
+
 		if (error) {
-			alert('Login failed. Check email and password are correct.');
+			alert(error.message);
 			return;
 		}
 

@@ -3,6 +3,7 @@
 	import type { AvailableLanguage } from '../../lib/types';
 	import { button_B, button_green, form_element } from '$lib/styles';
 	import ThemeManager from '../components/themeManager.svelte';
+	import { goto } from '$app/navigation';
 
 	let name: string = '';
 	let email: string = '';
@@ -37,17 +38,14 @@
 			}
 		});
 
+		console.log(data, error)
+
 		if (error) {
 			alert(error.message);
 		} else {
-			alert('Sign up successful! Please check your email to confirm your account.');
+			alert('Sign up successful!');
 			// Optionally redirect the user or clear the form
-			name = '';
-			email = '';
-			password = '';
-			confirmPassword = '';
-			language = 'none';
-			profession = 'none';
+			goto('/login');
 		}
 	}
 </script>
