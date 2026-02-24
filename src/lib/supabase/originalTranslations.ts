@@ -262,6 +262,9 @@ export async function pullOriginalSegments(
 	while (hasMore) {
 		let query = supabase.from('original_segments').select('*');
 
+		// TEST // Intial query contains most recent version
+		query = query.contains('arc_versions', ['1.2.0']);
+
 		// Apply listItem filter if provided
 		if (listItem === true) {
 			//console.log("type must be listItem!");
