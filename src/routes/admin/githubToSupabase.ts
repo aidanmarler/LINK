@@ -266,8 +266,9 @@ Next, get all data from
 
 */
 
-export async function UpdateFromARC() {
-	// Use ARC main data to get variable presets
+export async function UpdateFromARC(version: string, languages: GithubLanguage[]) {
+	console.log(version, languages);
+	//  &  Use ARC main data to get variable presets
 	async function mapArcPresets(arcMain: Record<string, string>[]) {
 		const presetMap: Record<string, string[]> = {};
 
@@ -289,7 +290,7 @@ export async function UpdateFromARC() {
 		return presetMap;
 	}
 
-	// Use ARC main data to get variable presets
+	//  &  Use ARC main data to get variable presets
 	async function mapListsPresets(arcMain: Record<string, string>[]) {
 		const presetMap: Record<string, string[]> = {};
 
@@ -312,25 +313,9 @@ export async function UpdateFromARC() {
 		return presetMap;
 	}
 
-	// Get ARC repository version number from Tag
-	async function getArcLatestVersion(owner: string, repo: string) {
-		const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
-			headers: {
-				Authorization: `Bearer ${githubToken}`,
-				Accept: 'application/vnd.github.v3+json'
-			}
-		});
+	//  &  Get ARC repository version number from Tag
 
-		if (!response.ok) {
-			throw new Error(`GitHub API error: ${response.status}`);
-		}
-
-		const data = await response.json();
-		const tag: string = data.tag_name;
-		return tag.replace('v', '');
-	}
-
-	// Get Folder names of a given repo - used to get all lists
+	//  &  Get Folder names of a given repo - used to get all lists
 	async function fetchFolderNames(owner: string, repo: string, branch: string, path: string) {
 		const response = await fetch(
 			`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
@@ -356,7 +341,7 @@ export async function UpdateFromARC() {
 		return folderNames;
 	}
 
-	// Get Arch-Translations english, return table rows and data for later
+	//  & Get Arch-Translations english, return table rows and data for later
 	async function fetchArchEnglish(
 		version: string,
 		owner: string,
@@ -406,6 +391,7 @@ export async function UpdateFromARC() {
 		return { allOriginalSegments, archEnglish, listsEnglishData };
 	}
 
+	//  &
 	async function fetchAndUpdateArchTranslations(
 		version: string,
 		owner: string,
@@ -446,7 +432,7 @@ export async function UpdateFromARC() {
 			const pathArch = `ARCH${version}/${language}/ARCH.csv`;
 			const archTarget: ARCHData = await fetchAndParseArchCSV(owner, repo, 'main', pathArch);
 
-			console.log(language + " archTarget", archTarget);
+			console.log(language + ' archTarget', archTarget);
 
 			// iii. Map to ForwardTranslationInsert with original_ids
 			const archForwardTranslations = await MapArchToForwardTranslationInsert(
@@ -456,7 +442,7 @@ export async function UpdateFromARC() {
 				archOriginalIdMap // Pass the lookup map
 			);
 
-			console.log(language + " archForwardTranslations", archForwardTranslations);
+			console.log(language + ' archForwardTranslations', archForwardTranslations);
 
 			// iv. For each list, pull the target csv and map to ForwardTranslationInsert
 			const listsForwardTranslations = [];
@@ -495,6 +481,7 @@ export async function UpdateFromARC() {
 		}
 	}
 
+	//  &
 	async function updateTranslationStatusAndProgress(languages: GithubLanguage[]) {
 		/* Step 3: Update Accepted Translations */
 
@@ -583,11 +570,8 @@ export async function UpdateFromARC() {
 
 	updateStatus('retrieve arc version');
 	const repos = { main: 'ARC', translations: 'ARC-Translations' };
-	const languages: GithubLanguage[] = ['French', 'Portuguese', 'Spanish'];
+	//const languages: GithubLanguage[] = ['French', 'Portuguese', 'Spanish'];
 	const owner = 'ISARICResearch';
-	const version = "1.1.5";//await getArcLatestVersion(owner, repos.main); // manually setting it...
-
-	console.log("arc version: ", version)
 
 	updateStatus('retrieve lists');
 	const lists = await fetchFolderNames(owner, repos.main, 'main', 'Lists');
