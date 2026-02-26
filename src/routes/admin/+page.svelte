@@ -4,6 +4,7 @@
 	import { getArcVersions } from './getArcVersions';
 	import { UpdateFromARC } from './githubToSupabase';
 	import type { GithubLanguage } from '$lib/types';
+	import { goto } from '$app/navigation';
 
 	let arcVersions: Promise<Record<string, string[]>> = $state(getArcVersions());
 	let selectedVersion = $derived(Object.keys(arcVersions)[0]);
@@ -13,10 +14,10 @@
 	<p>Retrieving versions of arc...</p>
 {:then versions}
 	<div in:fly={{ y: 50, duration: 100, opacity: 0 }}>
-		<label>
+		<label class="font-semibold text-lg">
 			ARCH
 			<select
-				class={button.stanley + ' px-2 border-2 cursor-pointer rounded-md'}
+				class={button.stanley + ' px-2 border-2 cursor-pointer rounded-md font-bold '}
 				bind:value={selectedVersion}
 			>
 				{#each Object.keys(versions).reverse() as version}
@@ -29,7 +30,9 @@
 				<button
 					title="Pull Lists from GitHub"
 					class=" w-1/3 mt-1 min-w-60 h-8 border-3 hover:shadow mr-2 font-semibold rounded-lg cursor-pointer
-			border-blue-600 hover:border-blue-500 hover:bg-blue-500/20
+						opacity-80 hover:opacity-100
+				  		border-blue-700 hover:bg-blue-700/20
+						dark:border-blue-600 dark:hover:bg-blue-600/20
 						"
 					onclick={async () => {
 						if (selectedVersion)
@@ -53,20 +56,41 @@
 				</ol>
 			</div>
 
-			<div class="sm:flex p-1.5">
+			<div class="sm:flex p-1.5 border-b border-inherit">
 				<button
 					title="Pull Lists from GitHub"
-					class="w-1/3 mt-1 min-w-60 h-8 border-3 hover:shadow mr-2 font-semibold rounded-lg cursor-pointer
-						border-green-700 hover:border-green-600 hover:bg-green-600/20
+					class="w-1/3 mt-1 min-w-60 h-8 opacity-80 hover:opacity-100 border-3 hover:shadow mr-2 font-semibold rounded-lg cursor-pointer
+						border-green-700 hover:bg-green-700/20
+						dark:border-green-600 dark:hover:bg-green-600/20
 					"
 					onclick={async () => {
 						console.log('export');
 					}}
 				>
-					Export LINK
+					Export LINK to CSV
 				</button>
 				<ol>
 					<li>Exports LINK as a folder of CSVs</li>
+				</ol>
+			</div>
+
+			<div class="sm:flex p-1.5">
+				<button
+					title="Pull Lists from GitHub"
+					class="w-1/3 mt-1 min-w-60 h-8 border-3 hover:shadow mr-2 font-semibold rounded-lg cursor-pointer
+					opacity-80 hover:opacity-100
+						border-yellow-600 hover:bg-yellow-600/20
+						dark:border-yellow-600 dark:hover:bg-yellow-600/20
+					"
+					onclick={async () => {
+						goto('/home');
+					}}
+				>
+					User Home
+				</button>
+				<ol>
+					<li>Go to user screen.</li>
+					<li>All input will be done as a user</li>
 				</ol>
 			</div>
 		</div>

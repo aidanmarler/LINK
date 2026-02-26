@@ -5,4 +5,5 @@ const structure = {
         lists: {listName:{}}
         //paper_like_details: paperLikeDetailsRow[],
         //supplemental_phrases: supplemental_phrasesRow[]
-}*/
+}
+*/

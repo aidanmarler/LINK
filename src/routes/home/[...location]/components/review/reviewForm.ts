@@ -51,7 +51,7 @@ export function countComments(comments: Record<number, string | null>) {
 }
 
 export async function handleSubmit(
-	reviewsToPush: Record<
+	userReviews: Record<
 		number,
 		{
 			translation_id: number | string | null;
@@ -62,6 +62,17 @@ export async function handleSubmit(
 	>,
 	profile: Profile
 ) {
+	// Stored userReview minus ones they didn't fill out
+	const filteredReviews: Record<
+		number,
+		{
+			translation_id: number | string | null;
+			comments: Record<number, string | null>;
+			ftranslation: string | null;
+			fcomment: string | null;
+		}
+	> = {};
+	// Cleans reviews for submission
 	const cleanedReviews: Record<
 		number,
 		{
@@ -74,7 +85,21 @@ export async function handleSubmit(
 
 	const errors: Record<number, string> = {};
 
-	for (const id in reviewsToPush) {
+	//  ==  Filter Reviews
+	//      Skip reviews that had no interaction
+	for (const [id, r] of Object.entries(userReviews)) {
+		if (
+			!r.translation_id &&
+			!r.ftranslation &&
+			!r.fcomment &&
+			Object.values(r.comments).length == 0
+		)
+			continue;
+		filteredReviews[+id] = r;
+	}
+
+	// Clean Reviews
+	for (const id in filteredReviews) {
 		// Initialize
 		cleanedReviews[+id] = {
 			translation_id: null,
@@ -83,33 +108,44 @@ export async function handleSubmit(
 			ftranslation: null
 		};
 
-		// Handle Comments
-		cleanedReviews[+id].comments = reviewsToPush[+id].comments;
+		// track if comment was added for this review
+		let commentAdded = true;
+		// clean comments so empty strings are null
+		cleanedReviews[+id].comments = filteredReviews[+id].comments;
+		for (const [i, c] of Object.entries(cleanedReviews[+id].comments)) {
+			if (c == '' || c == null) commentAdded = false;
+			if (c == '') cleanedReviews[+id].comments[+i] = null;
+		}
+
+		console.log('commentAdded', commentAdded);
 
 		// If translation id is a number, we know they selected one
-		if (typeof reviewsToPush[+id].translation_id == 'number') {
-			cleanedReviews[+id].translation_id = Number(reviewsToPush[+id].translation_id);
+		if (typeof filteredReviews[+id].translation_id == 'number') {
+			cleanedReviews[+id].translation_id = Number(filteredReviews[+id].translation_id);
 		}
 
 		// Otherwise, if translation id is a string, we know they are trying to submit one
-		if (typeof reviewsToPush[+id].translation_id == 'string') {
-			const noComment =
-				reviewsToPush[+id].fcomment == null || reviewsToPush[+id].fcomment?.trim() == '';
-			const noTranslation =
-				reviewsToPush[+id].ftranslation == null || reviewsToPush[+id].ftranslation?.trim() == '';
-			if (noComment && noTranslation) errors[+id] = 'No translation or justification provided';
-			else if (noComment) errors[+id] = 'No justification provided';
-			else if (noTranslation) errors[+id] = 'No translation provided';
-			else {
-				cleanedReviews[+id].ftranslation = reviewsToPush[+id].ftranslation;
-				cleanedReviews[+id].fcomment = reviewsToPush[+id].fcomment;
+		if (typeof filteredReviews[+id].translation_id == 'string') {
+			const comment =
+				filteredReviews[+id].fcomment != null && filteredReviews[+id].fcomment?.trim() != '';
+			const translation =
+				filteredReviews[+id].ftranslation != null &&
+				filteredReviews[+id].ftranslation?.trim() != '';
+			//if (noComment && noTranslation) errors[+id] = 'No translation or justification provided';
+			//else if (noComment) errors[+id] = 'No justification provided';
+			if (!translation && comment) errors[+id] = 'No translation provided';
+			else if (!translation && commentAdded) errors[+id] = 'No translation provided';
+			else if (translation) {
+				cleanedReviews[+id].ftranslation = filteredReviews[+id].ftranslation;
+				cleanedReviews[+id].fcomment = filteredReviews[+id].fcomment;
 			}
 		}
 
 		// Show error if no option selected
-		if (reviewsToPush[+id].translation_id == null) errors[+id] = 'No translation selected';
+		if (filteredReviews[+id].translation_id == null && commentAdded)
+			errors[+id] = 'No translation selected';
 	}
-	console.log(reviewsToPush, cleanedReviews, errors);
+	console.log(userReviews, filteredReviews, cleanedReviews, errors);
 	const newTranslations: ForwardTranslationInsert[] = [];
 	const newReviews: TranslationReviewInsert[] = [];
 
@@ -146,7 +182,7 @@ export async function handleSubmit(
 				user_id: profile.id,
 				language: profile.language as TranslationLanguage,
 				translation: cleanedReviews[id].ftranslation ?? '',
-				comment: cleanedReviews[id].fcomment ?? undefined,
+				comment: cleanedReviews[id].fcomment ?? '',
 				skipped: false
 			});
 		}
@@ -154,6 +190,12 @@ export async function handleSubmit(
 
 	console.log('newTranslations', newTranslations);
 	console.log('newReviews', newReviews);
+	console.log('errors', errors);
+
+	if (Object.values(errors).length > 0) {
+		console.log("sorry, won't submit with errors");
+		return errors;
+	}
 
 	// Insert new translations to supabase ForwardTranslations table
 	if (newTranslations.length > 0) await InsertForwardTranslations(newTranslations);

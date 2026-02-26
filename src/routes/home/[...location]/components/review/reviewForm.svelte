@@ -83,6 +83,7 @@
 			Object.keys(segmentMap).map(Number),
 			profile.language as TranslationLanguage
 		);
+		initializeCommentsToPush();
 		// pull other reviews for these segments
 		relatedReviews = await getRelatedReviews(
 			Object.keys(segmentMap).map(Number),
@@ -103,6 +104,17 @@
 				fcomment: null,
 				ftranslation: null
 			};
+		}
+	}
+
+	// Initialize comments from an empty object to showing each review that was considered
+	function initializeCommentsToPush() {
+		// For each original segment,
+		for (const oid in reviewsToPush) {
+			for (const t in relatedTranslations[+oid]) {
+				const tid = relatedTranslations[+oid][t][0].id;
+				reviewsToPush[+oid].comments[tid] = null;
+			}
 		}
 	}
 </script>
@@ -150,14 +162,17 @@
 		onclick={async () => {
 			saving = true;
 			const newErrors = await handleSubmit($state.snapshot(reviewsToPush), profile);
-			if (newErrors) errors = newErrors;
-			// set up review to push
-			initializeReviewsToPush();
-			// pull related translations
-			relatedTranslations = await getRelatedTranslations(
-				Object.keys(segmentMap).map(Number),
-				profile.language as TranslationLanguage
-			);
+			errors = newErrors;
+			if (Object.values(newErrors).length == 0) {
+				console.log('no errors!');
+				// set up review to push
+				initializeReviewsToPush();
+				// pull related translations
+				relatedTranslations = await getRelatedTranslations(
+					Object.keys(segmentMap).map(Number),
+					profile.language as TranslationLanguage
+				);
+			}
 			saving = false;
 		}}
 		class="{button.stone} border-[3px] text-lg right-0 font-semibold {canSave

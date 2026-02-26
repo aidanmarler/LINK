@@ -3,7 +3,7 @@ import type { TranslationLanguage } from '$lib/types';
 import { buildLocationTree, computeCompletion, type LocationNode } from '$lib/utils/locationTree';
 import { createSlugMapping } from '$lib/utils/slug';
 import type { LayoutLoad } from './$types';
-import { redirect } from '@sveltejs/kit';
+//import { redirect } from '@sveltejs/kit';
 import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
 import type { LinkPreset, SegmentMap } from '$lib/supabase/types';
 import { presetOptions } from '$lib/supabase/presets';
@@ -15,7 +15,10 @@ export const ssr = false; // Force client-side for authentication
 export const load: LayoutLoad = async ({ parent }) => {
 	const { session, profile } = await parent();
 
-	if (!session || !profile) throw redirect(505, '/login');
+	console.log(session, profile);
+
+	if (!session || !profile) return;//throw redirect(302, '/login');
+	
 	const language = profile.language as TranslationLanguage;
 
 	const selectedPreset =

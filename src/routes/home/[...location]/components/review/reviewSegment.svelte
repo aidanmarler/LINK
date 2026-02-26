@@ -14,6 +14,7 @@
 	import CommentViewer from '../commentViewer.svelte';
 	import CompletionIndicator from '../completionIndicator.svelte';
 	import { compileModule } from 'svelte/compiler';
+	import { onMount } from 'svelte';
 
 	let {
 		completed, // has segment already been reviewed?
@@ -50,21 +51,7 @@
 		return false;
 	});
 
-	//
-
-	/*
-									{#each option as translation, i}
-										{@render commentView(translation.comment)}
-
-										<!-- Get other review's comments of the translation-->
-										{#each relatedReviews as review}
-											{@const comment = (review.comments as ReviewComment)[translation.id]}
-											{#if comment}
-												{@render commentView(comment!)}
-											{/if}
-										{/each}
-									{/each}
-	*/
+	// Map comments both from Translation and Reviews to one object
 	let commentMap: Record<string, string[]> = $derived.by(() => {
 		const cMap: Record<string, string[]> = {};
 
@@ -153,11 +140,7 @@
 </div>
 
 <!-- Main Content-->
-<div
-	class="flex pl-4 w-full h-full transition-all {open
-		? ' max-h-[1200px] duration-[.5s] '
-		: 'max-h-0'}"
->
+<div class="flex pl-4 w-full h-full transition-all {open ? ' max-h-300 duration-500 ' : 'max-h-0'}">
 	<!-- Review Form -->
 	{#if open}
 		<div class="w-full mr-6 h-full">
@@ -206,9 +189,6 @@
 									{text}
 								</label>
 
-								{#snippet commentView(text: string)}
-									{text}
-								{/snippet}
 								<!-- Option's Comments -->
 								<div
 									class="w-1/2 border-l px-2 flex font-normal text-stone-800 italic border-t border-inherit overflow-y-auto"
@@ -223,7 +203,7 @@
 							</fieldset>
 
 							<!-- Add comment button-->
-							<div class="w-6 -right-[25.5px] -top-0 opacity-100 absolute p-0.5 h-5">
+							<div class="w-6 -right-[25.5px] top-0 opacity-100 absolute p-0.5 h-5">
 								{#if !completed}
 									<CommentViewer bind:completed bind:comment={comments[optionId]} />
 								{/if}
@@ -270,6 +250,10 @@
 							class="resize-none bg-white border-inherit w-full dark:bg-black px-2"
 							rows="1"
 							bind:value={ftranslation}
+							onkeydown={() => {
+								if (completed) return;
+								selectedTranslation = 'new'; // Select
+							}}
 						></textarea>
 					</div>
 
@@ -280,6 +264,10 @@
 							class="bg-white h-5 border-inherit dark:bg-black rounded-br w-full min-h-full px-2"
 							rows="1"
 							bind:value={fcomment}
+							onkeydown={() => {
+								if (completed) return;
+								selectedTranslation = 'new'; // Select
+							}}
 						></textarea>
 					</div>
 				{/if}
