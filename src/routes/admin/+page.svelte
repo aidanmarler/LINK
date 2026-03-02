@@ -5,6 +5,7 @@
 	import { UpdateFromARC } from './githubToSupabase';
 	import type { GithubLanguage } from '$lib/types';
 	import { goto } from '$app/navigation';
+	import { exportMain } from './export';
 
 	let arcVersions: Promise<Record<string, string[]>> = $state(getArcVersions());
 	let selectedVersion = $derived(Object.keys(arcVersions)[0]);
@@ -64,7 +65,7 @@
 						dark:border-green-600 dark:hover:bg-green-600/20
 					"
 					onclick={async () => {
-						console.log('export');
+						await exportMain(selectedVersion);
 					}}
 				>
 					Export LINK to CSV

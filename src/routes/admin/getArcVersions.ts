@@ -7,14 +7,14 @@ export async function getArcVersions(): Promise<Record<string, string[]>> {
 		}
 	});
 
-	// Return error
+	// ! Return error
 	if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
 
 	const topLevel = await response.json();
 	const topFolders = topLevel.filter((item: { type: unknown }) => item.type === 'dir');
 	const archFolders = topFolders.filter((item: any) => item.name.includes('ARCH'));
 
-	// Get subfolders
+	// == Get subfolders
 	const folderData = await Promise.all(
 		archFolders.map(async (folder: any) => {
 			const subResponse = await fetch(
@@ -33,19 +33,22 @@ export async function getArcVersions(): Promise<Record<string, string[]>> {
 		})
 	);
 
-	// Format to key value pairs
-	const filtered = Object.fromEntries(
+	// * Format to key value pairs
+	const filtered_arcVersions = Object.fromEntries(
 		Object.entries(Object.assign({}, ...folderData))
 			.filter(([_, subFolders]) => (subFolders as string[]).some((f) => f.includes('English')))
 			.filter(([_, subFolders]) => (subFolders as string[]).length > 1)
 	);
 
-	const mutated = Object.fromEntries(
-		Object.entries(filtered).map(([key, value]) => {
-			const newKey = key.replace('ARCH', ''); // example key mutation
-			const newValue = (value as string[]).filter((v) => v !== 'English'); // example value mutation
+	// * remove ARCH and remove English from languages
+	const mutated_arcVersions = Object.fromEntries(
+		Object.entries(filtered_arcVersions).map(([key, value]) => {
+			const newKey = key.replace('ARCH', '');
+			const newValue = (value as string[]).filter((v) => v !== 'English');
 			return [newKey, newValue];
 		})
 	);
-	return mutated;
+
+	// == Return arc versions
+	return mutated_arcVersions;
 }
