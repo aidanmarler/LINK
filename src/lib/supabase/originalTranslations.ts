@@ -14,17 +14,20 @@ export async function MapListToOriginalSegmentInsert(
 	for (let sublist in listData) {
 		sublist = sublist.trim();
 
-		const presetMap = listPresetMap[sublist];
+		const presetMap: Record<string, string[]> | undefined = listPresetMap[sublist];
 
 		const inserts: OriginalSegmentInsert[] = listData[sublist].map((item) => {
 			const segment = item[0].trim();
 			const baseLocation = ['Lists', list, sublist, segment];
+			let presets: string[] = [];
+			if (presetMap !== undefined) presets = presetMap[segment];
+
 			return {
 				arc_versions: [version],
 				segment: segment,
 				type: 'listItem',
 				location: baseLocation,
-				presets: presetMap[segment]
+				presets: presets
 			};
 		});
 		allInserts.push(...inserts);
@@ -245,14 +248,17 @@ export async function UpdateOriginalSegments(
 		console.log(`Updated ${toUpdateVersion.length} existing segments.`);
 	}
 
-	return { inserted: toInsert.length, updated: toUpdateVersion.length, unchanged: doNothing.length };
+	return {
+		inserted: toInsert.length,
+		updated: toUpdateVersion.length,
+		unchanged: doNothing.length
+	};
 }
 
 export async function pullOriginalSegments(
-	listItem?: boolean,//'listItem' | 'exclude-listItem' | null,
+	listItem?: boolean, //'listItem' | 'exclude-listItem' | null,
 	answerOption?: boolean,
-	preset?: LinkPreset,
-	
+	preset?: LinkPreset
 ) {
 	const segments: OriginalSegmentRow[] = [];
 	const pageSize = 1000;
@@ -318,7 +324,7 @@ export async function pullOriginalSegments(
 	return segments as OriginalSegmentRow[];
 }
 
-export async function pullOriginalAnswerSegments(segmentsToFind:string[]) {
+export async function pullOriginalAnswerSegments(segmentsToFind: string[]) {
 	const segments: OriginalSegmentRow[] = [];
 	const pageSize = 1000;
 	let page = 0;
@@ -348,4 +354,3 @@ export async function pullOriginalAnswerSegments(segmentsToFind:string[]) {
 
 	return segments as OriginalSegmentRow[];
 }
-

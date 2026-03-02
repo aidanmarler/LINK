@@ -59,8 +59,8 @@ export async function CheckAcceptedTranslations(
 		// Skip if no forward translations
 		if (forwardTranslations.length === 0) continue;
 
-		if (!translationProgress) console.log(translationProgress);
-		if (!acceptedTranslation) console.log(acceptedTranslation);
+		//if (!translationProgress) console.log(translationProgress);
+		//if (!acceptedTranslation) console.log(acceptedTranslation);
 
 		// Find best forward translation
 		const bestForwardTranslationId = await determineBestTranslation(data);

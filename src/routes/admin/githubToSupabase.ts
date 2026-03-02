@@ -103,7 +103,7 @@ async function fetchAndParseListCSV(
 	branch: string,
 	path: string
 ): Promise<{ [sublist: string]: string[][] }> {
-	console.log('fetchAndParseCSV at ' + path);
+	console.log('  fetch & parse CSV at: ' + path);
 
 	const listResponse = await fetch(
 		`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
@@ -561,34 +561,33 @@ export async function UpdateFromARC(version: string, languages: GithubLanguage[]
 
 	// Set up status
 	let status = '';
+	let lastTime = performance.now();
 	const updateStatus = (newStatus: string) => {
+		const time = performance.now();
 		status = newStatus;
-		console.log(status);
+		console.log(status, time - lastTime + 'ms');
+		lastTime = time;
 	};
 
 	// Begin
-
-	updateStatus('retrieve arc version');
 	const repos = { main: 'ARC', translations: 'ARC-Translations' };
 	//const languages: GithubLanguage[] = ['French', 'Portuguese', 'Spanish'];
 	const owner = 'ISARICResearch';
 
-	updateStatus('retrieve lists');
 	const lists = await fetchFolderNames(owner, repos.main, 'main', 'Lists');
+	updateStatus('retrieved lists');
 
-	updateStatus('retrieve arc main');
 	const arcMain = await fetchAndParseArcMain(owner, repos.main, 'main', `ARC.csv`);
+	updateStatus('retrieved arc main');
 
-	updateStatus('map presets arc');
 	const arcPresetMap = await mapArcPresets(arcMain);
 
 	const listsMain: { [list: string]: { [sublist: string]: Record<string, string>[] } } = {};
 	const listsPresetMap: { [list: string]: { [sublist: string]: Record<string, string[]> } } = {};
 	for (const list of lists) {
-		updateStatus('retrieve lists main, ' + list);
 		listsMain[list] = await fetchAndParseListsMain(owner, repos.main, 'main', 'Lists/' + list);
+		updateStatus('retrieved lists main, ' + list);
 
-		updateStatus('map presets lists, ' + list);
 		for (const sublist in listsMain[list]) {
 			if (!listsMain[list][sublist]) continue;
 			if (!listsPresetMap[list]) listsPresetMap[list] = {};
@@ -597,7 +596,6 @@ export async function UpdateFromARC(version: string, languages: GithubLanguage[]
 		}
 	}
 
-	updateStatus('fetch Arch English');
 	const { allOriginalSegments, archEnglish, listsEnglishData } = await fetchArchEnglish(
 		version,
 		owner,
@@ -607,11 +605,11 @@ export async function UpdateFromARC(version: string, languages: GithubLanguage[]
 		arcPresetMap,
 		listsPresetMap
 	);
+	updateStatus('fetched Arch English');
 
-	updateStatus('Update Original Segments');
 	await UpdateOriginalSegments(version, allOriginalSegments);
+	updateStatus('Updated Original Segments');
 
-	updateStatus('fetchAndUpdateArchTranslations');
 	await fetchAndUpdateArchTranslations(
 		version,
 		owner,
@@ -622,8 +620,10 @@ export async function UpdateFromARC(version: string, languages: GithubLanguage[]
 		listsEnglishData,
 		archEnglish
 	);
+	updateStatus('fetchAndUpdated ArchTranslations');
 
 	await updateTranslationStatusAndProgress(languages);
+	updateStatus('updated Translation Status And Progress');
 
-	console.log(version);
+	console.log('Complete!');
 }
