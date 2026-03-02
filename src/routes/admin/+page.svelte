@@ -65,7 +65,15 @@
 						dark:border-green-600 dark:hover:bg-green-600/20
 					"
 					onclick={async () => {
-						await exportMain(selectedVersion);
+						const zipUrl = await exportMain(selectedVersion);
+						
+						// Crazy gpt stuff -> creats an a and href then deletes it.
+						const a = document.createElement('a');
+						a.href = zipUrl;
+						a.download = `csv-export-${selectedVersion}.zip`;
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
 					}}
 				>
 					Export LINK to CSV
