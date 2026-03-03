@@ -256,71 +256,67 @@ export async function UpdateOriginalSegments(
 }
 
 export async function pullOriginalSegments(
-	listItem?: boolean, //'listItem' | 'exclude-listItem' | null,
-	answerOption?: boolean,
-	preset?: LinkPreset
+	version: string = '1.1.5',
+	preset?: LinkPreset,
+	eqListItem?: boolean, //'listItem' | 'exclude-listItem' | null,
+	answerOption?: boolean
 ) {
+	// == Handle Query == //
+	// + initialize query
+	const baseQuery = supabase.from('original_segments').select('*');
+
+	// # Intial query contains most recent version
+	baseQuery.contains('arc_versions', [version]);
+
+	// # Apply listItem filter, if not null
+	if (eqListItem === true) baseQuery.eq('type', 'listItem');
+	else if (eqListItem === false) baseQuery.neq('type', 'listItem');
+
+	// # Apply listItem filter, if not null
+	// if (answerOption === true) query = query.eq('type', 'answerOption'); else
+	if (answerOption === false) baseQuery.neq('type', 'answerOption');
+
+	// # Add preset filter to query, if not null
+	if (preset) {
+		// Get if preset is null, 'always-show', or given preset is in list
+		baseQuery.or(
+			`presets.cs.{${preset}},` +
+				`presets.cs.{always-show},` +
+				`and(presets->0.is.null,type.eq.answerOption)`
+		);
+	}
+
+	// + Intialize query values
 	const segments: OriginalSegmentRow[] = [];
 	const pageSize = 1000;
 	let page = 0;
 	let hasMore = true;
 
+	// == pagination loop
 	while (hasMore) {
-		let query = supabase.from('original_segments').select('*');
+		try {
+			const query = baseQuery.range(page * pageSize, (page + 1) * pageSize - 1);
+			const { data, error: fetchError } = await query;
 
-		// TEST // Intial query contains most recent version
-		query = query.contains('arc_versions', ['1.2.0']);
+			// ! catch error
+			if (fetchError) throw new Error('Error fetching original segments:', fetchError);
 
-		// Apply listItem filter if provided
-		if (listItem === true) {
-			//console.log("type must be listItem!");
-			query = query.eq('type', 'listItem');
-		} else if (listItem === false) {
-			//console.log("type must NOT be listItem!");
-			query = query.neq('type', 'listItem');
-		}
-
-		// Apply listItem filter if provided
-		if (answerOption === true) {
-			//console.log("type must be answerOption!");
-			//query = query.eq('type', 'answerOption');
-		} else if (answerOption === false) {
-			//console.log("type must NOT be answerOption!");
-			query = query.neq('type', 'answerOption');
-		}
-
-		// How do we ignore presets if type answerOption?
-
-		// Add preset filter to query
-		if (preset) {
-			// Get if preset is null, 'always-show', or given preset is in list
-			query = query.or(
-				`presets.cs.{${preset}},` +
-					`presets.cs.{always-show},` +
-					//`and(presets->0.is.null,type.eq.listItem),` +
-					`and(presets->0.is.null,type.eq.answerOption)`
-			);
-		}
-
-		const { data, error: fetchError } = await query.range(
-			page * pageSize,
-			(page + 1) * pageSize - 1
-		);
-
-		if (fetchError) {
-			console.error('Error fetching existing segments:', fetchError);
-			return []; // { error: fetchError };
-		}
-
-		if (data) {
-			segments.push(...data);
-			hasMore = data.length === pageSize;
-			page++;
-		} else {
-			hasMore = false;
+			// == if data, store it and continue
+			if (data) {
+				segments.push(...data);
+				hasMore = data.length === pageSize;
+				page++;
+			}
+			// If no data, stop loop and return
+			else hasMore = false;
+		} catch (error) {
+			// ! log error
+			console.error(error);
+			return [];
 		}
 	}
 
+	// == Return segment rows == //
 	return segments as OriginalSegmentRow[];
 }
 

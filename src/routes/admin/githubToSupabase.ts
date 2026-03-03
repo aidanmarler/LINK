@@ -405,8 +405,16 @@ export async function UpdateFromARC(version: string, languages: GithubLanguage[]
 		/* Step 2: Forward Translations */
 
 		// 2A. Get all original segments with their IDs
-		const originalArchSegments: OriginalSegmentRow[] = await pullOriginalSegments(false); // all non list items
-		const originalListSegments: OriginalSegmentRow[] = await pullOriginalSegments(true); // all list items
+		const originalArchSegments: OriginalSegmentRow[] = await pullOriginalSegments(
+			undefined,
+			undefined,
+			false
+		); // all non list items
+		const originalListSegments: OriginalSegmentRow[] = await pullOriginalSegments(
+			undefined,
+			undefined,
+			true
+		); // all list items
 
 		// 2B. Create lookup map: composite key -> original_id & row
 

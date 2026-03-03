@@ -6,6 +6,7 @@
 	import type { GithubLanguage } from '$lib/types';
 	import { goto } from '$app/navigation';
 	import { exportMain } from './export';
+	import { pullArcTranslations } from './pullArcTranslations';
 
 	let arcVersions: Promise<Record<string, string[]>> = $state(getArcVersions());
 	let selectedVersion = $derived(Object.keys(arcVersions)[0]);
@@ -66,14 +67,16 @@
 					"
 					onclick={async () => {
 						const zipUrl = await exportMain(selectedVersion);
-						
+
 						// Crazy gpt stuff -> creats an a and href then deletes it.
-						const a = document.createElement('a');
-						a.href = zipUrl;
-						a.download = `csv-export-${selectedVersion}.zip`;
-						document.body.appendChild(a);
-						a.click();
-						document.body.removeChild(a);
+						if (zipUrl) {
+							const a = document.createElement('a');
+							a.href = zipUrl;
+							a.download = `csv-export-${selectedVersion}.zip`;
+							document.body.appendChild(a);
+							a.click();
+							document.body.removeChild(a);
+						}
 					}}
 				>
 					Export LINK to CSV

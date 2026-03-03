@@ -114,6 +114,7 @@ export async function UpdateProgress_ForwardSubmission(
 
 	const language = newForwardTranslations[0].language;
 
+	/*
 	// step 1a - pull all related forward translations
 	const relatedForwardTranslations: ForwardTranslationRow[] = await pullRowsForOriginalId(
 		language,
@@ -133,7 +134,26 @@ export async function UpdateProgress_ForwardSubmission(
 		language,
 		'accepted_translations',
 		translationsToCheckProgress
-	);
+	);*/
+
+	const [relatedForwardTranslations, relatedTranslationProgress, relatedAcceptedTranslations] =
+		await Promise.all([
+			pullRowsForOriginalId<ForwardTranslationRow>(
+				'forward_translations',
+				translationsToCheckProgress,
+				language
+			),
+			pullRowsForOriginalId<TranslationProgressRow>(
+				'translation_progress',
+				translationsToCheckProgress,
+				language
+			),
+			pullRowsForOriginalId<AcceptedTranslationRow>(
+				'accepted_translations',
+				translationsToCheckProgress,
+				language
+			)
+		]);
 
 	console.log(
 		'step 1: related information',
@@ -167,18 +187,14 @@ export async function UpdateProgress_ForwardSubmission(
 	}
 
 	// Map translation progress
-	const currentProgress: Record<number, TranslationProgressRow> = {};
-	for (const progress of relatedTranslationProgress) {
-		const id: number = progress.original_id;
-		currentProgress[id] = progress;
-	}
+	const currentProgress: Record<number, TranslationProgressRow> = Object.fromEntries(
+		relatedTranslationProgress.map((row) => [row.original_id, row])
+	);
 
 	// Map accepted translations
-	const currentAcceptedTranslations: Record<number, AcceptedTranslationRow> = {};
-	for (const accepted of relatedAcceptedTranslations) {
-		const id: number = accepted.original_id;
-		currentAcceptedTranslations[id] = accepted;
-	}
+	const currentAcceptedTranslations: Record<number, AcceptedTranslationRow> = Object.fromEntries(
+		relatedAcceptedTranslations.map((row) => [row.original_id, row])
+	);
 
 	console.log('currentTranslations', currentTranslations);
 	console.log('currentProgress', currentProgress);

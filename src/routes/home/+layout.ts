@@ -1,24 +1,28 @@
-import { supabase } from '../../supabaseClient';
 import type { TranslationLanguage } from '$lib/types';
 import { buildLocationTree, computeCompletion, type LocationNode } from '$lib/utils/locationTree';
 import { createSlugMapping } from '$lib/utils/slug';
 import type { LayoutLoad } from './$types';
 //import { redirect } from '@sveltejs/kit';
 import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
-import type { LinkPreset, SegmentMap } from '$lib/supabase/types';
+import type {
+	ForwardTranslationRow,
+	LinkPreset,
+	SegmentMap,
+	TranslationProgressRow,
+	TranslationReviewRow
+} from '$lib/supabase/types';
 import { presetOptions } from '$lib/supabase/presets';
-import { pullTranslationProgressForSegments } from '$lib/supabase/translationProgress';
-import { paginateQuery } from '$lib/supabase/utils';
+import { pullRowsForOriginalId } from '$lib/supabase/utils';
 
 export const ssr = false; // Force client-side for authentication
 
 export const load: LayoutLoad = async ({ parent }) => {
 	const { session, profile } = await parent();
 
-	console.log(session, profile);
+	console.log('session, profile:', session, profile);
 
-	if (!session || !profile) return;//throw redirect(302, '/login');
-	
+	if (!session || !profile) return; //throw redirect(302, '/login');
+
 	const language = profile.language as TranslationLanguage;
 
 	const selectedPreset =
@@ -40,21 +44,15 @@ async function loadDataProgressively(
 ) {
 	const segmentMap: SegmentMap = {};
 
-	// Step 1: Load original segments
+	// = ( 1 ) = Load original segments
 	const timeStamp: number[] = [];
 	timeStamp[0] = performance.now();
-
-	const original_segments = await pullOriginalSegments(undefined, true, preset);
-
+	const original_segments = await pullOriginalSegments(undefined, preset);
 	timeStamp[1] = performance.now();
-
 	console.log('original_segments found in', timeStamp[1] - timeStamp[0], 'ms');
 
-	//console.log('original_segments', original_segments.length);
-
+	// = ( 2 ) = Handle presets
 	const presets: string[] = [];
-
-	// Create base map
 	(original_segments || []).forEach((segment) => {
 		segmentMap[segment.id] = {
 			originalSegment: segment,
@@ -76,53 +74,87 @@ async function loadDataProgressively(
 		}
 	});
 
-	//console.log('Original Segments loaded:', Object.keys(segmentMap));
-
-	//console.log('All presets found:', presets);
-
-	// Build tree and mapping
+	// = ( 3 ) = Build location tree and slug mapping
 	const locationTree = buildLocationTree(original_segments || []);
 	const slugMapping = createSlugMapping(original_segments || []);
 
-	timeStamp[2] = performance.now();
-	console.log('starting translation progress after', timeStamp[2] - timeStamp[1], 'ms');
-
-	// Step 2: Load translation progress
+	// = ( 4 ) = Pull translations, reviews, and progress for these segments
 	const segmentIds: number[] = Object.keys(segmentMap)
 		.map((key) => Number(key))
 		.filter((num) => !isNaN(num));
-	// !-- Gets all progress when should only get ones for loaded original segments, and should paginate
-	const translation_progress = await pullTranslationProgressForSegments(language, segmentIds);
 
+	timeStamp[2] = performance.now();
+
+	// == promise.all supabase queries. Paginated and broken up for the given segmentIds.
+	const [translation_progress, forward_translations, translation_reviews] = await Promise.all([
+		pullRowsForOriginalId<TranslationProgressRow>('translation_progress', segmentIds, language),
+		pullRowsForOriginalId<ForwardTranslationRow>(
+			'forward_translations',
+			segmentIds,
+			undefined,
+			userId
+		),
+		pullRowsForOriginalId<TranslationReviewRow>(
+			'translation_reviews',
+			segmentIds,
+			undefined,
+			userId
+		)
+	]);
 	timeStamp[3] = performance.now();
-	console.log('translation progress pulled in', timeStamp[3] - timeStamp[2], 'ms');
+	console.log('promise all speed:', timeStamp[3] - timeStamp[2], 'ms');
 
-	//console.log('Translation progress loaded:', translation_progress?.length);
-
+	// * Add progress to segmentMap
 	(translation_progress || []).forEach((t) => {
 		if (segmentMap[t.original_id]) {
 			segmentMap[t.original_id].translationProgress = t;
 		}
 	});
 
-	timeStamp[4] = performance.now();
-	console.log('pulling forward_translations after ', timeStamp[4] - timeStamp[3], 'ms');
-
-	// Get all of users forward translations
-	const ft_query = supabase.from('forward_translations').select('*').eq('user_id', userId);
-	const { data: forward_translations } = await paginateQuery(ft_query, 1000);
-	// Add forward translations to segmentMap
+	// * Add translations to segmentMap
 	(forward_translations || []).forEach((ft) => {
 		if (segmentMap[ft.original_id]) {
 			segmentMap[ft.original_id].forwardTranslation = ft;
 		}
 	});
 
-	timeStamp[5] = performance.now();
-	console.log('forward_translations pulled and mapped in', timeStamp[5] - timeStamp[4], 'ms');
+	// * Add reviews to the segmentMap
+	(translation_reviews || []).forEach((review) => {
+		if (segmentMap[review.original_id]) {
+			segmentMap[review.original_id].translationReview = review;
+		}
+	});
 
-	// Step 4: Load reviews!
-	/*
+	// = ( 5 ) = Compute completion for all nodes
+	function computeNodeCompletions(node: LocationNode) {
+		node.completion = computeCompletion(node, segmentMap);
+		node.children.forEach((child) => computeNodeCompletions(child));
+	}
+	computeNodeCompletions(locationTree);
+
+	return {
+		segmentMap,
+		locationTree,
+		slugMapping
+	};
+}
+
+/*
+old code
+
+	// !-- Gets all progress when should only get ones for loaded original segments, and should paginate
+	const translation_progress = await pullTranslationProgressForSegments(language, segmentIds);
+
+	// Get all of users forward translations
+	const ft_query = supabase.from('forward_translations').select('*').eq('user_id', userId);
+	const { data: forward_translations } = await paginateQuery(ft_query, 1000);
+
+	// Get all of users reviews
+	const review_query = supabase.from('translation_reviews').select('*').eq('reviewer_id', userId);
+	const { data: translation_reviews } = await paginateQuery(review_query, 1000);
+*/
+
+/*
 
 	To do this, we need to load all items from superbase that have an id in SegmentMap and are this language - IE, all reviews for a given segment
 
@@ -138,39 +170,6 @@ async function loadDataProgressively(
 
 	In one review, a user will look at all questions, make comments about them that they find to be true "oh this one is wrong this way, or this one is wrong this way"
 	*/
-
-	// Get all of users reviews
-	const review_query = supabase.from('translation_reviews').select('*').eq('reviewer_id', userId);
-	const { data: translation_reviews } = await paginateQuery(review_query, 1000);
-
-	// Add reviews to the segmentMap
-	(translation_reviews || []).forEach((review) => {
-		if (segmentMap[review.original_id]) {
-			segmentMap[review.original_id].translationReview = review;
-		}
-	});
-
-	timeStamp[6] = performance.now();
-	console.log('translation_reviews pulled and mapped in', timeStamp[6] - timeStamp[5], 'ms');
-
-	// Step 5: Compute completion for all nodes
-	function computeNodeCompletions(node: LocationNode) {
-		node.completion = computeCompletion(node, segmentMap);
-		//console.log('Computing ' + node.name, node.completion);
-		node.children.forEach((child) => computeNodeCompletions(child));
-	}
-
-	computeNodeCompletions(locationTree);
-
-	timeStamp[7] = performance.now();
-	console.log('computeNodeCompletions computed in', timeStamp[7] - timeStamp[6], 'ms');
-
-	return {
-		segmentMap,
-		locationTree,
-		slugMapping
-	};
-}
 
 /*
 

@@ -1,7 +1,11 @@
 import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import { supabase } from '../../supabaseClient';
 import type { TranslationLanguage } from '$lib/types';
-import type { ForwardTranslationInsert, TranslationProgressInsert, TranslationReviewInsert } from './types';
+import type {
+	ForwardTranslationInsert,
+	TranslationProgressInsert,
+	TranslationReviewInsert
+} from './types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -90,13 +94,22 @@ export async function InsertTranslationProgress(progresses: TranslationProgressI
 //export async function pullRowsForOriginalId<T extends { original_id: number, language: TranslationLanguage }>(
 //export async function pullRowsForOriginalId<T extends TablesWithIdAndLanguage>(
 
-type tables = 'forward_translations' | 'translation_progress' | 'accepted_translations' | 'translation_reviews';
+type table =
+	| 'forward_translations'
+	| 'translation_progress'
+	| 'accepted_translations'
+	| 'translation_reviews';
 
 //const myVar: Database['public']['Tables']['translation_reviews']
 
 export async function pullRowsForOriginalId<
 	TRow extends { created_at: string; language: TranslationLanguage }
->(language: TranslationLanguage, table: tables, segmentIds: number[]): Promise<TRow[]> {
+>(
+	table: table,
+	segmentIds: number[],
+	language?: TranslationLanguage,
+	user_id?: string
+): Promise<TRow[]> {
 	const rows: TRow[] = [];
 	const batchSize = 1000; // segmentIDs
 	const pageSize = 1000;
@@ -116,13 +129,15 @@ export async function pullRowsForOriginalId<
 		let page = 0;
 		let hasMore = true;
 
+		const baseQuery = supabase.from(table).select('*');
+		if (language) baseQuery.eq('language', language);
+		if (user_id && table == 'forward_translations') baseQuery.eq('user_id', user_id);
+		if (user_id && table == 'translation_reviews') baseQuery.eq('reviewer_id', user_id);
+		baseQuery.in('original_id', idsToCheck);
+
 		while (hasMore) {
-			const { data, error: fetchError } = await supabase
-				.from(table)
-				.select('*')
-				.eq('language', language)
-				.in('original_id', idsToCheck)
-				.range(page * pageSize, (page + 1) * pageSize - 1);
+			const query = baseQuery.range(page * pageSize, (page + 1) * pageSize - 1);
+			const { data, error: fetchError } = await query;
 
 			if (fetchError) {
 				console.error('Error fetching existing translations:', fetchError);
