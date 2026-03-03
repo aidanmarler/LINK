@@ -2,7 +2,14 @@ import JSZip from 'jszip';
 import { pullArcTranslations } from './pullArcTranslations';
 import Papa from 'papaparse';
 import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
-import type { OriginalSegmentRow } from '$lib/supabase/types';
+import type {
+	AcceptedTranslationRow,
+	ForwardTranslationRow,
+	OriginalSegmentRow,
+	TranslationProgressRow,
+	TranslationReviewRow
+} from '$lib/supabase/types';
+import { pullRowsForOriginalId } from '$lib/supabase/utils';
 
 //type CsvData = Record<string, unknown[]>;
 
@@ -41,31 +48,59 @@ const zipFolderTree = async (tree: Record<string, unknown>): Promise<string> => 
 };
 
 // == == Pull LINK for version == == //
-const pullLinkForExport = async (version: string) => {
-    console.log("Pulling LINK")
+const _pullLinkForExport = async (version: string) => {
+	console.log('Pulling LINK');
 	// = ( 1 ) = pull original segments
 	const originalSegmentList = await pullOriginalSegments(version);
 	// * map to id
 	const originalSegments: Record<number, OriginalSegmentRow> = Object.fromEntries(
 		originalSegmentList.map((segment) => [segment.id, segment])
 	);
-	console.log(originalSegments);
+	//console.log(originalSegments);
 
 	// = ( 2 ) = promise.all -> accepted_translations, forward_translations, translation_reviews, translation_progress.
+	const segmentIds: number[] = Object.keys(originalSegments).map(Number);
+	const [translation_progress, forward_translations, translation_reviews, accepted_translations] =
+		await Promise.all([
+			pullRowsForOriginalId<TranslationProgressRow>('translation_progress', segmentIds),
+			pullRowsForOriginalId<ForwardTranslationRow>('forward_translations', segmentIds),
+			pullRowsForOriginalId<TranslationReviewRow>('translation_reviews', segmentIds),
+			pullRowsForOriginalId<AcceptedTranslationRow>('accepted_translations', segmentIds)
+		]);
 
+	console.log([
+		translation_progress,
+		forward_translations,
+		translation_reviews,
+		accepted_translations
+	]);
+
+	/*
+	const translationProgress: Record<number, TranslationProgressRow> = Object.fromEntries(
+		translation_progress.map((row) => [row.id, row])
+	);
+	const forwardTranslations: Record<number, ForwardTranslationRow> = Object.fromEntries(
+		forward_translations.map((row) => [row.id, row])
+	);
+	const progress: Record<number, TranslationReviewRow> = Object.fromEntries(
+		translation_reviews.map((row) => [row.id, row])
+	);
+	const progress: Record<number, AcceptedTranslationRow> = Object.fromEntries(
+		accepted_translations.map((row) => [row.id, row])
+	);*/
 };
 
 // == == MAIN == ==
 export async function exportMain(version: string) {
-	await pullLinkForExport(version);
-	return;
-
 	// ( 1 ) pull arc
 	const arc = await pullArcTranslations(version);
 
-	// ( 2 ) pull link
-	await pullLinkForExport(version);
+	//console.log('arc', arc);
 
+	// ( 2 ) pull link
+	//await pullLinkForExport(version);
+
+	//return;
 	// ( 3 ) modify arc
 
 	// ( 4 ) ZIP folder

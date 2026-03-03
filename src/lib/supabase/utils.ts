@@ -114,49 +114,56 @@ export async function pullRowsForOriginalId<
 	const batchSize = 1000; // segmentIDs
 	const pageSize = 1000;
 
-	// Create a set of remaining IDs to check
+	//  + Create a set of remaining IDs to check
 	const remainingIds = new Set(segmentIds);
 
-	// Process in batches
+	// == Process in batches
 	for (let batchStart = 0; batchStart < segmentIds.length; batchStart += batchSize) {
+		// * Get batch ids to check
 		const batchIds = segmentIds.slice(batchStart, batchStart + batchSize);
-
-		// Filter to only IDs we haven't found yet
+		// ! skip if none
+		if (!batchIds) continue;
+		// * Filter to only IDs we haven't found yet
 		const idsToCheck = batchIds.filter((id) => remainingIds.has(id));
-
+		// ! skip if none
 		if (idsToCheck.length === 0) continue;
 
+		// + init page and has more for paginiation
 		let page = 0;
 		let hasMore = true;
 
+		// + init query
 		const baseQuery = supabase.from(table).select('*');
 		if (language) baseQuery.eq('language', language);
 		if (user_id && table == 'forward_translations') baseQuery.eq('user_id', user_id);
 		if (user_id && table == 'translation_reviews') baseQuery.eq('reviewer_id', user_id);
 		baseQuery.in('original_id', idsToCheck);
 
+		// == Start pagination
 		while (hasMore) {
 			const query = baseQuery.range(page * pageSize, (page + 1) * pageSize - 1);
 			const { data, error: fetchError } = await query;
 
+			// ! catch error
 			if (fetchError) {
 				console.error('Error fetching existing translations:', fetchError);
 				return [];
 			}
 
+			// 
 			if (data) {
 				rows.push(...(data as unknown as TRow[]));
 				data.forEach((row) => remainingIds.delete(row.original_id));
 				hasMore = data.length === pageSize;
 				page++;
-			} else {
-				hasMore = false;
-			}
+			} else hasMore = false;
 		}
-		// Early exit if we've found all IDs
+
+		// ! Early exit if we've found all IDs
 		if (remainingIds.size === 0) break;
 	}
 
+	// == return array of rows == //
 	return rows;
 }
 
