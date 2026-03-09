@@ -47,9 +47,22 @@ const zipFolderTree = async (tree: Record<string, unknown>): Promise<string> => 
 	return zipUrl;
 };
 
+type LinkStructure = Record<
+	string, // language
+	Record<
+		number, // original_id
+		{
+			translationProgress?: TranslationProgressRow;
+			forwardTranslations?: ForwardTranslationRow[];
+			translationReviews?: TranslationReviewRow[];
+			acceptedTranslations?: AcceptedTranslationRow[];
+		}
+	>
+>;
+
 // == == Pull LINK for version == == //
-const _pullLinkForExport = async (version: string) => {
-	console.log('Pulling LINK');
+const pullLinkForExport = async (version: string) => {
+	console.log('Pulling LINK; get original segments');
 	// = ( 1 ) = pull original segments
 	const originalSegmentList = await pullOriginalSegments(version);
 	// * map to id
@@ -58,6 +71,12 @@ const _pullLinkForExport = async (version: string) => {
 	);
 	//console.log(originalSegments);
 
+	/*
+
+    from og segment list, make map
+    
+    */
+	console.log('Pulling LINK; get all tables');
 	// = ( 2 ) = promise.all -> accepted_translations, forward_translations, translation_reviews, translation_progress.
 	const segmentIds: number[] = Object.keys(originalSegments).map(Number);
 	const [translation_progress, forward_translations, translation_reviews, accepted_translations] =
@@ -68,26 +87,65 @@ const _pullLinkForExport = async (version: string) => {
 			pullRowsForOriginalId<AcceptedTranslationRow>('accepted_translations', segmentIds)
 		]);
 
-	console.log([
-		translation_progress,
-		forward_translations,
-		translation_reviews,
-		accepted_translations
-	]);
+	// + Init link for export
+	const LINK: LinkStructure = {};
 
-	/*
-	const translationProgress: Record<number, TranslationProgressRow> = Object.fromEntries(
-		translation_progress.map((row) => [row.id, row])
-	);
-	const forwardTranslations: Record<number, ForwardTranslationRow> = Object.fromEntries(
-		forward_translations.map((row) => [row.id, row])
-	);
-	const progress: Record<number, TranslationReviewRow> = Object.fromEntries(
-		translation_reviews.map((row) => [row.id, row])
-	);
-	const progress: Record<number, AcceptedTranslationRow> = Object.fromEntries(
-		accepted_translations.map((row) => [row.id, row])
-	);*/
+	// * Get translation_progress for this item
+	for (const progress of translation_progress) {
+		const lang = progress.language;
+		const oID = progress.original_id;
+		if (!LINK[lang]) LINK[lang] = {};
+		LINK[lang][oID] = { translationProgress: progress };
+	}
+
+	// * Get Forward Translations
+	for (const translation of forward_translations) {
+		const lang = translation.language;
+		const oID = translation.original_id;
+		if (!LINK[lang]) LINK[lang] = {};
+		if (!LINK[lang][oID]) LINK[lang][oID] = {};
+		if (!LINK[lang][oID].forwardTranslations) LINK[lang][oID].forwardTranslations = [translation];
+		else LINK[lang][oID].forwardTranslations.push(translation);
+	}
+
+	// * Get Translation Reviews
+	for (const review of translation_reviews) {
+		const lang = review.language;
+		const oID = review.original_id;
+		if (!LINK[lang]) LINK[lang] = {};
+		if (!LINK[lang][oID]) LINK[lang][oID] = {};
+		if (!LINK[lang][oID].translationReviews) LINK[lang][oID].translationReviews = [review];
+		else LINK[lang][oID].translationReviews.push(review);
+	}
+
+	// * Get Accepted Translations
+	for (const accTranslation of accepted_translations) {
+		const lang = accTranslation.language;
+		const oID = accTranslation.original_id;
+		if (!LINK[lang]) LINK[lang] = {};
+		if (!LINK[lang][oID]) LINK[lang][oID] = {};
+		if (!LINK[lang][oID].acceptedTranslations)
+			LINK[lang][oID].acceptedTranslations = [accTranslation];
+		else LINK[lang][oID].acceptedTranslations.push(accTranslation);
+	}
+
+	// == return entire LINK results in LinkStructure == //
+	return LINK;
+};
+
+const modifyArcFromLink: Record<string, string | Record<string, unknown[]>> = async (
+	arc: Record<string, string | Record<string, unknown[]>>,
+	link: LinkStructure
+) => {
+	// & 
+
+	for (const language of link){
+		langData = link[language];
+		for (const oId of link[language]){
+
+		}
+	}
+	return arc;
 };
 
 // == == MAIN == ==
@@ -95,13 +153,14 @@ export async function exportMain(version: string) {
 	// ( 1 ) pull arc
 	const arc = await pullArcTranslations(version);
 
-	//console.log('arc', arc);
-
 	// ( 2 ) pull link
-	//await pullLinkForExport(version);
+	const link = await pullLinkForExport(version);
 
-	//return;
 	// ( 3 ) modify arc
+	const modifiedArc = await modifyArcFromLink(arc, link);
+
+	console.log(modifiedArc);
+	return;
 
 	// ( 4 ) ZIP folder
 	const zipUrl = await zipFolderTree(arc);
