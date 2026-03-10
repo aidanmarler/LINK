@@ -1,15 +1,8 @@
 import JSZip from 'jszip';
-import { pullArcTranslations } from './pullArcTranslations';
+import { pullArcTranslations, type ArcStructure } from './pullArcTranslations';
 import Papa from 'papaparse';
-import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
-import type {
-	AcceptedTranslationRow,
-	ForwardTranslationRow,
-	OriginalSegmentRow,
-	TranslationProgressRow,
-	TranslationReviewRow
-} from '$lib/supabase/types';
-import { pullRowsForOriginalId } from '$lib/supabase/utils';
+import type { ForwardTranslationRow, OriginalSegmentRow } from '$lib/supabase/types';
+import { pullLink, type LinkTranslationData } from './pullLink';
 
 //type CsvData = Record<string, unknown[]>;
 
@@ -18,13 +11,21 @@ import { pullRowsForOriginalId } from '$lib/supabase/utils';
 // But I don't use them much so I figured it would be a nice practice to use them here.
 
 // == == Zip Tree Strucure, return blob == == //
-const zipFolderTree = async (tree: Record<string, unknown>): Promise<string> => {
+const zipFolderTree = async (tree: ArcStructure): Promise<string> => {
 	// + intialize zip folder
 	const zip = new JSZip();
 	// & zip object to const zip
 	const zipObject = async (tree: Record<string, unknown>, path: string = '') => {
 		for (const [name, item] of Object.entries(tree)) {
-			if (name.endsWith('.csv')) {
+			if (name.endsWith('ARCH.csv')) {
+				const zipPath = path + '/' + name;
+				const _unparseConfig: Papa.UnparseConfig = {};
+				const unparsedItem = Papa.unparse(Object.values(item) as unknown[]);
+				console.log('arch', Object.values(item), unparsedItem);
+
+				zip.file(zipPath, unparsedItem);
+			} else if (name.endsWith('.csv')) {
+				console.log([item]);
 				const zipPath = path + '/' + name;
 				const _unparseConfig: Papa.UnparseConfig = {};
 				const unparsedItem = Papa.unparse(item as unknown[]);
@@ -46,103 +47,131 @@ const zipFolderTree = async (tree: Record<string, unknown>): Promise<string> => 
 	// == Return blob url == //
 	return zipUrl;
 };
+// == == Modify arc data using link segments to find item and translationData to change it == == //
+const modifyArcFromLink = async (
+	arc: ArcStructure,
+	segments: Record<number, OriginalSegmentRow>,
+	link: LinkTranslationData
+): Promise<ArcStructure> => {
+	/*  
+	( i ) arc is structured as follows: 
+	 	version > language > ARCH.csv, Lists, paper_like_details.csv, supplemental_phrases.csv
 
-type LinkStructure = Record<
-	string, // language
-	Record<
-		number, // original_id
-		{
-			translationProgress?: TranslationProgressRow;
-			forwardTranslations?: ForwardTranslationRow[];
-			translationReviews?: TranslationReviewRow[];
-			acceptedTranslations?: AcceptedTranslationRow[];
+	*/
+
+	// & modify all form or section labels
+
+	// & modify all answer options
+
+	// + get arc version and store
+	const v = Object.keys(arc)[0];
+	// + store english arc of this version
+	const arcEnglish = arc[v]['English'];
+
+	// == for language translated in link
+	for (const language in link) {
+		// + store data in language
+		const langData = link[language];
+
+		// + get language with first letter uppercase
+		const arcLang = language.charAt(0).toUpperCase() + language.slice(1);
+
+		// + store arc translation of this version
+		const arcSection = arc[v][arcLang];
+
+		// ! catch if section is missing
+		if (!arcSection['ARCH.csv'] || !arcSection['Lists'] || !arcSection['paper_like_details.csv']) {
+			console.error('missing section', arcSection);
+			continue;
 		}
-	>
->;
 
-// == == Pull LINK for version == == //
-const pullLinkForExport = async (version: string) => {
-	console.log('Pulling LINK; get original segments');
-	// = ( 1 ) = pull original segments
-	const originalSegmentList = await pullOriginalSegments(version);
-	// * map to id
-	const originalSegments: Record<number, OriginalSegmentRow> = Object.fromEntries(
-		originalSegmentList.map((segment) => [segment.id, segment])
-	);
-	//console.log(originalSegments);
+		//const arcCSV = arcSection['ARCH.csv'];
 
-	/*
+		// == for link segment in this language's data
+		for (const oId in langData) {
+			// + get info
+			const segment = segments[oId];
+			const translationData = langData[oId];
 
-    from og segment list, make map
-    
-    */
-	console.log('Pulling LINK; get all tables');
-	// = ( 2 ) = promise.all -> accepted_translations, forward_translations, translation_reviews, translation_progress.
-	const segmentIds: number[] = Object.keys(originalSegments).map(Number);
-	const [translation_progress, forward_translations, translation_reviews, accepted_translations] =
-		await Promise.all([
-			pullRowsForOriginalId<TranslationProgressRow>('translation_progress', segmentIds),
-			pullRowsForOriginalId<ForwardTranslationRow>('forward_translations', segmentIds),
-			pullRowsForOriginalId<TranslationReviewRow>('translation_reviews', segmentIds),
-			pullRowsForOriginalId<AcceptedTranslationRow>('accepted_translations', segmentIds)
-		]);
+			// ! catch if no segment
+			if (!segment) {
+				console.error('missing original segment #' + oId, translationData);
+				continue;
+			}
 
-	// + Init link for export
-	const LINK: LinkStructure = {};
+			// ! catch if no accepted translation
+			if (!translationData.acceptedTranslations) {
+				console.error('missing accepted translation', segment);
+				continue;
+			}
 
-	// * Get translation_progress for this item
-	for (const progress of translation_progress) {
-		const lang = progress.language;
-		const oID = progress.original_id;
-		if (!LINK[lang]) LINK[lang] = {};
-		LINK[lang][oID] = { translationProgress: progress };
-	}
+			//console.log(segment, translationData);
+			// * get segment location
+			if (segment.type == 'question') {
+				// ! catch if missing variable name
+				if (!segment.location || segment.location.length < 1) {
+					console.error('missing location', segment);
+					continue;
+				}
 
-	// * Get Forward Translations
-	for (const translation of forward_translations) {
-		const lang = translation.language;
-		const oID = translation.original_id;
-		if (!LINK[lang]) LINK[lang] = {};
-		if (!LINK[lang][oID]) LINK[lang][oID] = {};
-		if (!LINK[lang][oID].forwardTranslations) LINK[lang][oID].forwardTranslations = [translation];
-		else LINK[lang][oID].forwardTranslations.push(translation);
-	}
+				// + get arc current variable
+				const variable = segment.location.at(-1) as string;
 
-	// * Get Translation Reviews
-	for (const review of translation_reviews) {
-		const lang = review.language;
-		const oID = review.original_id;
-		if (!LINK[lang]) LINK[lang] = {};
-		if (!LINK[lang][oID]) LINK[lang][oID] = {};
-		if (!LINK[lang][oID].translationReviews) LINK[lang][oID].translationReviews = [review];
-		else LINK[lang][oID].translationReviews.push(review);
-	}
+				// + get accepted translation
+				const acceptedId: number = translationData.acceptedTranslations[0].translation_id;
+				const acceptedTranslation = translationData.forwardTranslations?.find(
+					(t) => t.id == acceptedId
+				);
 
-	// * Get Accepted Translations
-	for (const accTranslation of accepted_translations) {
-		const lang = accTranslation.language;
-		const oID = accTranslation.original_id;
-		if (!LINK[lang]) LINK[lang] = {};
-		if (!LINK[lang][oID]) LINK[lang][oID] = {};
-		if (!LINK[lang][oID].acceptedTranslations)
-			LINK[lang][oID].acceptedTranslations = [accTranslation];
-		else LINK[lang][oID].acceptedTranslations.push(accTranslation);
-	}
+				// ! catch if no accepted translation
+				if (!acceptedTranslation) {
+					console.error('cant find accepted translation in forward translations', translationData);
+					continue;
+				}
 
-	// == return entire LINK results in LinkStructure == //
-	return LINK;
-};
+				// * get translation review score
 
-const modifyArcFromLink: Record<string, string | Record<string, unknown[]>> = async (
-	arc: Record<string, string | Record<string, unknown[]>>,
-	link: LinkStructure
-) => {
-	// & 
+				//const row = arcCSV[variable];
+				//const question = row['Question'];
 
-	for (const language of link){
-		langData = link[language];
-		for (const oId of link[language]){
+				// == Set New Translation! == //
 
+				//console.log(arc[v][arcLang]['ARCH.csv'][variable]['Question']);
+				arc[v][arcLang]['ARCH.csv'][variable]['Question'] = 'test'; //acceptedTranslation.translation;
+
+				// == Set Translation Rating == //
+				arc[v][arcLang]['ARCH.csv'][variable]['Question Translation Reviewers'] = '1';
+			} else if (segment.type == 'definition') {
+				continue;
+				//const arcId = segment.location?.at(-1);
+				//console.log(arcSection['ARCH.csv'][arcId]["Definition"]);
+			} else if (segment.type == 'completionGuide') {
+				continue;
+				//const arcId = segment.location?.at(-1);
+				//console.log(arcSection['ARCH.csv'][arcId]["Completion Guideline"]);
+			} else if (segment.type == 'answerOption') {
+				continue;
+			} else if (segment.type == 'formLabel') {
+				continue;
+			} else if (segment.type == 'sectionLabel') {
+				continue;
+			} else if (segment.type == 'listItem') {
+				continue;
+				if (!segment.location) continue;
+				const loc0 = segment.location[0];
+				if (!segment.location) continue;
+				const csvEnglish = arcEnglish[loc0][segment.location[1]][segment.location[2] + '.csv'];
+				const csvTranslated =
+					arcSection[segment.location[0]][segment.location[1]][segment.location[2] + '.csv'];
+				// + get item column name (contition, country, species, etc.)
+				const itemType = Object.keys(csvTranslated[0])[0];
+
+				for (const [i, row] of csvEnglish.entries()) {
+					if (row[itemType] == segment.segment) {
+						console.log(csvEnglish[i][itemType], csvTranslated[i][itemType]);
+					}
+				}
+			} else continue;
 		}
 	}
 	return arc;
@@ -154,16 +183,13 @@ export async function exportMain(version: string) {
 	const arc = await pullArcTranslations(version);
 
 	// ( 2 ) pull link
-	const link = await pullLinkForExport(version);
+	const [segments, translationData] = await pullLink(version);
 
-	// ( 3 ) modify arc
-	const modifiedArc = await modifyArcFromLink(arc, link);
-
-	console.log(modifiedArc);
-	return;
+	// ( 3 ) modify Arc-Translations
+	const modifiedArc = await modifyArcFromLink(arc, segments, translationData);
 
 	// ( 4 ) ZIP folder
-	const zipUrl = await zipFolderTree(arc);
+	const zipUrl = await zipFolderTree(modifiedArc);
 
 	return zipUrl;
 }

@@ -1,5 +1,40 @@
 import Papa from 'papaparse';
 
+// <T>
+
+export type CsvData = Record<string, unknown[]>;
+//export type ArcVariableTranslationReview = 
+
+export type ArcStructure = Record<
+	string, // version
+	Record<
+		string, // language
+		{
+			Lists?: Record<string, string | CsvData>; // Folder level deep can vary
+			'ARCH.csv'?: Record<
+				string,
+				{
+					Variable: string;
+					Form: string;
+					Section: string;
+					Question: string;
+					'Answer Options': string;
+					Definition: string;
+					'Completion Guideline': string;
+					'Question Translation Reviewers'?: string;
+					'Definition Translation Reviewers'?: string;
+					'Completion Guideline Translation Reviewers'?: string;
+					'Form Translation Reviewers'?: string;
+					'Section Translation Reviewers'?: string;
+					'Answer Translation Reviewers'?: string;
+				}
+			>; // variable as record id
+			'paper_like_details.csv'?: unknown[]; // just csv rows
+			'supplemental_phrases.csv'?: unknown[]; // just csv rows
+		}
+	>
+>;
+
 export async function pullArcTranslations(version: string) {
 	// <T> Basic tree data type so that my requests know what to expect and basic csv with name datatype
 	type GitTree = {
@@ -10,7 +45,6 @@ export async function pullArcTranslations(version: string) {
 		url: string;
 		size: number;
 	};
-	type CsvData = Record<string, unknown[]>;
 
 	// & get list of arch files to download from most recent branch of ARCH for our version
 	async function findFiles(
@@ -115,9 +149,11 @@ export async function pullArcTranslations(version: string) {
 	}
 
 	// & map content to json structure of folders
-	async function mapCSVs(version: string, parsedContent: CsvData) {
-		const archVersion = 'ARCH' + version; // get version and add "ARCH"
-		const mappedContent: Record<string, string | CsvData> = { [archVersion]: {} };
+	async function mapCSVs(version: string, parsedContent: CsvData): Promise<ArcStructure> {
+		// + get version and add "ARCH"
+		const archVersion = 'ARCH' + version;
+		// + init mapped content as archVersion: language: csvData
+		const mappedContent: ArcStructure = { [archVersion]: {} };
 
 		// == for each csv, parse it and map it to its location
 		for (const pathText in parsedContent) {
@@ -133,8 +169,22 @@ export async function pullArcTranslations(version: string) {
 				current = current[pathList[i]] as Record<string, unknown>;
 			}
 
-			// Set the csv data at the last key
-			current[pathList[pathList.length - 1]] = parsedContent[pathText];
+			// + get file name and data
+			const fileName = pathList[pathList.length - 1];
+			const fileData = parsedContent[pathText];
+
+			//== Set the csv data at the last key
+			if (fileName == 'ARCH.csv') {
+				const arcCsv: Record<string, unknown> = {};
+				for (const row of fileData as Record<string, unknown>[]) {
+					const variable = row['Variable'] as string;
+					arcCsv[variable] = row;
+					current[fileName] = arcCsv;
+				}
+			} else {
+				current[fileName] = fileData;
+			}
+			//current[pathList[pathList.length - 1]] = parsedContent[pathText];
 		}
 
 		return mappedContent;
