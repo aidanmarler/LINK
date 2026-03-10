@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { pullArcTranslations, type ArcStructure } from './pullArcTranslations';
 import Papa from 'papaparse';
-import type { ForwardTranslationRow, OriginalSegmentRow } from '$lib/supabase/types';
+import type { OriginalSegmentRow } from '$lib/supabase/types';
 import { pullLink, type LinkTranslationData } from './pullLink';
 
 //type CsvData = Record<string, unknown[]>;
@@ -20,12 +20,10 @@ const zipFolderTree = async (tree: ArcStructure): Promise<string> => {
 			if (name.endsWith('ARCH.csv')) {
 				const zipPath = path + '/' + name;
 				const _unparseConfig: Papa.UnparseConfig = {};
-				const unparsedItem = Papa.unparse(Object.values(item) as unknown[]);
-				console.log('arch', Object.values(item), unparsedItem);
-
+				const itemTyped = item as Record<string, unknown>;
+				const unparsedItem = Papa.unparse(Object.values(itemTyped) as unknown[]);
 				zip.file(zipPath, unparsedItem);
 			} else if (name.endsWith('.csv')) {
-				console.log([item]);
 				const zipPath = path + '/' + name;
 				const _unparseConfig: Papa.UnparseConfig = {};
 				const unparsedItem = Papa.unparse(item as unknown[]);
@@ -47,6 +45,20 @@ const zipFolderTree = async (tree: ArcStructure): Promise<string> => {
 	// == Return blob url == //
 	return zipUrl;
 };
+
+// + get label for this segment type
+const typeLabels = {
+	question: 'Question',
+	definition: 'Definition',
+	completionGuide: 'Completion Guideline',
+	listItem: '',
+	answerOption: '',
+	formLabel: '',
+	sectionLabel: ''
+};
+
+//"listItem" | "question" | "answerOption" | "definition" | "completionGuide" | "formLabel" | "sectionLabel"
+
 // == == Modify arc data using link segments to find item and translationData to change it == == //
 const modifyArcFromLink = async (
 	arc: ArcStructure,
@@ -68,26 +80,28 @@ const modifyArcFromLink = async (
 	// + store english arc of this version
 	const arcEnglish = arc[v]['English'];
 
-	// == for language translated in link
+	// %% for language translated in link
 	for (const language in link) {
 		// + store data in language
 		const langData = link[language];
-
 		// + get language with first letter uppercase
-		const arcLang = language.charAt(0).toUpperCase() + language.slice(1);
-
+		const languageArc = language.charAt(0).toUpperCase() + language.slice(1);
 		// + store arc translation of this version
-		const arcSection = arc[v][arcLang];
+		const arcTranslation = arc[v][languageArc];
 
 		// ! catch if section is missing
-		if (!arcSection['ARCH.csv'] || !arcSection['Lists'] || !arcSection['paper_like_details.csv']) {
-			console.error('missing section', arcSection);
+		if (
+			!arcTranslation['ARCH.csv'] ||
+			!arcTranslation['Lists'] ||
+			!arcTranslation['paper_like_details.csv']
+		) {
+			console.error('missing section', arcTranslation);
 			continue;
 		}
 
 		//const arcCSV = arcSection['ARCH.csv'];
 
-		// == for link segment in this language's data
+		// %% for link segment in this language's data
 		for (const oId in langData) {
 			// + get info
 			const segment = segments[oId];
@@ -99,79 +113,132 @@ const modifyArcFromLink = async (
 				continue;
 			}
 
+			// + get type label
+			const typeLabel = typeLabels[segment.type];
+
 			// ! catch if no accepted translation
 			if (!translationData.acceptedTranslations) {
 				console.error('missing accepted translation', segment);
 				continue;
 			}
 
-			//console.log(segment, translationData);
-			// * get segment location
-			if (segment.type == 'question') {
+			// + get accepted translation
+			const acceptedId: number = translationData.acceptedTranslations[0].translation_id;
+			const acceptedTranslation = translationData.forwardTranslations?.find(
+				(t) => t.id == acceptedId
+			);
+
+			// ! catch if no accepted translation
+			if (!acceptedTranslation) {
+				console.error('cant find accepted translation in forward translations', translationData);
+				continue;
+			}
+
+			// * calc review item review score
+
+			// == Questions, Definitions and Guides == //
+			if (segment.type in ['question', 'completionGuide', 'definition']) {
+				// ! catch if missing variable name
+				if (!segment.location || segment.location.length < 1) {
+					console.error('missing location', segment);
+					continue;
+				}
+				// + get arc current variable
+				const variable = segment.location.at(-1) as string;
+
+				// == Set New Translation! == //
+				// @ts-expect-error location known in arc
+				arc[v][languageArc]['ARCH.csv'][variable][typeLabel] = acceptedTranslation.translation;
+
+				// == Set Translation Rating == //
+				// @ts-expect-error location known in arc
+				arc[v][languageArc]['ARCH.csv'][variable][typeLabel + ' Translation Reviewers'] = '1';
+				continue;
+			}
+
+			// == List Items == //
+			if (segment.type == 'listItem') {
 				// ! catch if missing variable name
 				if (!segment.location || segment.location.length < 1) {
 					console.error('missing location', segment);
 					continue;
 				}
 
-				// + get arc current variable
-				const variable = segment.location.at(-1) as string;
+				if (!segment.location || segment.location.length < 3) continue;
 
-				// + get accepted translation
-				const acceptedId: number = translationData.acceptedTranslations[0].translation_id;
-				const acceptedTranslation = translationData.forwardTranslations?.find(
-					(t) => t.id == acceptedId
-				);
+				// + get csv in english and translated
+				// @ts-expect-error location known in arc
+				const e = arcEnglish[segment.location[0]]; // only on this line to expect type errorss
+				const csvEnglish = e[segment.location[1]][segment.location[2] + '.csv'];
+				// @ts-expect-error location known in arc
+				const t = arcTranslation[segment.location[0]]; // only on this line to expect type errors
+				const csvTranslated = t[segment.location[1]][segment.location[2] + '.csv'];
 
-				// ! catch if no accepted translation
-				if (!acceptedTranslation) {
-					console.error('cant find accepted translation in forward translations', translationData);
+				// + get item column name (contition, country, species, etc.)
+				const itemType = Object.keys(csvTranslated[0])[0];
+
+				let index;
+				for (const [i, row] of csvEnglish.entries()) {
+					if (row[itemType] == segment.segment) {
+						index = i;
+						//console.log(csvEnglish[i][itemType], csvTranslated[i][itemType]);
+					}
+				}
+				if (!index) continue;
+
+				/*
+				console.log(
+					arc[v][languageArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
+						itemType
+					],
+					arc[v][languageArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index],
+					arc[v][languageArc]['Lists'][segment.location[1]][segment.location[2] + '.csv']
+				);*/
+
+				// ! if can't find this index, throw error
+				if (!arcTranslation['Lists'][segment.location[1]][segment.location[2] + '.csv'][index]) {
+					console.error(
+						"Can't find index in list.csv array",
+						arcTranslation['Lists'][segment.location[1]][segment.location[2] + '.csv'],
+						index
+					);
+					continue;
+				}
+				// ! if can't find this column, throw error
+				if (
+					!arcTranslation['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
+						itemType
+					]
+				) {
+					console.error(
+						"Can't find item column",
+						arcTranslation['Lists'][segment.location[1]][segment.location[2] + '.csv'][index],
+						itemType
+					);
 					continue;
 				}
 
-				// * get translation review score
-
-				//const row = arcCSV[variable];
-				//const question = row['Question'];
-
 				// == Set New Translation! == //
-
-				//console.log(arc[v][arcLang]['ARCH.csv'][variable]['Question']);
-				arc[v][arcLang]['ARCH.csv'][variable]['Question'] = 'test'; //acceptedTranslation.translation;
+				arc[v][languageArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
+					itemType
+				] = 'test'; //acceptedTranslation.translation;
 
 				// == Set Translation Rating == //
-				arc[v][arcLang]['ARCH.csv'][variable]['Question Translation Reviewers'] = '1';
-			} else if (segment.type == 'definition') {
+				arc[v][languageArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
+					'Translation Reviewers'
+				] = '1';
 				continue;
-				//const arcId = segment.location?.at(-1);
-				//console.log(arcSection['ARCH.csv'][arcId]["Definition"]);
-			} else if (segment.type == 'completionGuide') {
-				continue;
-				//const arcId = segment.location?.at(-1);
-				//console.log(arcSection['ARCH.csv'][arcId]["Completion Guideline"]);
-			} else if (segment.type == 'answerOption') {
+			}
+
+			if (segment.type == 'answerOption') {
 				continue;
 			} else if (segment.type == 'formLabel') {
 				continue;
 			} else if (segment.type == 'sectionLabel') {
 				continue;
-			} else if (segment.type == 'listItem') {
-				continue;
-				if (!segment.location) continue;
-				const loc0 = segment.location[0];
-				if (!segment.location) continue;
-				const csvEnglish = arcEnglish[loc0][segment.location[1]][segment.location[2] + '.csv'];
-				const csvTranslated =
-					arcSection[segment.location[0]][segment.location[1]][segment.location[2] + '.csv'];
-				// + get item column name (contition, country, species, etc.)
-				const itemType = Object.keys(csvTranslated[0])[0];
+			}
 
-				for (const [i, row] of csvEnglish.entries()) {
-					if (row[itemType] == segment.segment) {
-						console.log(csvEnglish[i][itemType], csvTranslated[i][itemType]);
-					}
-				}
-			} else continue;
+			continue;
 		}
 	}
 	return arc;
