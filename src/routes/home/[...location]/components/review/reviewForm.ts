@@ -21,9 +21,9 @@ export async function getRelatedTranslations(
 ): Promise<RelatedTranslations> {
 	const relatedTranslations: RelatedTranslations = {};
 	const RelatedTranslationsList: ForwardTranslationRow[] = await pullRowsForOriginalId(
-		language,
 		'forward_translations',
-		original_ids
+		original_ids,
+		language
 	);
 
 	// map list to relatedTranslations type (id -> text -> row)
@@ -216,9 +216,9 @@ export async function getRelatedReviews(
 ): Promise<Record<number, TranslationReviewRow[]>> {
 	const relatedReviews: Record<number, TranslationReviewRow[]> = {};
 	const RelatedReviewsList: TranslationReviewRow[] = await pullRowsForOriginalId(
-		language,
 		'translation_reviews',
-		original_ids
+		original_ids,
+		language
 	);
 
 	// map list to relatedTranslations type (id -> text -> row)

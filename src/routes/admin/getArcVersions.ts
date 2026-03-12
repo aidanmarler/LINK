@@ -1,11 +1,14 @@
 export async function getArcVersions(): Promise<Record<string, string[]>> {
 	const githubToken = import.meta.env.VITE_GITHUB_TOKEN;
-	const response = await fetch(`https://api.github.com/repos/ISARICResearch/ARC-Translations/contents`, {
-		headers: {
-			Authorization: `Bearer ${githubToken}`,
-			Accept: 'application/vnd.github.v3+json'
+	const response = await fetch(
+		`https://api.github.com/repos/ISARICResearch/ARC-Translations/contents`,
+		{
+			headers: {
+				Authorization: `Bearer ${githubToken}`,
+				Accept: 'application/vnd.github.v3+json'
+			}
 		}
-	});
+	);
 
 	// ! Return error
 	if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);

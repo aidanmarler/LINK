@@ -1,0 +1,52 @@
+translation_progress
+accepted_translations
+forward_translations
+translation_reviews
+backward_translations
+
+CREATE POLICY "authenticated can select ___" 
+ON ___ 
+FOR SELECT 
+TO authenticated 
+USING (true);
+
+CREATE POLICY "authenticated can insert to ___" 
+ON ___ 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (true);
+
+CREATE POLICY "authenticated can update ___" 
+ON ___ 
+FOR UPDATE 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+
+original_segments -> select
+documents -> select
+
+____
+admin
+
+FOR ALL -> original_segments, documents
+
+CREATE POLICY "Allow admins full access to ___"
+ON ___
+FOR ALL
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM profiles
+        WHERE profiles.id = auth.uid() AND profiles.is_admin = true
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM profiles
+        WHERE profiles.id = auth.uid() AND profiles.is_admin = true
+    )
+);

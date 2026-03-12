@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { button } from '$lib/styles';
-	import { fade, fly, scale } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import { getArcVersions } from './getArcVersions';
 	import { UpdateFromARC } from './githubToSupabase';
 	import type { GithubLanguage } from '$lib/types';
 	import { goto } from '$app/navigation';
 	import { exportMain } from './export';
-	import { pullArcTranslations } from './pullArcTranslations';
 
 	let arcVersions: Promise<Record<string, string[]>> = $state(getArcVersions());
 	let selectedVersion = $derived(Object.keys(arcVersions)[0]);

@@ -2,9 +2,7 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
 	import type { AuthSession } from '@supabase/supabase-js';
-	import Logout from '../components/logout.svelte';
-	import ThemeManager from '../components/themeManager.svelte';
-	import { fade, fly, scale } from 'svelte/transition';
+	import { scale } from 'svelte/transition';
 	import KabobMenu from '../components/kabobMenu.svelte';
 	import { checkAdminStatus } from '$lib/supabase/auth';
 

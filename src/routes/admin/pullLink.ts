@@ -13,20 +13,22 @@ export type LinkSegments = Record<
 	OriginalSegmentRow
 >;
 
-export type LinkTranslationData = Record<
+export type LinkTranslation = {
+	translationProgress?: TranslationProgressRow;
+	forwardTranslations?: ForwardTranslationRow[];
+	translationReviews?: TranslationReviewRow[];
+	acceptedTranslations?: AcceptedTranslationRow[];
+};
+
+export type LinkTranslationsRecord = Record<
 	string, // language
 	Record<
 		number, // original_id
-		{
-			translationProgress?: TranslationProgressRow;
-			forwardTranslations?: ForwardTranslationRow[];
-			translationReviews?: TranslationReviewRow[];
-			acceptedTranslations?: AcceptedTranslationRow[];
-		}
+		LinkTranslation
 	>
 >;
 
-export type LinkStructure = [LinkSegments, LinkTranslationData];
+export type LinkStructure = [LinkSegments, LinkTranslationsRecord];
 
 // == == Pull LINK for version == == //
 // @ optional "version" and "set" later (when we have a new database to store each )
@@ -51,7 +53,7 @@ export const pullLink = async (version: string): Promise<LinkStructure> => {
 		]);
 
 	// + Init link for export
-	const LINK: LinkTranslationData = {};
+	const LINK: LinkTranslationsRecord = {};
 
 	// * Get translation_progress for this item
 	for (const progress of translation_progress) {

@@ -3,14 +3,14 @@ import Papa from 'papaparse';
 // <T>
 
 export type CsvData = Record<string, unknown[]>;
-//export type ArcVariableTranslationReview = 
+//export type ArcVariableTranslationReview =
 
 export type ArcStructure = Record<
 	string, // version
 	Record<
 		string, // language
 		{
-			Lists?: Record<string, string | CsvData>; // Folder level deep can vary
+			Lists?: Record<string, Record<string, Record<string, string>[]>>; // Folder level deep can vary
 			'ARCH.csv'?: Record<
 				string,
 				{
@@ -26,11 +26,11 @@ export type ArcStructure = Record<
 					'Completion Guideline Translation Reviewers'?: string;
 					'Form Translation Reviewers'?: string;
 					'Section Translation Reviewers'?: string;
-					'Answer Translation Reviewers'?: string;
+					'Answer Options Translation Reviewers'?: string;
 				}
 			>; // variable as record id
-			'paper_like_details.csv'?: unknown[]; // just csv rows
-			'supplemental_phrases.csv'?: unknown[]; // just csv rows
+			'paper_like_details.csv'?: Record<string, string>[]; // just csv rows
+			'supplemental_phrases.csv'?: Record<string, string>[]; // just csv rows
 		}
 	>
 >;

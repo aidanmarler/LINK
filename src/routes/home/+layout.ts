@@ -23,17 +23,29 @@ export const load: LayoutLoad = async ({ parent }) => {
 
 	if (!session || !profile) return; //throw redirect(302, '/login');
 
+	// + Get User's language
 	const language = profile.language as TranslationLanguage;
 
-	const selectedPreset =
+	// + Get User's selected preset (document title) if any
+	const selectedDocument =
 		profile.selected_preset && Object.values(presetOptions).includes(profile.selected_preset)
 			? (profile.selected_preset as LinkPreset)
 			: undefined;
 
+
+	// Get 
+	// const documentRows = 
+	//const myDocumentRow = await supabase.from('documents').select('*').eq('title', selectedDocument);
+	//const allDocuments = await supabase.from('documents').select // get all rows of columns "id", "title", and "version"
+	//if (!myDocumentRow)
+
+
+	//const document
+
 	// Now we ALWAYS return data (never early return)
 	return {
 		profile,
-		dataPromise: loadDataProgressively(session.user.id, language, selectedPreset)
+		dataPromise: loadDataProgressively(session.user.id, language, selectedDocument)
 	};
 };
 
