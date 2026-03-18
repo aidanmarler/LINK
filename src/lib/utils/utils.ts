@@ -1,4 +1,4 @@
-import type { Database } from '$lib/database.types';
+import type { Database } from '$lib/supabase/database.types';
 import type { SegmentData, SegmentMap } from '$lib/supabase/types';
 
 // Function to capicapitalize first character of a string

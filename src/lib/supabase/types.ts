@@ -1,4 +1,4 @@
-import type { Database } from '$lib/database.types';
+import type { Database } from './database.types';
 
 // OriginalSegment
 export type OriginalSegmentInsert = Database['public']['Tables']['original_segments']['Insert'];
@@ -22,6 +22,11 @@ export type TranslationProgressRow = Database['public']['Tables']['translation_p
 // Translation Reviews
 export type TranslationReviewInsert = Database['public']['Tables']['translation_reviews']['Insert'];
 export type TranslationReviewRow = Database['public']['Tables']['translation_reviews']['Row'];
+
+// Documents
+export type DocumentInsert = Database['public']['Tables']['documents']['Insert'];
+export type DocumentUpdate = Database['public']['Tables']['documents']['Update'];
+export type DocumentRow = Database['public']['Tables']['documents']['Row'];
 
 export type TranslationVerificationData = {
 	translationProgress: TranslationProgressRow | null;

@@ -5,47 +5,98 @@ import Papa from 'papaparse';
 export type CsvData = Record<string, unknown[]>;
 //export type ArcVariableTranslationReview =
 
-export type ArcStructure = Record<
-	string, // version
-	Record<
-		string, // language
+export type ArcStructure = {
+	Lists?: Record<string, Record<string, Record<string, string>[]>>;
+	'ARCH.csv'?: Record<
+		string,
 		{
-			Lists?: Record<string, Record<string, Record<string, string>[]>>; // Folder level deep can vary
-			'ARCH.csv'?: Record<
-				string,
-				{
-					Variable: string;
-					Form: string;
-					Section: string;
-					Question: string;
-					'Answer Options': string;
-					Definition: string;
-					'Completion Guideline': string;
-					'Question Translation Reviewers'?: string;
-					'Definition Translation Reviewers'?: string;
-					'Completion Guideline Translation Reviewers'?: string;
-					'Form Translation Reviewers'?: string;
-					'Section Translation Reviewers'?: string;
-					'Answer Options Translation Reviewers'?: string;
-				}
-			>; // variable as record id
-			'paper_like_details.csv'?: Record<string, string>[]; // just csv rows
-			'supplemental_phrases.csv'?: Record<string, string>[]; // just csv rows
+			Variable: string;
+			Form: string;
+			Section: string;
+			Question: string;
+			'Answer Options': string;
+			Definition: string;
+			'Completion Guideline': string;
+			'Question Translation Reviewers'?: string;
+			'Definition Translation Reviewers'?: string;
+			'Completion Guideline Translation Reviewers'?: string;
+			'Form Translation Reviewers'?: string;
+			'Section Translation Reviewers'?: string;
+			'Answer Options Translation Reviewers'?: string;
 		}
-	>
+	>; // variable as record id
+	'paper_like_details.csv'?: Record<string, string>[]; // just csv rows
+	'supplemental_phrases.csv'?: Record<string, string>[]; // just csv rows
+};
+export type ArcLanguageStructure = Record<
+	string, // language
+	ArcStructure
+>;
+export type ArcVersionStructure = Record<
+	string, // version
+	ArcLanguageStructure
 >;
 
-export async function pullArcTranslations(version: string) {
-	// <T> Basic tree data type so that my requests know what to expect and basic csv with name datatype
-	type GitTree = {
-		path: string;
-		mode: string;
-		type: string;
-		sha: string;
-		url: string;
-		size: number;
-	};
+// <T> Basic tree data type so that my requests know what to expect and basic csv with name datatype
+type GitTree = {
+	path: string;
+	mode: string;
+	type: string;
+	sha: string;
+	url: string;
+	size: number;
+};
 
+// & fetch all csvs and structure them
+async function fetchFiles(files: GitTree[], githubAuth: { headers: { Authorization: string } }) {
+	// == Pull all CSVs and decode them from base-64 to utf-8
+	const contentArray = await Promise.all(
+		files.map(async (file) => {
+			// * fetch blob from github
+			const response = await fetch(file.url, githubAuth);
+			// ! if fetch error, throw error
+			if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+			// * content as json
+			const content = await response.json();
+			// * get content.content from base64 to utf-8 OR latin-1 OR something fishy...
+			const base64 = content.content.replace(/\s/g, ''); // strip GitHub's newlines
+			const binary = atob(base64); // get bianary
+			const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0)); // decode
+			const csv = new TextDecoder('utf-8').decode(bytes); // csv text in UTF-8
+
+			// == return content at path == //
+			return { path: file.path, csv };
+		})
+	);
+
+	// * Map the content to a record
+	const content: Record<string, string> = Object.fromEntries(
+		contentArray.map((e) => [e.path, e.csv])
+	);
+
+	// == Return mapped CSVs ==//
+	return content;
+}
+
+// & parse content using Papa Parse
+async function parseCSVs(content: Record<string, string>) {
+	// + set parse config
+	const parseConfig: Papa.ParseConfig = { header: true, skipEmptyLines: true };
+	// + initalized parsed content
+	const parsedContent: CsvData = {};
+	// == for each csv, parse it and map it to its location
+	for (const path in content) {
+		// * parse using header and skipping empty lines
+		const parsedCsv = Papa.parse(content[path], parseConfig);
+		// ! catch any parse errors
+		if (parsedCsv.errors.length > 0) throw new Error(`Error parsing ${path}: ${parsedCsv.errors}`);
+		// = map it to content
+		parsedContent[path] = parsedCsv.data;
+	}
+	return parsedContent;
+}
+
+export async function pullArcTranslations(version: string) {
 	// & get list of arch files to download from most recent branch of ARCH for our version
 	async function findFiles(
 		version: string,
@@ -98,62 +149,12 @@ export async function pullArcTranslations(version: string) {
 		return files;
 	}
 
-	// & fetch all csvs and structure them
-	async function fetchFiles(files: GitTree[]) {
-		// == Pull all CSVs and decode them from base-64 to utf-8
-		const contentArray = await Promise.all(
-			files.map(async (file) => {
-				// * fetch blob from github
-				const response = await fetch(file.url, githubAuth);
-				// ! if fetch error, throw error
-				if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
-				// * content as json
-				const content = await response.json();
-				// * get content.content from base64 to utf-8 OR latin-1 OR something fishy...
-				const base64 = content.content.replace(/\s/g, ''); // strip GitHub's newlines
-				const binary = atob(base64); // get bianary
-				const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0)); // decode
-				const csv = new TextDecoder('utf-8').decode(bytes); // csv text in UTF-8
-
-				// == return content at path == //
-				return { path: file.path, csv };
-			})
-		);
-
-		// * Map the content to a record
-		const content: Record<string, string> = Object.fromEntries(
-			contentArray.map((e) => [e.path, e.csv])
-		);
-
-		// == Return mapped CSVs ==//
-		return content;
-	}
-
-	// & parse content using Papa Parse
-	async function parseCSVs(content: Record<string, string>) {
-		// + set parse config
-		const parseConfig: Papa.ParseConfig = { header: true, skipEmptyLines: true };
-		// + initalized parsed content
-		const parsedContent: CsvData = {};
-		// == for each csv, parse it and map it to its location
-		for (const path in content) {
-			// * parse using header and skipping empty lines
-			const parsedCsv = Papa.parse(content[path], parseConfig);
-			// ! catch any parse errors
-			if (parsedCsv.errors.length > 0)
-				throw new Error(`Error parsing ${path}: ${parsedCsv.errors}`);
-			// = map it to content
-			parsedContent[path] = parsedCsv.data;
-		}
-		return parsedContent;
-	}
-
 	// & map content to json structure of folders
-	async function mapCSVs(version: string, parsedContent: CsvData): Promise<ArcStructure> {
+	async function mapCSVs(version: string, parsedContent: CsvData): Promise<ArcVersionStructure> {
 		// + get version and add "ARCH"
 		const archVersion = 'ARCH' + version;
 		// + init mapped content as archVersion: language: csvData
-		const mappedContent: ArcStructure = { [archVersion]: {} };
+		const mappedContent: ArcVersionStructure = { [archVersion]: {} };
 
 		// == for each csv, parse it and map it to its location
 		for (const pathText in parsedContent) {
@@ -195,22 +196,22 @@ export async function pullArcTranslations(version: string) {
 	const githubAuth = { headers: { Authorization: `Bearer ${githubToken}` } };
 
 	// = ( 1 ) = Get list of files to download
-	console.log('Find Files');
+	console.log('arcT: Find Files');
 	const archFiles = await findFiles(version, githubAuth);
 	//console.log('archFiles', archFiles);
 
 	// = ( 2 ) = Download all files
-	console.log('Fetch Files');
-	const archContent = await fetchFiles(archFiles);
+	console.log('arcT: Fetch Files');
+	const archContent = await fetchFiles(archFiles, githubAuth);
 	//console.log('archContent', archContent);
 
 	// = ( 3 ) = Parse files
-	console.log('Parse Files');
+	console.log('arcT: Parse Files');
 	const parsedContent = await parseCSVs(archContent);
 	//console.log('parsedContent', parsedContent);
 
 	// = ( 4 ) = Map to JSON structure
-	console.log('Map Files');
+	console.log('arcT: Map Files');
 	const mappedContent = await mapCSVs(version, parsedContent);
 	//console.log('mappedContent', mappedContent);
 

@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { pullArcTranslations, type ArcStructure } from './pullArcTranslations';
+import { pullArcTranslations, type ArcVersionStructure } from './pullArcTranslations';
 import Papa from 'papaparse';
 import type { ForwardTranslationRow, OriginalSegmentRow } from '$lib/supabase/types';
 import { pullLink, type LinkTranslation, type LinkTranslationsRecord } from './pullLink';
@@ -11,7 +11,7 @@ import { pullLink, type LinkTranslation, type LinkTranslationsRecord } from './p
 // But I don't use them much so I figured it would be a nice practice to use them here.
 
 // == == Zip Tree Strucure, return blob == == //
-const zipFolderTree = async (tree: ArcStructure): Promise<string> => {
+const zipFolderTree = async (tree: ArcVersionStructure): Promise<string> => {
 	console.log('Zip Started');
 	// + intialize zip folder
 	const zip = new JSZip();
@@ -88,10 +88,10 @@ const arcColumnReports: Record<ArcColumn, ArcColumnReport> = {
 
 // == == Modify arc data using link segments to find item and translationData to change it == == //
 const modifyArcFromLink = async (
-	arc: ArcStructure,
+	arc: ArcVersionStructure,
 	segments: Record<number, OriginalSegmentRow>,
 	link: LinkTranslationsRecord
-): Promise<ArcStructure> => {
+): Promise<ArcVersionStructure> => {
 	/*  
 	( i ) arc is structured as follows: 
 	 	version > language > ARCH.csv, Lists, paper_like_details.csv, supplemental_phrases.csv
@@ -167,7 +167,7 @@ const modifyArcFromLink = async (
 			else mappedFt[trans].push(t);
 		}
 
-		console.log(lt.acceptedTranslations.length, lt.acceptedTranslations, at.currently_accepted);
+		console.log(lt.acceptedTranslations.length, lt.acceptedTranslations);
 
 		return [ft.translation, 'Score'];
 	};

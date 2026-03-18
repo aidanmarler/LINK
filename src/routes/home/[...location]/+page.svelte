@@ -26,11 +26,11 @@
 	async function onsubmit(shouldContinue: boolean) {
 		if (!shouldContinue) return; // ignore if only a "save"
 
-		console.log("onsubmit")
+		console.log('onsubmit');
 
 		const resolvedData = await data.dataPromise; // get current data
 
-		console.log("find next segment")
+		console.log('find next segment');
 
 		// find next segment
 		const nextSegment = findNextSegment(
@@ -119,49 +119,6 @@
 			<a href="/home">Return to Home</a>
 		</div>
 	{:else if currentNode}
-		<!--
-			Navigations!
-		Here is where we show all next locations
-		  -->
-		{#if currentNode.children.size > 0}
-			<section>
-				{#key currentPath}
-					<div
-						in:fly|global={{ x: 10, duration: 200, delay: 100 }}
-						out:fly|global={{ x: -10, duration: 100 }}
-						class="grid p-2 gap-2 sm:grid-cols-2"
-					>
-						{#each [...currentNode.children.values()] as child}
-							<!--<h2>Filter data to only </h2>-->
-							{@const nodeSegments = (() => {
-								if (!currentNode) return {} as SegmentMap;
-
-								const filtered: SegmentMap = {};
-								for (const id of currentNode.segmentIds) {
-									if (segmentMap[id]) {
-										filtered[id] = segmentMap[id];
-									}
-								}
-								return segmentMap;
-							})()}
-							<button
-								title="See {child.slug}"
-								class="w-full cursor-pointer {button.stanley}  p-2 rounded-lg"
-								onclick={() => {
-									goto(currentPath + '/' + child.slug);
-								}}
-							>
-								<p class="w-full text-center">{makeFolderLabel(child.name)}</p>
-								<div class="w-full px-2">
-									<CompletionChart completion={child.completion} options={{ showKey: true }} />
-								</div>
-							</button>
-						{/each}
-					</div>
-				{/key}
-			</section>
-		{/if}
-
 		<!-- Segments at this location -->
 		<!-- Forms for interacting with segments -->
 		{#if data.currentNode.segmentIds.length > 0}
@@ -205,6 +162,48 @@
 						<p class="w-full text-center text-xl mt-10">Backward Translation is Coming Soon!</p>
 					{/if}
 				</div>
+			</section>
+		{/if}
+		<!--
+			Navigations!
+		Here is where we show all next locations
+		  -->
+		{#if currentNode.children.size > 0}
+			<section>
+				{#key currentPath}
+					<div
+						in:fly|global={{ x: 10, duration: 200, delay: 100 }}
+						out:fly|global={{ x: -10, duration: 100 }}
+						class="grid p-2 gap-2 sm:grid-cols-2"
+					>
+						{#each [...currentNode.children.values()] as child}
+							<!--<h2>Filter data to only </h2>-->
+							{@const nodeSegments = (() => {
+								if (!currentNode) return {} as SegmentMap;
+
+								const filtered: SegmentMap = {};
+								for (const id of currentNode.segmentIds) {
+									if (segmentMap[id]) {
+										filtered[id] = segmentMap[id];
+									}
+								}
+								return segmentMap;
+							})()}
+							<button
+								title="See {child.slug}"
+								class="w-full cursor-pointer {button.stanley}  p-2 rounded-lg"
+								onclick={() => {
+									goto(currentPath + '/' + child.slug);
+								}}
+							>
+								<p class="w-full text-center">{makeFolderLabel(child.name)}</p>
+								<div class="w-full px-2">
+									<CompletionChart completion={child.completion} options={{ showKey: true }} />
+								</div>
+							</button>
+						{/each}
+					</div>
+				{/key}
 			</section>
 		{/if}
 	{/if}

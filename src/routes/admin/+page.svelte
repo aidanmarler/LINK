@@ -2,10 +2,10 @@
 	import { button } from '$lib/styles';
 	import { fly } from 'svelte/transition';
 	import { getArcVersions } from './getArcVersions';
-	import { UpdateFromARC } from './githubToSupabase';
-	import type { GithubLanguage } from '$lib/types';
 	import { goto } from '$app/navigation';
 	import { exportMain } from './export';
+	import { AddArcVersionToLink } from './githubToSupabaseNew';
+	import type { GithubLanguage } from '$lib/types';
 
 	let arcVersions: Promise<Record<string, string[]>> = $state(getArcVersions());
 	let selectedVersion = $derived(Object.keys(arcVersions)[0]);
@@ -36,8 +36,8 @@
 						dark:border-blue-600 dark:hover:bg-blue-600/20
 						"
 					onclick={async () => {
-						if (selectedVersion)
-							await UpdateFromARC(selectedVersion, versions[selectedVersion] as GithubLanguage[]);
+						//if (selectedVersion) await UpdateFromARC(selectedVersion, versions[selectedVersion] as GithubLanguage[]);
+						if (selectedVersion) await AddArcVersionToLink(selectedVersion, versions[selectedVersion] as GithubLanguage[]);
 						else console.error('no selected ARCH version');
 					}}
 				>

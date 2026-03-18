@@ -256,7 +256,7 @@ export async function UpdateOriginalSegments(
 }
 
 export async function pullOriginalSegments(
-	version: string = '1.1.5',
+	_version: string = '1.1.5',
 	preset?: LinkPreset,
 	eqListItem?: boolean, //'listItem' | 'exclude-listItem' | null,
 	answerOption?: boolean
@@ -266,7 +266,7 @@ export async function pullOriginalSegments(
 	const baseQuery = supabase.from('original_segments').select('*');
 
 	// # Intial query contains most recent version
-	baseQuery.contains('arc_versions', [version]);
+	//baseQuery.contains('arc_versions', [version]);
 
 	// # Apply listItem filter, if not null
 	if (eqListItem === true) baseQuery.eq('type', 'listItem');

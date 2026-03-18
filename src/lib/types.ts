@@ -1,6 +1,6 @@
 //#region Languages
 
-import type { Database } from "./database.types";
+import type { Database } from "./supabase/database.types";
 
 // For user creation - what are you an expert in...
 export type AvailableLanguage = 'none' | 'spanish' | 'french' | 'portuguese';
@@ -22,8 +22,41 @@ export type Profile = {
 
 //#endregion Languages
 
+
+//#region Forms
+
+export type UserForm = 'Forward Translate' | 'Review' | 'Backward Translate';
+
+//#endregion Forms
+
+
+// On segments to translate, this is the label for the type of segment that it is
+export const typeLabels: Record<Database['public']['Enums']['SegmentType'], string> = {
+	formLabel: 'Form',
+	sectionLabel: 'Section',
+	question: 'Question',
+	answerOption: 'Answer',
+	definition: 'Definition',
+	completionGuide: 'Guide',
+	listItem: 'Option'
+};
+
+
+export type ARCHData = {
+	[variable: string]: {
+		question: string;
+		answerOptions: null | Record<string, string>;
+		definition: string;
+		completionGuide: string;
+		section: string;
+		form: string;
+	};
+};
+
+
 ///  - - - - - - - - - - - - - -  ///
 
+/*
 //#region Translation
 
 // Which users have seen a given translation
@@ -67,6 +100,7 @@ export const CompletionStatus_Names: Partial<Record<SegmentStatus, string>> = {
 export type Category = 'Questions' | 'Guides' | 'Labels' | 'Lists';
 
 //#endregion Translation
+*/
 
 ///  - - - - - - - - - - - - - -  ///
 
@@ -82,6 +116,7 @@ Each table is of a type, Base, Label, or Variable
 
 */
 
+/*
 // Tables
 export type BaseTable = 'answer_options';
 export type QuestionTable = 'questions';
@@ -133,16 +168,6 @@ export type ItemForTable<T extends Table> = T extends keyof TableItemMap ? Table
 
 //#region Lists
 
-export type ARCHData = {
-	[variable: string]: {
-		question: string;
-		answerOptions: null | Record<string, string>;
-		definition: string;
-		completionGuide: string;
-		section: string;
-		form: string;
-	};
-};
 
 // Holds the information needed to push a transaltions to the Lists Supabase Table
 export type ListTranslation = {
@@ -232,20 +257,4 @@ export type CompletionReports_Guides = {
 
 //#endregion Lists
 
-//#region Forms
-
-export type UserForm = 'Forward Translate' | 'Review' | 'Backward Translate';
-
-//#endregion Forms
-
-
-// On segments to translate, this is the label for the type of segment that it is
-export const typeLabels: Record<Database['public']['Enums']['SegmentType'], string> = {
-	formLabel: 'Form',
-	sectionLabel: 'Section',
-	question: 'Question',
-	answerOption: 'Answer',
-	definition: 'Definition',
-	completionGuide: 'Guide',
-	listItem: 'Option'
-};
+*/

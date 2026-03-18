@@ -13,6 +13,7 @@ import type {
 } from '$lib/supabase/types';
 import { presetOptions } from '$lib/supabase/presets';
 import { pullRowsForOriginalId } from '$lib/supabase/utils';
+import { redirect } from '@sveltejs/kit';
 
 export const ssr = false; // Force client-side for authentication
 
@@ -21,7 +22,7 @@ export const load: LayoutLoad = async ({ parent }) => {
 
 	console.log('session, profile:', session, profile);
 
-	if (!session || !profile) return; //throw redirect(302, '/login');
+	if (!session || !profile) return; //redirect(302, '/login');
 
 	// + Get User's language
 	const language = profile.language as TranslationLanguage;
@@ -32,13 +33,11 @@ export const load: LayoutLoad = async ({ parent }) => {
 			? (profile.selected_preset as LinkPreset)
 			: undefined;
 
-
-	// Get 
-	// const documentRows = 
+	// Get
+	// const documentRows =
 	//const myDocumentRow = await supabase.from('documents').select('*').eq('title', selectedDocument);
 	//const allDocuments = await supabase.from('documents').select // get all rows of columns "id", "title", and "version"
 	//if (!myDocumentRow)
-
 
 	//const document
 
@@ -56,34 +55,34 @@ async function loadDataProgressively(
 ) {
 	const segmentMap: SegmentMap = {};
 
+	/*
+	@ to-do after (1) updating how arc is pulled in && (2) getting segment_ids[] on layout load
+	[ ] Promise.all from Original_segment ids for os, ft, tr, tp
+	 ✓  Build segment map
+ 	 ✓  location tree
+	 ✓  slug mapping
+	 ✓  calculate completions
+	*/
+
 	// = ( 1 ) = Load original segments
 	const timeStamp: number[] = [];
 	timeStamp[0] = performance.now();
+
+	// @ will change to just pull original_ids[] with paginate query, no focus on version or preset, although they are stored.
+	// @ will also put below as part of promise all
 	const original_segments = await pullOriginalSegments(undefined, preset);
 	timeStamp[1] = performance.now();
 	console.log('original_segments found in', timeStamp[1] - timeStamp[0], 'ms');
 
-	// = ( 2 ) = Handle presets
-	const presets: string[] = [];
+	// = ( 2 ) = Create Segment map from original segments
 	(original_segments || []).forEach((segment) => {
+		// @ not really about presets, this just creates a map to put translation data with an original segment
 		segmentMap[segment.id] = {
 			originalSegment: segment,
 			translationProgress: undefined as never,
 			forwardTranslation: null,
 			translationReview: null
 		};
-
-		// Debug preset options
-		if (segment.presets) {
-			for (const preset of segment.presets) {
-				if (segment.location) {
-					//console.log(segment.location[0]);
-					if (segment.location[0] == 'ARC' && !presets.includes(preset)) {
-						presets.push(preset);
-					}
-				}
-			}
-		}
 	});
 
 	// = ( 3 ) = Build location tree and slug mapping
@@ -91,6 +90,7 @@ async function loadDataProgressively(
 	const slugMapping = createSlugMapping(original_segments || []);
 
 	// = ( 4 ) = Pull translations, reviews, and progress for these segments
+	// @ ! will also be got, as this is core stuff loaded in on LayoutLoad
 	const segmentIds: number[] = Object.keys(segmentMap)
 		.map((key) => Number(key))
 		.filter((num) => !isNaN(num));

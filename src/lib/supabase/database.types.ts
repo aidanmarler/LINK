@@ -17,28 +17,28 @@ export type Database = {
       accepted_translations: {
         Row: {
           created_at: string
-          currently_accepted: boolean
           id: number
           language: Database["public"]["Enums"]["Language"]
           original_id: number
+          score: string
           translation_id: number
           translation_step: Database["public"]["Enums"]["TranslationStep"]
         }
         Insert: {
           created_at?: string
-          currently_accepted: boolean
           id?: number
           language: Database["public"]["Enums"]["Language"]
           original_id: number
+          score?: string
           translation_id: number
           translation_step: Database["public"]["Enums"]["TranslationStep"]
         }
         Update: {
           created_at?: string
-          currently_accepted?: boolean
           id?: number
           language?: Database["public"]["Enums"]["Language"]
           original_id?: number
+          score?: string
           translation_id?: number
           translation_step?: Database["public"]["Enums"]["TranslationStep"]
         }
@@ -58,42 +58,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      answer_options: {
-        Row: {
-          comment: string | null
-          created_at: string
-          id: string
-          language: Database["public"]["Enums"]["Language"]
-          segment: string
-          translation: string
-          user_created: string | null
-          users_seen: string[] | null
-          users_voted: string[] | null
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string
-          id?: string
-          language: Database["public"]["Enums"]["Language"]
-          segment: string
-          translation: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string
-          id?: string
-          language?: Database["public"]["Enums"]["Language"]
-          segment?: string
-          translation?: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-        }
-        Relationships: []
       }
       backward_translations: {
         Row: {
@@ -153,132 +117,27 @@ export type Database = {
           },
         ]
       }
-      completion_guides: {
+      documents: {
         Row: {
-          comment: string | null
           created_at: string
-          form: string
-          id: string
-          language: Database["public"]["Enums"]["Language"]
-          section: string
-          segment: string
-          translation: string
-          user_created: string | null
-          users_seen: string[] | null
-          users_voted: string[] | null
-          variable_id: string
+          id: number
+          original_ids: number[]
+          title: string
+          version: string
         }
         Insert: {
-          comment?: string | null
           created_at?: string
-          form: string
-          id?: string
-          language: Database["public"]["Enums"]["Language"]
-          section: string
-          segment: string
-          translation: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-          variable_id: string
+          id?: number
+          original_ids: number[]
+          title: string
+          version: string
         }
         Update: {
-          comment?: string | null
           created_at?: string
-          form?: string
-          id?: string
-          language?: Database["public"]["Enums"]["Language"]
-          section?: string
-          segment?: string
-          translation?: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-          variable_id?: string
-        }
-        Relationships: []
-      }
-      definitions: {
-        Row: {
-          comment: string | null
-          created_at: string
-          form: string
-          id: string
-          language: Database["public"]["Enums"]["Language"]
-          section: string
-          segment: string
-          translation: string
-          user_created: string | null
-          users_seen: string[] | null
-          users_voted: string[] | null
-          variable_id: string
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string
-          form: string
-          id?: string
-          language: Database["public"]["Enums"]["Language"]
-          section: string
-          segment: string
-          translation: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-          variable_id: string
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string
-          form?: string
-          id?: string
-          language?: Database["public"]["Enums"]["Language"]
-          section?: string
-          segment?: string
-          translation?: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-          variable_id?: string
-        }
-        Relationships: []
-      }
-      forms: {
-        Row: {
-          comment: string | null
-          created_at: string
-          form: string
-          id: string
-          language: Database["public"]["Enums"]["Language"]
-          segment: string
-          translation: string
-          user_created: string | null
-          users_seen: string[] | null
-          users_voted: string[] | null
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string
-          form: string
-          id?: string
-          language: Database["public"]["Enums"]["Language"]
-          segment: string
-          translation: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string
-          form?: string
-          id?: string
-          language?: Database["public"]["Enums"]["Language"]
-          segment?: string
-          translation?: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
+          id?: number
+          original_ids?: number[]
+          title?: string
+          version?: string
         }
         Relationships: []
       }
@@ -330,76 +189,28 @@ export type Database = {
           },
         ]
       }
-      lists: {
-        Row: {
-          comment: string | null
-          created_at: string
-          id: string
-          language: Database["public"]["Enums"]["Language"]
-          list: string
-          original: string
-          sublist: string
-          translation: string
-          user_created: string | null
-          users_seen: string[] | null
-          users_voted: string[] | null
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string
-          id?: string
-          language: Database["public"]["Enums"]["Language"]
-          list: string
-          original: string
-          sublist: string
-          translation: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string
-          id?: string
-          language?: Database["public"]["Enums"]["Language"]
-          list?: string
-          original?: string
-          sublist?: string
-          translation?: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-        }
-        Relationships: []
-      }
       original_segments: {
         Row: {
           answer_options: string[] | null
-          arc_versions: string[]
           created_at: string
           id: number
           location: string[] | null
-          presets: string[]
           segment: string
           type: Database["public"]["Enums"]["SegmentType"]
         }
         Insert: {
           answer_options?: string[] | null
-          arc_versions: string[]
           created_at?: string
           id?: number
           location?: string[] | null
-          presets: string[]
           segment: string
           type: Database["public"]["Enums"]["SegmentType"]
         }
         Update: {
           answer_options?: string[] | null
-          arc_versions?: string[]
           created_at?: string
           id?: number
           location?: string[] | null
-          presets?: string[]
           segment?: string
           type?: Database["public"]["Enums"]["SegmentType"]
         }
@@ -435,93 +246,6 @@ export type Database = {
           name?: string | null
           profession?: string | null
           selected_preset?: string | null
-        }
-        Relationships: []
-      }
-      questions: {
-        Row: {
-          answer_options: string[] | null
-          comment: string | null
-          created_at: string
-          form: string
-          id: string
-          language: Database["public"]["Enums"]["Language"]
-          section: string
-          segment: string
-          translation: string
-          user_created: string | null
-          users_seen: string[] | null
-          users_voted: string[] | null
-          variable_id: string
-        }
-        Insert: {
-          answer_options?: string[] | null
-          comment?: string | null
-          created_at?: string
-          form: string
-          id?: string
-          language: Database["public"]["Enums"]["Language"]
-          section: string
-          segment: string
-          translation: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-          variable_id: string
-        }
-        Update: {
-          answer_options?: string[] | null
-          comment?: string | null
-          created_at?: string
-          form?: string
-          id?: string
-          language?: Database["public"]["Enums"]["Language"]
-          section?: string
-          segment?: string
-          translation?: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-          variable_id?: string
-        }
-        Relationships: []
-      }
-      sections: {
-        Row: {
-          comment: string | null
-          created_at: string
-          form: string | null
-          id: string
-          language: Database["public"]["Enums"]["Language"]
-          segment: string
-          translation: string
-          user_created: string | null
-          users_seen: string[] | null
-          users_voted: string[] | null
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string
-          form?: string | null
-          id?: string
-          language: Database["public"]["Enums"]["Language"]
-          segment: string
-          translation: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string
-          form?: string | null
-          id?: string
-          language?: Database["public"]["Enums"]["Language"]
-          segment?: string
-          translation?: string
-          user_created?: string | null
-          users_seen?: string[] | null
-          users_voted?: string[] | null
         }
         Relationships: []
       }
