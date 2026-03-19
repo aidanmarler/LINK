@@ -222,8 +222,6 @@ const modifyArcFromLink = async (
 				continue;
 			}
 
-			return arc;
-
 			// == Questions, Definitions and Guides == //
 			if (segment.type in ['question', 'completionGuide', 'definition']) {
 				// ! catch if missing variable name

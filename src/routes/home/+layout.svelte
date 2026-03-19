@@ -1,18 +1,12 @@
 <script lang="ts">
-	import type { AuthSession } from '@supabase/supabase-js';
 	import { page } from '$app/state';
 	import { scale } from 'svelte/transition';
 	import { makeFolderLabel } from '$lib/utils/utils';
 	import KabobMenu from '../components/kabobMenu.svelte';
-	import type { derived } from 'svelte/store';
 
 	let { children, data } = $props();
 
 	let profile = $derived(data.profile);
-
-	// Data loads progressively
-	let isLoading = $state(true);
-	let loadingError = $state<string | null>(null);
 
 	// Get nav working
 	let pathSegments = $derived(page.url.pathname.split('/').filter(Boolean));

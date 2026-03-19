@@ -15,15 +15,13 @@
 	let routes = ['arc', 'lists'];
 
 	async function handlePresetChange(preset: null | string) {
-		//console.log('handlePresetChange');
+		// Change this user's preset
 		const { error } = await supabase
 			.from('profiles')
 			.update({ selected_preset: preset })
 			.eq('id', profile.id);
 
 		if (error) console.error(error);
-		//else console.log(await supabase.from('profiles').update({ selected_preset: preset }));
-		//else window.location.href = url.toString();
 
 		// Reload the page
 		window.location.href = 'home'; // Full page reload
@@ -116,26 +114,33 @@
 					</p>
 				</button>
 
+				<!-- presets -->
 				{#if presetsOpen}
 					<div class=" rounded-b-lg {style.border} border-x border-b">
-						<p class="mb-2 text-lg font-normal italic text-center">
-							Which CRF would you like to review?
-						</p>
-						<div
-							class=" p-1 grid grid-cols-1 sm:grid-cols-2 rounded-md border-inherit gap-0.5 font-normal"
-						>
-							{#each Object.keys(presetOptions) as presetOption}
-								{@const selected = presetOptions[presetOption] == profile.selected_preset}
-								{@const title = selected ? '' : 'Review ' + presetOption}
-								<button
-									{title}
-									class="px-3 text-left {selected ? button.simple.inactive : button.simple.active}"
-									onclick={() => handlePresetChange(presetOptions[presetOption])}
-								>
-									{presetOption}
-								</button>
-							{/each}
-						</div>
+						{#await data.dataPromise}
+							<p>loading...</p>
+						{:then loadedData}
+							<p class="mb-2 text-lg font-normal italic text-center">
+								Which CRF would you like to review?
+							</p>
+							<div
+								class=" p-1 grid grid-cols-1 sm:grid-cols-2 rounded-md border-inherit gap-0.5 font-normal"
+							>
+								{#each Object.entries(loadedData.documentMap) as [title, _document]}
+									{@const selected = title == profile.selected_preset}
+									{@const toolTip = selected ? '' : 'Review ' + title}
+									<button
+										title={toolTip}
+										class="px-3 text-left {selected
+											? button.simple.inactive
+											: button.simple.active}"
+										onclick={() => handlePresetChange(title)}
+									>
+										{title}
+									</button>
+								{/each}
+							</div>
+						{/await}
 					</div>
 				{/if}
 			</div>

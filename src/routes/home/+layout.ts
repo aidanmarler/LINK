@@ -3,76 +3,122 @@ import { buildLocationTree, computeCompletion, type LocationNode } from '$lib/ut
 import { createSlugMapping } from '$lib/utils/slug';
 import type { LayoutLoad } from './$types';
 //import { redirect } from '@sveltejs/kit';
-import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
+
 import type {
+	DocumentRow,
 	ForwardTranslationRow,
-	LinkPreset,
 	SegmentMap,
 	TranslationProgressRow,
 	TranslationReviewRow
 } from '$lib/supabase/types';
-import { presetOptions } from '$lib/supabase/presets';
-import { pullRowsForOriginalId } from '$lib/supabase/utils';
+import { pullOriginalRowsById, pullRowsForOriginalId } from '$lib/supabase/utils';
+import { supabase } from '../../supabaseClient';
 import { redirect } from '@sveltejs/kit';
 
 export const ssr = false; // Force client-side for authentication
 
+const timeStamps: number[] = [];
+const printTime = (timeStamp: number) => {
+	timeStamps.push(timeStamp);
+	const A = timeStamps.at(-1);
+	const B = timeStamps.at(-2);
+	if (A && B) console.log(A - B);
+};
+
 export const load: LayoutLoad = async ({ parent }) => {
+	printTime(performance.now());
+
 	const { session, profile } = await parent();
 
+	// @ still need to fix this! with redirect, can't log in. Without, stuck always refreshing.
 	console.log('session, profile:', session, profile);
+	printTime(performance.now());
 
-	if (!session || !profile) return; //redirect(302, '/login');
+	// ! catch not logged in
+	if (!session || !profile) redirect(302, '/login');
 
-	// + Get User's language
+	// + Get User's language and document
 	const language = profile.language as TranslationLanguage;
+	const selectedDocument = profile.selected_preset;
+	console.log('selectedDocument:', selectedDocument);
 
-	// + Get User's selected preset (document title) if any
-	const selectedDocument =
-		profile.selected_preset && Object.values(presetOptions).includes(profile.selected_preset)
-			? (profile.selected_preset as LinkPreset)
-			: undefined;
+	let document: DocumentRow | null = null;
 
-	// Get
-	// const documentRows =
-	//const myDocumentRow = await supabase.from('documents').select('*').eq('title', selectedDocument);
-	//const allDocuments = await supabase.from('documents').select // get all rows of columns "id", "title", and "version"
-	//if (!myDocumentRow)
+	// * get my document
+	if (selectedDocument) {
+		const myDocumentRow = await supabase
+			.from('documents')
+			.select('*')
+			.eq('title', selectedDocument)
+			.order('created_at', { ascending: false })
+			.limit(1)
+			.single();
 
-	//const document
+		if (myDocumentRow) document = myDocumentRow.data;
+	} // * if I don't have one, get default document
+	else {
+		const defaultDocumentRow = await supabase
+			.from('documents')
+			.select('*')
+			.eq('title', 'ARC')
+			.order('created_at', { ascending: false })
+			.limit(1)
+			.single();
 
-	// Now we ALWAYS return data (never early return)
+		if (defaultDocumentRow.data) document = defaultDocumentRow.data;
+	}
+
+	// * if still failed to get a document, get the first one it can find.
+	if (document == null) {
+		const defaultDocumentRow = await supabase.from('documents').select('*').limit(1).single();
+		if (defaultDocumentRow.data) document = defaultDocumentRow.data;
+	}
+
+	console.log('LayoutLoad complete');
+	printTime(performance.now());
+
 	return {
 		profile,
-		dataPromise: loadDataProgressively(session.user.id, language, selectedDocument)
+		dataPromise: loadDataProgressively(session.user.id, language, document)
 	};
 };
 
 async function loadDataProgressively(
 	userId: string,
 	language: TranslationLanguage,
-	preset: undefined | LinkPreset
+	document: DocumentRow | null
 ) {
+	console.log('loadDataProgressively');
+	printTime(performance.now());
 	const segmentMap: SegmentMap = {};
+	const original_ids = document ? document.original_ids : [];
 
-	/*
-	@ to-do after (1) updating how arc is pulled in && (2) getting segment_ids[] on layout load
-	[ ] Promise.all from Original_segment ids for os, ft, tr, tp
-	 ✓  Build segment map
- 	 ✓  location tree
-	 ✓  slug mapping
-	 ✓  calculate completions
-	*/
-
-	// = ( 1 ) = Load original segments
-	const timeStamp: number[] = [];
-	timeStamp[0] = performance.now();
-
-	// @ will change to just pull original_ids[] with paginate query, no focus on version or preset, although they are stored.
-	// @ will also put below as part of promise all
-	const original_segments = await pullOriginalSegments(undefined, preset);
-	timeStamp[1] = performance.now();
-	console.log('original_segments found in', timeStamp[1] - timeStamp[0], 'ms');
+	// = ( 1 ) = Promise.all data --  Paginated and broken up for the given segmentIds.
+	const [
+		original_segments,
+		translation_progress,
+		forward_translations,
+		translation_reviews,
+		document_rows
+	] = await Promise.all([
+		pullOriginalRowsById(original_ids),
+		pullRowsForOriginalId<TranslationProgressRow>('translation_progress', original_ids, language),
+		pullRowsForOriginalId<ForwardTranslationRow>(
+			'forward_translations',
+			original_ids,
+			undefined,
+			userId
+		),
+		pullRowsForOriginalId<TranslationReviewRow>(
+			'translation_reviews',
+			original_ids,
+			undefined,
+			userId
+		),
+		await supabase.from('documents').select('id, title, version')
+	]);
+	console.log("pulled all data")
+	printTime(performance.now());
 
 	// = ( 2 ) = Create Segment map from original segments
 	(original_segments || []).forEach((segment) => {
@@ -88,33 +134,6 @@ async function loadDataProgressively(
 	// = ( 3 ) = Build location tree and slug mapping
 	const locationTree = buildLocationTree(original_segments || []);
 	const slugMapping = createSlugMapping(original_segments || []);
-
-	// = ( 4 ) = Pull translations, reviews, and progress for these segments
-	// @ ! will also be got, as this is core stuff loaded in on LayoutLoad
-	const segmentIds: number[] = Object.keys(segmentMap)
-		.map((key) => Number(key))
-		.filter((num) => !isNaN(num));
-
-	timeStamp[2] = performance.now();
-
-	// == promise.all supabase queries. Paginated and broken up for the given segmentIds.
-	const [translation_progress, forward_translations, translation_reviews] = await Promise.all([
-		pullRowsForOriginalId<TranslationProgressRow>('translation_progress', segmentIds, language),
-		pullRowsForOriginalId<ForwardTranslationRow>(
-			'forward_translations',
-			segmentIds,
-			undefined,
-			userId
-		),
-		pullRowsForOriginalId<TranslationReviewRow>(
-			'translation_reviews',
-			segmentIds,
-			undefined,
-			userId
-		)
-	]);
-	timeStamp[3] = performance.now();
-	console.log('promise all speed:', timeStamp[3] - timeStamp[2], 'ms');
 
 	// * Add progress to segmentMap
 	(translation_progress || []).forEach((t) => {
@@ -137,19 +156,48 @@ async function loadDataProgressively(
 		}
 	});
 
-	// = ( 5 ) = Compute completion for all nodes
+	// = ( 4 ) = Compute completion for all nodes
 	function computeNodeCompletions(node: LocationNode) {
 		node.completion = computeCompletion(node, segmentMap);
 		node.children.forEach((child) => computeNodeCompletions(child));
 	}
 	computeNodeCompletions(locationTree);
 
+	// = ( 5 ) = Map documents by title
+	const documentMap: Record<string, { id: number; title: string; version: string }[]> = {};
+	if (document_rows.data) {
+		for (const document of document_rows.data) {
+			if (!documentMap[document.title]) documentMap[document.title] = [];
+			documentMap[document.title].push(document);
+		}
+	}
+	console.log("complete")
+	printTime(performance.now());
+
 	return {
 		segmentMap,
 		locationTree,
-		slugMapping
+		slugMapping,
+		documentMap
 	};
 }
+
+/*
+	@ to-do after (1) updating how arc is pulled in && (2) getting segment_ids[] on layout load
+	[ ] Promise.all from Original_segment ids for os, ft, tr, tp
+	 ✓  Build segment map
+ 	 ✓  location tree
+	 ✓  slug mapping
+	 ✓  calculate completions
+	*/
+
+// = ( 1 ) = Load original segments
+
+// @ will change to just pull original_ids[] with paginate query, no focus on version or preset, although they are stored.
+// @ will also put below as part of promise all
+//const original_segments = await pullOriginalSegments(undefined, undefined);
+//timeStamp[1] = performance.now();
+//console.log('original_segments found in', timeStamp[1] - timeStamp[0], 'ms');
 
 /*
 old code

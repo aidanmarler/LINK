@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
-	import type { AuthSession, User, WeakPassword } from '@supabase/supabase-js';
-	import DataView from '../components/dataView.svelte';
+	import type { AuthSession } from '@supabase/supabase-js';
 	import ThemeManager from '../components/themeManager.svelte';
 	import { button_green, card_static, form_element } from '$lib/styles';
 	import { checkAdminStatus } from '$lib/supabase/auth';
@@ -37,6 +36,9 @@
 			alert(error.message);
 			return;
 		}
+
+		// Force the auth client to settle before navigating
+		//await supabase.auth.getSession();
 
 		const isAdmin = await checkAdminStatus(data.user.id);
 
