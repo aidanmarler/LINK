@@ -76,7 +76,7 @@ export async function CheckAcceptedTranslations(
 				original_id: originalId,
 				translation_id: bestForwardTranslationId,
 				translation_step: 'forward',
-				currently_accepted: true
+				score: '0'
 			});
 
 			// Also create translation_progress if it doesn't exist
@@ -316,6 +316,99 @@ async function determineBestTranslation(
 	return bestTranslation;
 }
 
+// Using contentual data, determin best translation.
+async function determineBestTranslation2(
+	translationVerificationData: TranslationVerificationData
+): Promise<number | null> {
+	const { translationProgress, forwardTranslations } = translationVerificationData;
+	/*
+	if (forwardTranslations.length > 1) {
+		console.log(
+			'forwardTranslations.length',
+			forwardTranslations.length,
+			translationVerificationData
+		);
+	}*/
+	// ! Catch no forward translation
+	if (forwardTranslations.length == 0) return null;
+	// ! Catch only 1 forward translation
+	if (forwardTranslations.length == 1) return forwardTranslations[0].id;
+
+	// Let's store each forwardTranslation to points like {forwardTranslation: points} so that at the end, we just choose the one with the most points.
+	// for each ft, check for most repeating translation.
+	// If tie, use the one with the most user_id (rather than user_id set to null)
+	// Later, we can go on to check profiles for user_id's with qualifications.
+
+	let bestTranslation: number | null = null;
+
+	// Group translations by their text (normalized)
+	const translationGroups: Record<string, ForwardTranslationRow[]> = {};
+	for (const ft of forwardTranslations) {
+		const text = ft.translation?.trim() ?? '';
+		if (!translationGroups[text]) translationGroups[text] = [];
+		translationGroups[text].push(ft);
+	}
+
+	// Calculate points for each unique translation text
+	const translationScores: Record<
+		string,
+		{
+			points: number;
+			representativeId: number;
+			count: number;
+			userCount: number;
+		}
+	> = {};
+
+	for (const [normalizedText, group] of Object.entries(translationGroups)) {
+		let points = 0;
+		let userCount = 0;
+
+		// + 1 point per aligned review
+		points += group.length * 1;
+
+		// + 1 point for each written by a person
+		for (const ft of group) {
+			if (ft.user_id !== null) {
+				points += 1;
+				userCount++;
+			}
+			// Check profiles...
+		}
+
+		translationScores[normalizedText] = {
+			points,
+			representativeId: group[0].id,
+			count: group.length,
+			userCount
+		};
+	}
+
+	// Find best translation (highest points)
+	let mostPoints = -1;
+	let bestScore = null;
+	for (const [, score] of Object.entries(translationScores)) {
+		if (score.points > mostPoints) {
+			mostPoints = score.points;
+			bestScore = score;
+		} else if (score.points === mostPoints && bestScore) {
+			if (score.userCount > bestScore.userCount) {
+				bestScore = score;
+			} else if (score.userCount === bestScore.userCount) {
+				if (score.representativeId > bestScore.representativeId) {
+					bestScore = score;
+				}
+			}
+		}
+	}
+
+	bestTranslation = bestScore?.representativeId ?? null;
+
+	if (bestTranslation == null) {
+		bestTranslation = forwardTranslations[0].id;
+	}
+	return bestTranslation;
+}
 
 // Get Forward Translations for given segments
 export async function pullAcceptedTranslationForSegments(
@@ -357,7 +450,7 @@ export async function pullAcceptedTranslationForSegments(
 
 			if (data) {
 				translations.push(...data);
-				data.forEach(row => remainingIds.delete(row.original_id));
+				data.forEach((row) => remainingIds.delete(row.original_id));
 				hasMore = data.length === pageSize;
 				page++;
 			} else {

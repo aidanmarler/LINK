@@ -1,14 +1,8 @@
 import JSZip from 'jszip';
 import { pullArcTranslations, type ArcVersionStructure } from './pullArcTranslations';
 import Papa from 'papaparse';
-import type { OriginalSegmentRow } from '$lib/supabase/types';
-import { pullLink, type LinkTranslation, type LinkTranslationsRecord } from './pullLink';
-
-//type CsvData = Record<string, unknown[]>;
-
-// I am using arrow functions in this script just for practice.
-// I think they make no difference to performance here, nor readability.
-// But I don't use them much so I figured it would be a nice practice to use them here.
+import { pullLink } from './pullLink';
+import { formatArc, modifyArcFromLink } from './updateArcFromLink';
 
 // == == Zip Tree Strucure, return blob == == //
 const zipFolderTree = async (tree: ArcVersionStructure): Promise<string> => {
@@ -19,6 +13,7 @@ const zipFolderTree = async (tree: ArcVersionStructure): Promise<string> => {
 	const zipObject = async (tree: Record<string, unknown>, path: string = '') => {
 		for (const [name, item] of Object.entries(tree)) {
 			if (name.endsWith('ARCH.csv')) {
+				console.log(name, item);
 				const zipPath = path + '/' + name;
 				const _unparseConfig: Papa.UnparseConfig = {};
 				const itemTyped = item as Record<string, unknown>;
@@ -49,255 +44,6 @@ const zipFolderTree = async (tree: ArcVersionStructure): Promise<string> => {
 	return zipUrl;
 };
 
-type ArcColumn =
-	| 'Form'
-	| 'Section'
-	| 'Question'
-	| 'Answer Options'
-	| 'Definition'
-	| 'Completion Guideline';
-
-type ArcColumnReport =
-	| 'Question Translation Reviewers'
-	| 'Definition Translation Reviewers'
-	| 'Completion Guideline Translation Reviewers'
-	| 'Form Translation Reviewers'
-	| 'Section Translation Reviewers'
-	| 'Answer Options Translation Reviewers';
-
-// + get label for this segment type
-const arcColumns: Record<string, ArcColumn> = {
-	question: 'Question',
-	definition: 'Definition',
-	completionGuide: 'Completion Guideline',
-	answerOption: 'Question',
-	formLabel: 'Question',
-	sectionLabel: 'Question'
-};
-
-const arcColumnReports: Record<ArcColumn, ArcColumnReport> = {
-	Question: 'Question Translation Reviewers',
-	Definition: 'Definition Translation Reviewers',
-	'Completion Guideline': 'Completion Guideline Translation Reviewers',
-	Form: 'Form Translation Reviewers',
-	Section: 'Section Translation Reviewers',
-	'Answer Options': 'Answer Options Translation Reviewers'
-};
-
-//"listItem" | "question" | "answerOption" | "definition" | "completionGuide" | "formLabel" | "sectionLabel"
-
-// == == Modify arc data using link segments to find item and translationData to change it == == //
-const modifyArcFromLink = async (
-	arc: ArcVersionStructure,
-	segments: Record<number, OriginalSegmentRow>,
-	link: LinkTranslationsRecord
-): Promise<ArcVersionStructure> => {
-	/*  
-	( i ) arc is structured as follows: 
-	 	version > language > ARCH.csv, Lists, paper_like_details.csv, supplemental_phrases.csv
-
-	*/
-
-	// & modify all form or section labels
-
-	// & modify all answer options
-
-	// & modify all form or section labels
-	const processLinkTranslation = (
-		lt: LinkTranslation
-	): // return Text, Score, and Error Message
-	[string, string, string?] => {
-		// ! catch missing required rows
-		if (!lt.forwardTranslations) return ['', '0', 'Missing forward translations'];
-		if (!lt.acceptedTranslations) return ['', '0', 'Missing accepted translations'];
-		if (!lt.translationProgress) return ['', '0', 'Missing translation progress'];
-
-		//console.log(translationProgress, forwardTranslations, translationReviews, acceptedTranslations);
-
-		// + get accepted translation row
-		const at = lt.acceptedTranslations.sort((r1, r2) => {
-			if (r1.created_at < r2.created_at) return -1;
-			else return 1;
-		})[0];
-
-		// + get accepted forward translation row
-		const ft = lt.forwardTranslations.find((r) => {
-			if (r.id == at.translation_id) return r;
-		});
-
-		// ! catch missing forward translation
-		if (!ft) return ['', '0', 'Missing forward translation at accepted T id'];
-		// ! catch missing forward translation
-		if (!ft.translation) return ['', '0', 'Forward translation is only a comment'];
-
-		return [ft.translation, at.score];
-	};
-
-	// + get arc version and store
-	const v = Object.keys(arc)[0];
-	// + store english arc of this version
-	const arcEnglish = arc[v]['English'];
-
-	// %% for language translated in link
-	for (const language in link) {
-		// + get language with first letter uppercase
-		const langArc = language.charAt(0).toUpperCase() + language.slice(1);
-
-		// ! catch if section is missing
-		if (
-			!arc[v]['English'] ||
-			!arc[v]['English']['ARCH.csv'] ||
-			!arc[v]['English']['Lists'] ||
-			!arc[v]['English']['paper_like_details.csv'] ||
-			!arc[v][langArc] ||
-			!arc[v][langArc]['ARCH.csv'] ||
-			!arc[v][langArc]['Lists'] ||
-			!arc[v][langArc]['paper_like_details.csv']
-		) {
-			console.error('missing section', arc[v], langArc);
-			continue;
-		}
-
-		// %% for link segment in this language's data
-		for (const oId in link[language]) {
-			// + get info
-			const segment = segments[oId];
-			const linkTranslation = link[language][oId];
-
-			// ! catch if no segment
-			if (!segment) {
-				console.error('missing original segment #' + oId, linkTranslation);
-				continue;
-			}
-
-			// * Get accepted translation Text and Score
-			const [translationText, translationScore, errorMessage] =
-				processLinkTranslation(linkTranslation);
-
-			//console.log('processed', [translationText, translationScore, errorMessage]);
-
-			// ! catch if getting accepted translation or score failed
-			if (errorMessage) {
-				console.error(errorMessage);
-				continue;
-			}
-
-			// == Questions, Definitions and Guides == //
-			if (segment.type in ['question', 'completionGuide', 'definition']) {
-				// ! catch if missing variable name
-				if (!segment.location || segment.location.length < 1) {
-					console.error('missing location', segment);
-					continue;
-				}
-
-				if (!arc[v][langArc]['ARCH.csv']) continue;
-
-				// + get type label
-				const column = arcColumns[segment.type];
-				const reportColumn = arcColumnReports[column];
-
-				// + get arc current variable
-				const variable = segment.location.at(-1) as string;
-
-				// == Set New Translation! == //
-				arc[v][langArc]['ARCH.csv'][variable][column] = translationText;
-
-				// == Set Translation Rating == //
-				arc[v][langArc]['ARCH.csv'][variable][reportColumn] = translationScore;
-
-				console.log('Arch variable updated: ', arc[v][langArc]['ARCH.csv'][variable]);
-				continue;
-			}
-
-			// == List Items == //
-			if (segment.type == 'listItem') {
-				// ! catch if missing variable name
-				if (!segment.location || segment.location.length < 1) {
-					console.error('missing location', segment);
-					continue;
-				}
-
-				if (!segment.location || segment.location.length < 3) continue;
-				if (!arcEnglish['Lists']) continue;
-
-				// + get csv in english and translated
-				const csvEnglish: Record<string, string>[] =
-					arcEnglish['Lists'][segment.location[1]][segment.location[2] + '.csv'];
-				const csvTranslated: Record<string, string>[] =
-					arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'];
-
-				// + get item column name (contition, country, species, etc.)
-				const listColumns: string[] = Object.keys(csvTranslated[0] as Record<string, string>);
-				const itemType = listColumns[0];
-
-				// * get row index of this entry from comparing original to english
-				let index;
-				for (const [i, row] of csvEnglish.entries()) {
-					if (row[itemType] == segment.segment) {
-						index = i;
-					}
-				}
-				if (!index) continue;
-
-				// ! if can't find this index, throw error
-				if (!arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index]) {
-					console.error(
-						"Can't find index in list.csv array",
-						arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'],
-						index
-					);
-					continue;
-				}
-
-				// ! if can't find this column, throw error
-				if (
-					!arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
-						itemType
-					]
-				) {
-					console.error(
-						"Can't find item column",
-						arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index],
-						itemType
-					);
-					continue;
-				}
-
-				// == Set New Translation! == //
-				arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
-					itemType
-				] = translationText;
-
-				// == Set Translation Rating == //
-				arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
-					'Translation Reviewers'
-				] = translationScore;
-
-				arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
-					'Language Speaker Reviewed'
-				] = translationScore;
-
-				console.log(
-					'list item at ' + segment.location[1] + ' ' + [segment.location[2] + '.csv'],
-					arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index]
-				);
-				continue;
-			}
-
-			if (segment.type == 'answerOption') {
-				continue;
-			} else if (segment.type == 'formLabel') {
-				continue;
-			} else if (segment.type == 'sectionLabel') {
-				continue;
-			}
-
-			continue;
-		}
-	}
-	return arc;
-};
-
 // == == MAIN == ==
 export async function exportMain(version: string) {
 	// ( 1 ) pull arc
@@ -306,8 +52,11 @@ export async function exportMain(version: string) {
 	// ( 2 ) pull link
 	const [segments, translationData] = await pullLink(version);
 
+	// ( 3 ) add new columns
+	const formattedArc = await formatArc(arc);
+
 	// ( 3 ) modify Arc-Translations
-	const modifiedArc = await modifyArcFromLink(arc, segments, translationData);
+	const modifiedArc = await modifyArcFromLink(formattedArc, segments, translationData);
 
 	console.log('modifiedArc', modifiedArc);
 

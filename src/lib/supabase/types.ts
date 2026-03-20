@@ -31,7 +31,8 @@ export type DocumentRow = Database['public']['Tables']['documents']['Row'];
 export type TranslationVerificationData = {
 	translationProgress: TranslationProgressRow | null;
 	acceptedTranslation: AcceptedTranslationRow | null;
-	forwardTranslations: Array<ForwardTranslationRow>;
+	forwardTranslations: ForwardTranslationRow[];
+	translationReviews: TranslationReviewRow;
 };
 
 export type TranslationVerificationMap = Record<number, TranslationVerificationData>;
