@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { pullArcTranslations, type ArcVersionStructure } from './pullArcTranslations';
 import Papa from 'papaparse';
-import type { ForwardTranslationRow, OriginalSegmentRow } from '$lib/supabase/types';
+import type { OriginalSegmentRow } from '$lib/supabase/types';
 import { pullLink, type LinkTranslation, type LinkTranslationsRecord } from './pullLink';
 
 //type CsvData = Record<string, unknown[]>;
@@ -107,14 +107,13 @@ const modifyArcFromLink = async (
 		lt: LinkTranslation
 	): // return Text, Score, and Error Message
 	[string, string, string?] => {
-		console.log(processLinkTranslation);
-
 		// ! catch missing required rows
-		if (!lt.forwardTranslations) return ['', '', 'Missing forward translations'];
-		if (!lt.acceptedTranslations) return ['', '', 'Missing accepted translations'];
-		//if (!t.translationProgress) return ['', '', 'Missing translation progress'];
+		if (!lt.forwardTranslations) return ['', '0', 'Missing forward translations'];
+		if (!lt.acceptedTranslations) return ['', '0', 'Missing accepted translations'];
+		if (!lt.translationProgress) return ['', '0', 'Missing translation progress'];
 
 		//console.log(translationProgress, forwardTranslations, translationReviews, acceptedTranslations);
+
 		// + get accepted translation row
 		const at = lt.acceptedTranslations.sort((r1, r2) => {
 			if (r1.created_at < r2.created_at) return -1;
@@ -127,49 +126,11 @@ const modifyArcFromLink = async (
 		});
 
 		// ! catch missing forward translation
-		if (!ft) return ['', '', 'Missing forward translation at accepted T id'];
+		if (!ft) return ['', '0', 'Missing forward translation at accepted T id'];
 		// ! catch missing forward translation
-		if (!ft.translation) return ['', '', 'Forward translation is only a comment'];
+		if (!ft.translation) return ['', '0', 'Forward translation is only a comment'];
 
-		// == get score
-		// @ aidan! Move this later to its own function to check score.
-		// 		should this be actually in the accepted translation?
-		// 		NO: if we calcualte again now we know the numbers are up to date.
-		// 		YES: numbers will be up to date if it always updates accepted transaltion on submission
-
-		// 		YES!: numbers HAVE to be checked on submit, so we may as well keep it updated with each submission.
-		//			I would put it with accepted translation. If the accepted translation changes, push a new row. Otherwise update the current accepted translation with this score.
-
-		/*
-			What is the score?
-			# of times the forward translation was reviewed or voted
-
-			1) get the number of == forward translations {forwardScore}
-				ai = number of ai's who made wrote this exact forward translation
-				human = number of humans who wrote this exact forward translation
-				1 ai -> +0
-				1 human -> +1
-				2+ ai -> +1
-				1+ ai, 1 human -> +2
-				2 human -> +4
-
-			2) get (votes for that translation) / (times seen) {reviewScore}
-
-		*/
-
-		// * map forward translations by the number of == reviews
-		const mappedFt: Record<string, ForwardTranslationRow[]> = {};
-		for (const t of lt.forwardTranslations) {
-			if (!t.translation) continue;
-			const trans = t.translation;
-			// = push the item to proper spot
-			if (!mappedFt[trans]) mappedFt[trans] = [t];
-			else mappedFt[trans].push(t);
-		}
-
-		console.log(lt.acceptedTranslations.length, lt.acceptedTranslations);
-
-		return [ft.translation, 'Score'];
+		return [ft.translation, at.score];
 	};
 
 	// + get arc version and store
@@ -209,12 +170,11 @@ const modifyArcFromLink = async (
 				continue;
 			}
 
-			console.log('ProcessTranslation');
 			// * Get accepted translation Text and Score
 			const [translationText, translationScore, errorMessage] =
 				processLinkTranslation(linkTranslation);
 
-			console.log('processed', [translationText, translationScore, errorMessage]);
+			//console.log('processed', [translationText, translationScore, errorMessage]);
 
 			// ! catch if getting accepted translation or score failed
 			if (errorMessage) {
@@ -244,6 +204,8 @@ const modifyArcFromLink = async (
 
 				// == Set Translation Rating == //
 				arc[v][langArc]['ARCH.csv'][variable][reportColumn] = translationScore;
+
+				console.log('Arch variable updated: ', arc[v][langArc]['ARCH.csv'][variable]);
 				continue;
 			}
 
@@ -308,14 +270,15 @@ const modifyArcFromLink = async (
 
 				// == Set Translation Rating == //
 				arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
-					'New Column' // 'Translation Reviewers'
-				] = '999'; // translationScore;
+					'Translation Reviewers'
+				] = translationScore;
 
 				arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index][
 					'Language Speaker Reviewed'
-				] = '888'; // translationScore;
+				] = translationScore;
 
 				console.log(
+					'list item at ' + segment.location[1] + ' ' + [segment.location[2] + '.csv'],
 					arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index]
 				);
 				continue;
@@ -345,6 +308,8 @@ export async function exportMain(version: string) {
 
 	// ( 3 ) modify Arc-Translations
 	const modifiedArc = await modifyArcFromLink(arc, segments, translationData);
+
+	console.log('modifiedArc', modifiedArc);
 
 	// ( 4 ) ZIP folder
 	const zipUrl = await zipFolderTree(modifiedArc);

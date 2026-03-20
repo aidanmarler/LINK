@@ -18,21 +18,23 @@ import { redirect } from '@sveltejs/kit';
 export const ssr = false; // Force client-side for authentication
 
 const timeStamps: number[] = [];
-const printTime = (timeStamp: number) => {
-	timeStamps.push(timeStamp);
+
+// & print time since last call + a message
+const printTime = (message: string = '') => {
+	timeStamps.push(performance.now());
 	const A = timeStamps.at(-1);
 	const B = timeStamps.at(-2);
-	if (A && B) console.log(A - B);
+	if (A && B) console.log(message + ' - ' + String(A - B));
+	else if (message != '') console.log(message);
 };
 
+// == on load home page or children == //
 export const load: LayoutLoad = async ({ parent }) => {
-	printTime(performance.now());
+	printTime();
 
 	const { session, profile } = await parent();
 
-	// @ still need to fix this! with redirect, can't log in. Without, stuck always refreshing.
-	console.log('session, profile:', session, profile);
-	printTime(performance.now());
+	printTime('logged in');
 
 	// ! catch not logged in
 	if (!session || !profile) redirect(302, '/login');
@@ -74,8 +76,7 @@ export const load: LayoutLoad = async ({ parent }) => {
 		if (defaultDocumentRow.data) document = defaultDocumentRow.data;
 	}
 
-	console.log('LayoutLoad complete');
-	printTime(performance.now());
+	printTime('pulled document');
 
 	return {
 		profile,
@@ -88,8 +89,6 @@ async function loadDataProgressively(
 	language: TranslationLanguage,
 	document: DocumentRow | null
 ) {
-	console.log('loadDataProgressively');
-	printTime(performance.now());
 	const segmentMap: SegmentMap = {};
 	const original_ids = document ? document.original_ids : [];
 
@@ -117,8 +116,7 @@ async function loadDataProgressively(
 		),
 		await supabase.from('documents').select('id, title, version')
 	]);
-	console.log("pulled all data")
-	printTime(performance.now());
+	printTime('pulled all data');
 
 	// = ( 2 ) = Create Segment map from original segments
 	(original_segments || []).forEach((segment) => {
@@ -171,8 +169,9 @@ async function loadDataProgressively(
 			documentMap[document.title].push(document);
 		}
 	}
-	console.log("complete")
-	printTime(performance.now());
+
+	printTime('computed node completions');
+	console.log('== complete ==');
 
 	return {
 		segmentMap,

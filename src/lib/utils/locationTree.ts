@@ -6,6 +6,7 @@ export interface LocationNode {
 	slug: string;
 	children: Map<string, LocationNode>;
 	segmentIds: number[];
+	tag: string;
 	completion: LocationCompletion;
 }
 
@@ -24,6 +25,7 @@ export function buildLocationTree(segments: OriginalSegmentRow[]): LocationNode 
 		slug: '',
 		children: new Map(),
 		segmentIds: [],
+		tag: '',
 		completion: {
 			forwardComplete: 0,
 			reviewComplete: 0,
@@ -58,6 +60,7 @@ export function buildLocationTree(segments: OriginalSegmentRow[]): LocationNode 
 					slug: slug,
 					children: new Map(),
 					segmentIds: [],
+					tag: '',
 					completion: {
 						forwardComplete: 0,
 						reviewComplete: 0,
@@ -74,8 +77,19 @@ export function buildLocationTree(segments: OriginalSegmentRow[]): LocationNode 
 			// Add segment to the deepest node in its path
 			if (index === segment.location!.length - 1) {
 				currentNode.segmentIds.push(segment.id);
+				// * replace name with question if question is there
 				if (segment.type === 'question' && segment.segment) {
 					currentNode.name = segment.segment;
+				}
+				// * add tag to labels
+				if (segment.type == 'formLabel') {
+					currentNode.tag = 'formLabel';
+					//console.log('formNode', currentNode);
+				}
+
+				if (segment.type == 'sectionLabel') {
+					currentNode.tag = 'sectionLabel';
+					//console.log('  sectionNode', currentNode);
 				}
 				// Add answer options if this is a question with them
 				if (

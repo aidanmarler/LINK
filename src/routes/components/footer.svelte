@@ -3,10 +3,10 @@
 
 	const footerTextStyle = ' text-stone-600 dark:text-stone-400 ';
 	const footerHeaderStyle = ' italic text-sm ';
-	const footerLinkStyle = ' hover:underline hover:text-stone-800 dark:hover:text-stone-200 ';
+	//const footerLinkStyle = ' hover:underline hover:text-stone-800 dark:hover:text-stone-200 ';
 </script>
 
-<footer class="w-full flex max-w-40 m-auto flex-col text-center {footerTextStyle} my-[100px]">
+<footer class="w-full flex max-w-40 m-auto flex-col text-center {footerTextStyle} my-25">
 	<span class={footerHeaderStyle}>Brought to you by</span>
 	<a target="_blank" class="{button_A_active} " href="https://www.contagio.network/">CONTAGIO</a>
 	<p>

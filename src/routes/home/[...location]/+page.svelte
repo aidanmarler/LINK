@@ -9,6 +9,7 @@
 	import ForwardTranslationsForm from './components/forward/forwardTranslationsForm.svelte';
 	import { makeFolderLabel } from '$lib/utils/utils';
 	import TranslationReviewForm from './components/review/reviewForm.svelte';
+	import type { LocationNode } from '$lib/utils/locationTree';
 
 	let { data } = $props();
 
@@ -21,6 +22,25 @@
 		'Backward Translate': 'backward',
 		Review: 'review'
 	};
+
+	let formChildren = $derived(
+		data.currentNode?.children
+			.values()
+			.filter((n) => n.tag == 'formLabel')
+			.toArray()
+	);
+	let sectionChildren = $derived(
+		data.currentNode?.children
+			.values()
+			.filter((n) => n.tag == 'sectionLabel')
+			.toArray()
+	);
+	let nodeChildren = $derived(
+		data.currentNode?.children
+			.values()
+			.filter((n) => n.tag != 'formLabel' && n.tag != 'sectionLabel')
+			.toArray()
+	);
 
 	// On submit, handle redirect if "shouldContinue" is true
 	async function onsubmit(shouldContinue: boolean) {
@@ -48,6 +68,21 @@
 		}
 	}
 </script>
+
+{#snippet nodeButton(node: LocationNode, currentPath: string)}
+	<button
+		title="See {node.slug}"
+		class="w-full cursor-pointer {button.stanley}  p-2 rounded-lg"
+		onclick={() => {
+			goto(currentPath + '/' + node.slug);
+		}}
+	>
+		<p class="w-full text-center">{makeFolderLabel(node.name)}</p>
+		<div class="w-full px-2">
+			<CompletionChart completion={node.completion} options={{ showKey: true }} />
+		</div>
+	</button>
+{/snippet}
 
 {#await data.dataPromise}
 	<div>Loading...</div>
@@ -171,38 +206,39 @@
 		{#if currentNode.children.size > 0}
 			<section>
 				{#key currentPath}
-					<div
-						in:fly|global={{ x: 10, duration: 200, delay: 100 }}
-						out:fly|global={{ x: -10, duration: 100 }}
-						class="grid p-2 gap-2 sm:grid-cols-2"
-					>
-						{#each [...currentNode.children.values()] as child}
-							<!--<h2>Filter data to only </h2>-->
-							{@const nodeSegments = (() => {
-								if (!currentNode) return {} as SegmentMap;
-
-								const filtered: SegmentMap = {};
-								for (const id of currentNode.segmentIds) {
-									if (segmentMap[id]) {
-										filtered[id] = segmentMap[id];
-									}
-								}
-								return segmentMap;
-							})()}
-							<button
-								title="See {child.slug}"
-								class="w-full cursor-pointer {button.stanley}  p-2 rounded-lg"
-								onclick={() => {
-									goto(currentPath + '/' + child.slug);
-								}}
-							>
-								<p class="w-full text-center">{makeFolderLabel(child.name)}</p>
-								<div class="w-full px-2">
-									<CompletionChart completion={child.completion} options={{ showKey: true }} />
-								</div>
-							</button>
-						{/each}
-					</div>
+					{#if formChildren && formChildren.length > 0}
+						<div
+							in:fly|global={{ x: 10, duration: 200, delay: 100 }}
+							out:fly|global={{ x: -10, duration: 100 }}
+							class="grid p-2 gap-2 sm:grid-cols-2"
+						>
+							{#each formChildren as child}
+								{@render nodeButton(child, currentPath)}
+							{/each}
+						</div>
+					{/if}
+					{#if sectionChildren && sectionChildren.length > 0}
+						<div
+							in:fly|global={{ x: 10, duration: 200, delay: 100 }}
+							out:fly|global={{ x: -10, duration: 100 }}
+							class="grid p-2 gap-2 sm:grid-cols-2"
+						>
+							{#each sectionChildren as child}
+								{@render nodeButton(child, currentPath)}
+							{/each}
+						</div>
+					{/if}
+					{#if nodeChildren && [...nodeChildren].length > 0}
+						<div
+							in:fly|global={{ x: 10, duration: 200, delay: 100 }}
+							out:fly|global={{ x: -10, duration: 100 }}
+							class="grid p-2 gap-2 sm:grid-cols-2"
+						>
+							{#each nodeChildren as child}
+								{@render nodeButton(child, currentPath)}
+							{/each}
+						</div>
+					{/if}
 				{/key}
 			</section>
 		{/if}
