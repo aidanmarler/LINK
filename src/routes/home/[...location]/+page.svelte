@@ -4,7 +4,7 @@
 	import type { SegmentMap } from '$lib/supabase/types.js';
 	import type { Profile, UserForm } from '$lib/types.js';
 	import { findNextSegment } from '$lib/utils/nextSegment';
-	import { fade, fly } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import CompletionChart from './completionChart.svelte';
 	import ForwardTranslationsForm from './components/forward/forwardTranslationsForm.svelte';
 	import { makeFolderLabel } from '$lib/utils/utils';
@@ -70,6 +70,9 @@
 </script>
 
 {#snippet nodeButton(node: LocationNode, currentPath: string)}
+	{@const hasGrandchildren =
+		node.children.size > 0 && [...node.children.values()].some((n) => n.children.size > 0)}
+	{@const hasChildren = node.children.size > 0}
 	<button
 		title="See {node.slug}"
 		class="w-full cursor-pointer {button.stanley}  p-2 rounded-lg"
@@ -77,7 +80,13 @@
 			goto(currentPath + '/' + node.slug);
 		}}
 	>
-		<p class="w-full text-center">{makeFolderLabel(node.name)}</p>
+		<div class="flex">
+			<p class="w-full text-center">
+				{#if !hasGrandchildren && !hasChildren}📋{/if}
+				{makeFolderLabel(node.name)}
+			</p>
+		</div>
+
 		<div class="w-full px-2">
 			<CompletionChart completion={node.completion} options={{ showKey: true }} />
 		</div>
@@ -154,93 +163,86 @@
 			<a href="/home">Return to Home</a>
 		</div>
 	{:else if currentNode}
-		<!-- Segments at this location -->
-		<!-- Forms for interacting with segments -->
-		{#if data.currentNode.segmentIds.length > 0}
-			<section>
-				<div
-					in:fade|global={{ duration: 200, delay: 100 }}
-					out:fade|global={{ duration: 100 }}
-					class="text-lg flex justify-center"
-				>
-					<!-- Select which form to show -->
-					{#each forms as form}
-						<label
-							class=" hover:underline cursor-pointer px-2 rounded-full {currentForm == form
-								? '  '
-								: 'opacity-50 '}"
-						>
-							<input
-								class=""
-								type="radio"
-								name="currentForm"
-								value={form}
-								bind:group={currentForm}
-							/>
-
-							<!-- Label the form - also add number next to it for number of segments found! -->
-							<span class="mr-2">{form} ({formToDoCount[formStepMap[form]]})</span>
-						</label>
-					{/each}
-				</div>
-				<div
-					in:fly|global={{ x: 10, duration: 200, delay: 100 }}
-					out:fly|global={{ x: -10, duration: 100 }}
-				>
-					{#if currentForm == 'Forward Translate'}
-						{#key currentPath}
-							<ForwardTranslationsForm segmentMap={pageSegments['forward']} {profile} {onsubmit} />
-						{/key}
-					{:else if currentForm == 'Review'}
-						<TranslationReviewForm segmentMap={pageSegments['review']} {profile} {onsubmit} />
-					{:else if currentForm == 'Backward Translate'}
-						<p class="w-full text-center text-xl mt-10">Backward Translation is Coming Soon!</p>
-					{/if}
-				</div>
-			</section>
-		{/if}
 		<!--
 			Navigations!
 		Here is where we show all next locations
 		  -->
 		{#if currentNode.children.size > 0}
-			<section>
-				{#key currentPath}
+			{#key currentPath}
+				<section
+					in:fly|global={{ x: 10, duration: 200, delay: 100 }}
+					out:fly|global={{ x: -10, duration: 100 }}
+				>
 					{#if formChildren && formChildren.length > 0}
-						<div
-							in:fly|global={{ x: 10, duration: 200, delay: 100 }}
-							out:fly|global={{ x: -10, duration: 100 }}
-							class="grid p-2 gap-2 sm:grid-cols-2"
-						>
+						<div class="grid p-2 gap-2 sm:grid-cols-2">
 							{#each formChildren as child}
 								{@render nodeButton(child, currentPath)}
 							{/each}
 						</div>
 					{/if}
 					{#if sectionChildren && sectionChildren.length > 0}
-						<div
-							in:fly|global={{ x: 10, duration: 200, delay: 100 }}
-							out:fly|global={{ x: -10, duration: 100 }}
-							class="grid p-2 gap-2 sm:grid-cols-2"
-						>
+						<div class="grid p-2 gap-2 sm:grid-cols-2">
 							{#each sectionChildren as child}
 								{@render nodeButton(child, currentPath)}
 							{/each}
 						</div>
 					{/if}
 					{#if nodeChildren && [...nodeChildren].length > 0}
-						<div
-							in:fly|global={{ x: 10, duration: 200, delay: 100 }}
-							out:fly|global={{ x: -10, duration: 100 }}
-							class="grid p-2 gap-2 sm:grid-cols-2"
-						>
+						<div class="grid p-2 gap-2 sm:grid-cols-2">
 							{#each nodeChildren as child}
 								{@render nodeButton(child, currentPath)}
 							{/each}
 						</div>
 					{/if}
-				{/key}
-			</section>
+				</section>
+			{/key}
+		{/if}
+		<!-- Segments at this location -->
+		<!-- Forms for interacting with segments -->
+		{#if data.currentNode.segmentIds.length > 0}
+			{#key currentPath}
+				<section
+					in:fly|global={{ x: 10, duration: 200, delay: 100 }}
+					out:fly|global={{ x: -10, duration: 100 }}
+				>
+					<div class="text-lg flex justify-center">
+						<!-- Select which form to show -->
+						{#each forms as form}
+							<label
+								class=" hover:underline cursor-pointer px-2 rounded-full {currentForm == form
+									? '  '
+									: 'opacity-50 '}"
+							>
+								<input
+									class=""
+									type="radio"
+									name="currentForm"
+									value={form}
+									bind:group={currentForm}
+								/>
+
+								<!-- Label the form - also add number next to it for number of segments found! -->
+								<span class="mr-2">{form} ({formToDoCount[formStepMap[form]]})</span>
+							</label>
+						{/each}
+					</div>
+					<div>
+						{#if currentForm == 'Forward Translate'}
+							{#key currentPath}
+								<ForwardTranslationsForm
+									segmentMap={pageSegments['forward']}
+									{profile}
+									{onsubmit}
+								/>
+							{/key}
+						{:else if currentForm == 'Review'}
+							<TranslationReviewForm segmentMap={pageSegments['review']} {profile} {onsubmit} />
+						{:else if currentForm == 'Backward Translate'}
+							<p class="w-full text-center text-xl mt-10">Backward Translation is Coming Soon!</p>
+						{/if}
+					</div>
+				</section>
+			{/key}
 		{/if}
 	{/if}
 {:catch error}
