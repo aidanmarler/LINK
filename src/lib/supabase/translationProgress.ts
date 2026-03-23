@@ -279,6 +279,9 @@ export async function UpdateProgress_ForwardSubmission(
 	return;
 }
 
+// @ clean this
+// all we have to do is separate to 3 functions, get relatedMap, feed relatedMap to buildProgesses and buildAcceptedTranslations
+
 export async function UpdatePATOnSubmission(
 	original_ids: number[],
 	language: TranslationLanguage,
@@ -507,27 +510,6 @@ function getAcceptedTranslation(
 		}
 		// if translation is the same,
 	}
-
-	// winning text is the accepted text, if so, return accepted translation row with a new score
-	//if (at && translationGroups[winningText].translations.includes({})) console.log("existing winner");
-	/* 
-		@ aidan FOR MONDAY 3/23/26
-
-		step 1: finish this insert acceptedT Insert
-		step 2: finish above acceptedT Row (change score)
-		step 3: if tie, give to review with machine vote (if possible)
-		step 4: export answer options...
-		step 5: breathe, take a walk, have a great day :)
-		
-		need for monday:
-		original_id
-		language
-		score
-		translation_id (earliest)
-		translation_step (based on current progress)
-		
-		*/
-	//const insert: AcceptedTranslationInsert = {translation_step}
 
 	// ! if no winn
 	if (!winningText) return at;

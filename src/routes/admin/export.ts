@@ -60,6 +60,8 @@ export async function exportMain(version: string) {
 
 	console.log('modifiedArc', modifiedArc);
 
+	return;
+
 	// ( 4 ) ZIP folder
 	const zipUrl = await zipFolderTree(modifiedArc);
 

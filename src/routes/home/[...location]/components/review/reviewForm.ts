@@ -207,10 +207,8 @@ export async function handleSubmit(
 	// @ these should be both handled by 'Update PAT (Progress Accepted Translation) on submission'
 	if (newTranslations.length > 0) await UpdateProgress_ForwardSubmission(newTranslations, 'review');
 
-	const ids_changed: number[] = newReviews.map((r) => {
-		return r.original_id;
-	});
-	console.log('ids_changed', ids_changed);
+	const ids_changed: number[] = newReviews.map((r) => r.original_id);
+	
 	if (newReviews.length > 0)
 		await UpdatePATOnSubmission(ids_changed, profile.language as TranslationLanguage, 'review');
 
