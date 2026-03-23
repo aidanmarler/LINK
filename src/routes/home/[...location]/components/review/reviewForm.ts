@@ -1,5 +1,8 @@
 import { invalidateAll } from '$app/navigation';
-import { UpdateProgress_ForwardSubmission } from '$lib/supabase/translationProgress';
+import {
+	UpdatePATOnSubmission,
+	UpdateProgress_ForwardSubmission
+} from '$lib/supabase/translationProgress';
 import type {
 	ForwardTranslationInsert,
 	ForwardTranslationRow,
@@ -199,8 +202,17 @@ export async function handleSubmit(
 
 	// Insert new translations to supabase ForwardTranslations table
 	if (newTranslations.length > 0) await InsertForwardTranslations(newTranslations);
-	if (newTranslations.length > 0) await UpdateProgress_ForwardSubmission(newTranslations);
 	if (newReviews.length > 0) await InsertTranslationReviews(newReviews);
+
+	// @ these should be both handled by 'Update PAT (Progress Accepted Translation) on submission'
+	if (newTranslations.length > 0) await UpdateProgress_ForwardSubmission(newTranslations, 'review');
+
+	const ids_changed: number[] = newReviews.map((r) => {
+		return r.original_id;
+	});
+	console.log('ids_changed', ids_changed);
+	if (newReviews.length > 0)
+		await UpdatePATOnSubmission(ids_changed, profile.language as TranslationLanguage, 'review');
 
 	// Update progress and reset app
 	if (newTranslations.length > 0 || newReviews.length > 0) {

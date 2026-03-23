@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { invalidateAll } from '$app/navigation';
-	import { button, style } from '$lib/styles';
+	import { button } from '$lib/styles';
 	import { UpdateProgress_ForwardSubmission } from '$lib/supabase/translationProgress';
 	import TranslateSegment from './translateSegment.svelte';
 	import { InsertForwardTranslations } from '$lib/supabase/utils';
@@ -42,7 +42,7 @@
 	let translationsToPushFiltered = $derived.by(() => {
 		return Object.fromEntries(
 			Object.entries(translationsToPush).filter(
-				([key, t]) => t.translation.trim().length > 0 || t.skipped
+				([_key, t]) => t.translation.trim().length > 0 || t.skipped
 			)
 		);
 	});
@@ -103,7 +103,7 @@
 			await InsertForwardTranslations(newForwardTranslations);
 
 			// Handle check translation progress for submitted translations
-			await UpdateProgress_ForwardSubmission(newForwardTranslations);
+			await UpdateProgress_ForwardSubmission(newForwardTranslations, 'forward');
 
 			// Invalidate data so that it reloads current data.
 			await invalidateAll();
@@ -117,7 +117,7 @@
 
 <br />
 
-{#each sortedSegments as [id, segmentData], i (id)}
+{#each sortedSegments as [id, segmentData], _i (id)}
 	{#if segmentData.forwardTranslation}
 		<!-- Complete -->
 		<TranslateSegment
