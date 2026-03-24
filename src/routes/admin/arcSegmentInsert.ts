@@ -15,11 +15,19 @@ export function ArcEnglishToInsert(
 ) {
 	const segmentsToAdd: OriginalSegmentInsert[] = [];
 	for (const row of englishArc) {
-		const f = row.Form.trim();
-		const s = row.Section.trim();
-		const q = row.Question.trim();
-		const d = row.Definition.trim();
-		const g = row['Completion Guideline'].trim();
+		if (typeof row.Form != 'string') console.log('!row.Form ', row, row.Form);
+		let f: string | null = null;
+		if (row.Form) if (row.Form.trim() != '') f = row.Form.trim();
+		let s: string | null = null;
+		if (row.Section) if (row.Section.trim() != '') s = row.Section.trim();
+		let q: string | null = null;
+		if (row.Question) if (row.Question.trim() != '') q = row.Question.trim();
+		let d: string | null = null;
+		if (row.Definition) if (row.Definition.trim() != '') d = row.Definition.trim();
+		let g: string | null = null;
+		if (row['Completion Guideline'])
+			if (row['Completion Guideline'].trim() != '') g = row['Completion Guideline'].trim();
+
 		//const ao = row['Answer Options'].trim();
 		const ao_array = !row['Answer Options'].trim()
 			? []
@@ -36,12 +44,12 @@ export function ArcEnglishToInsert(
 
 		//['ARC', f, s, row.Variable];
 		const baseLocation = ['ARC'];
-		if (f != '') baseLocation.push(f);
-		if (s != '') baseLocation.push(s);
+		if (f) baseLocation.push(f);
+		if (s) baseLocation.push(s);
 		const variableLoc = [...baseLocation, row.Variable];
 
 		// Form
-		if (f != '') {
+		if (f) {
 			const form: OriginalSegmentInsert = {
 				segment: f,
 				type: 'formLabel',
@@ -51,7 +59,7 @@ export function ArcEnglishToInsert(
 		}
 
 		// Section
-		if (s != '') {
+		if (s) {
 			const section: OriginalSegmentInsert = {
 				segment: s,
 				type: 'sectionLabel',
@@ -61,7 +69,7 @@ export function ArcEnglishToInsert(
 		}
 
 		// Question
-		if (q != '') {
+		if (q) {
 			const question: OriginalSegmentInsert = {
 				segment: q,
 				type: 'question',
@@ -72,7 +80,7 @@ export function ArcEnglishToInsert(
 		}
 
 		// Defintion
-		if (d != '') {
+		if (d) {
 			const definition: OriginalSegmentInsert = {
 				segment: row.Definition,
 				type: 'definition',
@@ -82,7 +90,7 @@ export function ArcEnglishToInsert(
 		}
 
 		// Compeltion Guide
-		if (g != '') {
+		if (g) {
 			const completionGuide: OriginalSegmentInsert = {
 				segment: row['Completion Guideline'],
 				type: 'completionGuide',

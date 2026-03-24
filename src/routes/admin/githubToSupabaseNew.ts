@@ -185,8 +185,8 @@ async function HandleNewForwardTranslations(
 					continue;
 				}
 
-				const translation = tRow[column].trim();
-				if (!translation) {
+				
+				if (!tRow[column]) {
 					failedSegments.push([
 						ns,
 						language,
@@ -198,6 +198,8 @@ async function HandleNewForwardTranslations(
 					]);
 					continue;
 				}
+
+				const translation = tRow[column].trim();
 
 				const t: ForwardTranslationInsert = {
 					language: l,
@@ -438,6 +440,7 @@ async function HandleNewAcceptedTranslations(translations: ForwardTranslationRow
 }
 
 export async function AddArcVersionToLink(version: string, _languages: GithubLanguage[]) {
+	const startT = performance.now();
 	// = (1) = get all of Arc Translations for this version
 	const arcTranslations = await pullArcTranslations(version);
 	const arcT = arcTranslations['ARCH' + version];
@@ -469,4 +472,7 @@ export async function AddArcVersionToLink(version: string, _languages: GithubLan
 	if (newSegments) allSegments.push(...newSegments);
 
 	await HandleDocumentInsert(version, allSegments);
+
+	const endT = performance.now();
+	console.log('Done! in ' + String((endT - startT)/1000) + 's');
 }

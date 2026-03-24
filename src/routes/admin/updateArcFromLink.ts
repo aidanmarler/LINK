@@ -27,8 +27,24 @@ export const formatArc = async (arc: ArcVersionStructure) => {
 						r['Completion Guideline'] == '' ? '' : '0';
 				// @ fix answer options
 				if (arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] == undefined)
-					arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] =
-						r['Answer Options'] == '' ? '' : '0'; // answer option util function to and from arch format
+					if (r['Answer Options'] !== '') {
+						const ao_cleaned = arc[v][l]['ARCH.csv'][k]['Answer Options']
+							.trim()
+							.split('|')
+							.map((optionString) => {
+								const [_codeStr, text] = optionString.split(',').map((s) => s.trim());
+								return text;
+							});
+
+						let ao_formatted = '';
+
+						for (let i = 0; i < ao_cleaned.length; i++) {
+							ao_formatted += ao_cleaned[i] + ': 0';
+							if (i < ao_cleaned.length - 1) ao_formatted += ' | ';
+						}
+
+						arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = ao_formatted;
+					}
 			}
 		}
 
@@ -107,8 +123,6 @@ export const modifyArcFromLink = async (
 		if (!lt.acceptedTranslations) return ['', '0', 'Missing accepted translations'];
 		if (!lt.translationProgress) return ['', '0', 'Missing translation progress'];
 
-		//console.log(translationProgress, forwardTranslations, translationReviews, acceptedTranslations);
-
 		// + get accepted translation row
 		const at = lt.acceptedTranslations.sort((r1, r2) => {
 			if (r1.created_at < r2.created_at) return -1;
@@ -123,7 +137,7 @@ export const modifyArcFromLink = async (
 		// ! catch missing forward translation
 		if (!ft) return ['', '0', 'Missing forward translation at accepted T id'];
 		// ! catch missing forward translation
-		if (!ft.translation) return ['', '0', 'Forward translation is only a comment'];
+		if (!ft.translation) return ['', '0', 'Forward translation is only a comment' + String(ft)];
 
 		return [ft.translation, at.score];
 	};
@@ -155,13 +169,15 @@ export const modifyArcFromLink = async (
 			continue;
 		}
 
+		// i+ init a map of answer options, storing english, translation, and score
+		//    after going through each oId, map answers to score
+		const answerMap: Record<string, { ft: string; score: string; oId: number }> = {};
+
 		// %% for link segment in this language's data
 		for (const oId in link[language]) {
 			// + get info
 			const segment = segments[oId];
 			const linkTranslation = link[language][oId];
-
-			//console.log('segment', segment);
 
 			// ! catch if no segment
 			if (!segment) {
@@ -172,8 +188,6 @@ export const modifyArcFromLink = async (
 			// * Get accepted translation Text and Score
 			const [translationText, translationScore, errorMessage] =
 				processLinkTranslation(linkTranslation);
-
-			//console.log('processed', [translationText, translationScore, errorMessage]);
 
 			// ! catch if getting accepted translation or score failed
 			if (errorMessage) {
@@ -207,7 +221,6 @@ export const modifyArcFromLink = async (
 				// == Set Translation Rating == //
 				arc[v][langArc]['ARCH.csv'][variable][reportColumn] = translationScore;
 
-				//console.log('Arch variable updated: ', arc[v][langArc]['ARCH.csv'][variable]);
 				continue;
 			}
 
@@ -275,11 +288,6 @@ export const modifyArcFromLink = async (
 					'Translation Reviewers'
 				] = translationScore;
 
-				/*
-				console.log(
-					'list item at ' + segment.location[1] + ' ' + [segment.location[2] + '.csv'],
-					arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'][index]
-				);*/
 				continue;
 			}
 
@@ -321,27 +329,38 @@ export const modifyArcFromLink = async (
 			}
 
 			// == Answer Options == //
-			if (segment.type == 'answerOption') {
-				if (!arc[v][langArc]['ARCH.csv']) {
-					console.error('cant find arch.csv', arc[v][langArc]);
-					continue;
-				}
-				const archE = arcEnglish['ARCH.csv'];
-				if (!archE) continue;
-
-				// get all rows of arc english that have this as form label
-				const keys: string[] = [];
-				for (const [key, value] of Object.entries(archE))
-					if (value.Form.trim() == segment.segment) keys.push(key);
-
-				for (const key of keys) {
-					arc[v][langArc]['ARCH.csv'][key].Form = translationText;
-					arc[v][langArc]['ARCH.csv'][key]['Form Translation Reviewers'] = translationScore;
-				}
-				continue;
-			}
+			if (segment.type == 'answerOption')
+				answerMap[segment.segment] = { ft: translationText, score: translationScore, oId: +oId };
 
 			continue;
+		}
+
+		const eCsv = Object.entries(arc[v]['English']['ARCH.csv']);
+		for (const [k, r] of eCsv) {
+			if (r['Answer Options'] == '') continue;
+			const ao_array = r['Answer Options']
+				.trim()
+				.split('|')
+				.map((optionString) => {
+					const [_codeStr, text] = optionString.split(',').map((s) => s.trim());
+					return text;
+				});
+
+			let ao_formatted = '';
+
+			for (let i = 0; i < ao_array.length; i++) {
+				if (!answerMap[ao_array[i].trim()]) {
+					console.warn('Answer Map missing |' + ao_array[i].trim() + '|');
+					continue;
+				}
+
+				const ft = answerMap[ao_array[i].trim()].ft;
+				const score = answerMap[ao_array[i].trim()].score;
+				ao_formatted += ft + ': ' + score;
+				if (i < ao_array.length - 1) ao_formatted += ' | ';
+			}
+
+			arc[v][langArc]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = ao_formatted;
 		}
 	}
 	return arc;

@@ -142,8 +142,10 @@ export async function pullArcTranslations(version: string) {
 		if (!archResponse.ok) throw new Error(`Arch fetch error: ${archResponse.status}`);
 		// * reread as an object
 		const archData = await archResponse.json();
-		// * filter only files that are a blob (downloadable text)
-		const files = archData.tree.filter((item: { type: string }) => item.type === 'blob');
+		// * filter only files that are a csv blob (downloadable text)
+		const files = archData.tree.filter(
+			(item: { type: string; path: string }) => item.type === 'blob' && item.path.endsWith('.csv')
+		);
 
 		// == return files == //
 		return files;
@@ -185,7 +187,6 @@ export async function pullArcTranslations(version: string) {
 			} else {
 				current[fileName] = fileData;
 			}
-			//current[pathList[pathList.length - 1]] = parsedContent[pathText];
 		}
 
 		return mappedContent;
@@ -198,7 +199,7 @@ export async function pullArcTranslations(version: string) {
 	// = ( 1 ) = Get list of files to download
 	console.log('arcT: Find Files');
 	const archFiles = await findFiles(version, githubAuth);
-	//console.log('archFiles', archFiles);
+	console.log('archFiles', archFiles);
 
 	// = ( 2 ) = Download all files
 	console.log('arcT: Fetch Files');
