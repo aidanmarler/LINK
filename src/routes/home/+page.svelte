@@ -5,21 +5,16 @@
 	import { goto } from '$app/navigation';
 	import CompletionChart from './[...location]/completionChart.svelte';
 	import { findNextSegment } from '$lib/utils/nextSegment';
-	import DocumentSelect from './[...location]/documentSelect.svelte';
-	import { getContext } from 'svelte';
-	import { getLinkContext } from './loadLink';
+	import DocumentSelect from './documentSelect.svelte';
+	
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
 	let presetsOpen = $derived(!profile.selected_preset);
 
 	let routes = ['arc', 'lists'];
-	const refreshLinkData = getContext<() => void>('refreshLinkData');
 
-	const linkContext = getLinkContext();
 </script>
-
-<button onclick={refreshLinkData}>Refresh</button>
 
 {#if profile}
 	<div in:fade|global={{ duration: 500, delay: 100 }} out:fade|global={{ duration: 100 }}>
@@ -97,17 +92,10 @@
 						: 'rounded-lg'} flex justify-between items-end p-2 px-4 border-inherit text-xl cursor-pointer hover:underline font-semibold"
 				>
 					<div class=" items-center flex">
-						<svg
-							class="{presetsOpen
-								? 'rotate-90'
-								: ''} stroke-stone-900 dark:stroke-stone-200 duration-100 transition-transform mr-2 h-6 w-6"
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-						>
+						<svg class="{presetsOpen ? 'rotate-90' : ''} stroke-stone-900 dark:stroke-stone-200 duration-100 transition-transform mr-2  h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
 							<path
 								fill="none"
+								
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="3"
@@ -125,9 +113,11 @@
 				<!-- presets -->
 				{#if presetsOpen}
 					<div class=" rounded-b-lg {style.border} border-x border-b">
-						{#if linkContext.data}
-							<DocumentSelect {profile} documentMap={linkContext.data.documentMap} />
-						{:else}<p>loading...</p>{/if}
+						{#await data.dataPromise}
+							<p>loading...</p>
+						{:then loadedData}
+							<DocumentSelect {profile} documentMap={loadedData.documentMap} />
+						{/await}
 					</div>
 				{/if}
 			</div>
@@ -150,22 +140,12 @@
 						</p>
 					</button>
 					<div class="p-3 rounded-b-lg border-x border-b border-inherit text-lg {style.border}">
-						{#if linkContext.data}
-							{@const locationNode = linkContext.data.locationTree.children.get(route)}
-							{#if locationNode != undefined}
-								<CompletionChart
-									completion={locationNode.completion}
-									options={{ showKey: true, large: true }}
-								/>
-							{/if}
-						{/if}
-						<!--
-						{#await getLinkData()}
+						{#await data.dataPromise}
 							<div class="loading">
 								<p>Loading...</p>
 							</div>
-						{:then linkData}
-							{@const locationNode = linkData.locationTree.children.get(route)}
+						{:then loadedData}
+							{@const locationNode = loadedData.locationTree.children.get(route)}
 							{#if locationNode != undefined}
 								<CompletionChart
 									completion={locationNode.completion}
@@ -177,7 +157,7 @@
 								<p>Failed to load data: {error.message}</p>
 								<button onclick={() => window.location.reload()}>Retry</button>
 							</div>
-						{/await}-->
+						{/await}
 
 						{#if route == 'arc'}
 							<a
@@ -196,10 +176,16 @@
 		{/each}
 
 		<div class="w-full flex justify-center">
-			{#if linkContext.data}
+			{#await data.dataPromise}
+				<button
+					class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+				>
+					Go to Next Segment
+				</button>
+			{:then loadedData}
 				{@const nextSegment = findNextSegment(
-					linkContext.data.locationTree,
-					linkContext.data.segmentMap,
+					loadedData.locationTree,
+					loadedData.segmentMap,
 					'/home'
 				)}
 
@@ -221,36 +207,7 @@
 						No more segments to translate!
 					</div>
 				{/if}
-			{/if}
-			<!--
-			{#await getLinkData()}
-				<button
-					class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
-				>
-					Go to Next Segment
-				</button>
-			{:then linkData}
-				{@const nextSegment = findNextSegment(linkData.locationTree, linkData.segmentMap, '/home')}
-
-				{#if nextSegment}
-					<button
-						title={'Next segment ' + nextSegment}
-						onclick={() => {
-							goto(nextSegment);
-						}}
-						class="{button.green.default} {button.green
-							.hover} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
-					>
-						Go to Next Segment: {nextSegment.split('/').at(-1)}
-					</button>
-				{:else}
-					<div
-						class=" border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
-					>
-						No more segments to translate!
-					</div>
-				{/if}
-			{/await}-->
+			{/await}
 		</div>
 	</div>
 {/if}

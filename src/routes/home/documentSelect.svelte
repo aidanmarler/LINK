@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { button } from '$lib/styles';
-	import { supabase } from '../../../supabaseClient';
+	import { supabase } from '../../supabaseClient';
 
 	let {
 		documentMap,
