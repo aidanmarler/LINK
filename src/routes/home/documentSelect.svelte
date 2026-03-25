@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { button } from '$lib/styles';
 	import { supabase } from '../../supabaseClient';
 
@@ -29,9 +30,9 @@
 		if (error) console.error(error);
 
 		// Reload the page
-		window.location.href = 'home'; // Full page reload
+		//window.location.href = 'home'; // Full page reload
 
-		//invalidateAll(); // This re-runs all load functions
+		invalidateAll(); // This re-runs all load functions
 	}
 
 	const _archetypeStarts = ['Disease_', 'ARChetype Disease CRF_', 'ARC'];

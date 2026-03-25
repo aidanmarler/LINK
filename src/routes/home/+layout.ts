@@ -29,58 +29,25 @@ const printTime = (message: string = '') => {
 };
 
 // == on load home page or children == //
-export const load: LayoutLoad = async ({ parent }) => {
+export const load: LayoutLoad = async ({ parent, depends }) => {
 	printTime();
 
-	const { session, profile } = await parent();
+	const { session, profile, document } = await parent();
 
-	printTime('logged in');
+	printTime('loaded session, profile, document');
 
 	// ! catch not logged in
 	if (!session || !profile) redirect(302, '/login');
 
-	// + Get User's language and document
-	const language = profile.language as TranslationLanguage;
-	const selectedDocument = profile.selected_preset;
-	console.log('selectedDocument:', selectedDocument);
-
-	let document: DocumentRow | null = null;
-
-	// * get my document
-	if (selectedDocument) {
-		const myDocumentRow = await supabase
-			.from('documents')
-			.select('*')
-			.eq('title', selectedDocument)
-			.order('created_at', { ascending: false })
-			.limit(1)
-			.single();
-
-		if (myDocumentRow) document = myDocumentRow.data;
-	} // * if I don't have one, get default document
-	else {
-		const defaultDocumentRow = await supabase
-			.from('documents')
-			.select('*')
-			.eq('title', 'ARC')
-			.order('created_at', { ascending: false })
-			.limit(1)
-			.single();
-
-		if (defaultDocumentRow.data) document = defaultDocumentRow.data;
-	}
-
-	// * if still failed to get a document, get the first one it can find.
-	if (document == null) {
-		const defaultDocumentRow = await supabase.from('documents').select('*').limit(1).single();
-		if (defaultDocumentRow.data) document = defaultDocumentRow.data;
-	}
-
-	printTime('pulled document');
-
+	depends('app:data');
 	return {
 		profile,
-		dataPromise: loadDataProgressively(session.user.id, language, document)
+		document,
+		dataPromise: loadDataProgressively(
+			session.user.id,
+			profile.language as TranslationLanguage,
+			document
+		)
 	};
 };
 

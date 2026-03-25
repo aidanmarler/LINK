@@ -1,3 +1,4 @@
+import { invalidate } from '$app/navigation';
 import {
 	UpdatePATOnSubmission,
 	UpdateProgress_ForwardSubmission
@@ -62,8 +63,7 @@ export async function handleSubmit(
 			fcomment: string | null;
 		}
 	>,
-	profile: Profile,
-	refreshLinkData: () => void
+	profile: Profile
 ) {
 	// Stored userReview minus ones they didn't fill out
 	const filteredReviews: Record<
@@ -215,7 +215,7 @@ export async function handleSubmit(
 	// Update progress and reset app
 	if (newTranslations.length > 0 || newReviews.length > 0) {
 		//await invalidateAll();
-		refreshLinkData();
+		await invalidate("app:data");
 	}
 
 	return errors;

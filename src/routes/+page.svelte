@@ -1,9 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { supabase } from '../supabaseClient';
-	import type { AuthSession, User, WeakPassword } from '@supabase/supabase-js';
-	import { button_green, card_static, form_element } from '$lib/styles';
-	import { checkAdminStatus } from '$lib/supabase/auth';
+	import { button_green } from '$lib/styles';
 	import ThemeManager from './components/themeManager.svelte';
 
 	const buttonStyle =
@@ -17,7 +13,7 @@
 	</div>
 	<div class=" rounded-lg w-full mt-10 max-w-2xl mx-auto">
 		<div class="flex-wrap px-4">
-			<p class="text-2xl font-semibold mb-2 text-center ">
+			<p class="text-2xl font-semibold mb-2 text-center">
 				Do you have native or bilingual fluency in Spanish, French, or Portuguese?
 			</p>
 			<p class="font-normal text-lg italic text-center">

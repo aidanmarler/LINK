@@ -66,7 +66,7 @@
 	let reviewsToPushFiltered = $derived.by(() => {
 		return Object.fromEntries(
 			Object.entries(reviewsToPush).filter(
-				([key, r]) => r.translation_id || countComments(r.comments) > 0
+				([_key, r]) => r.translation_id || countComments(r.comments) > 0
 			)
 		);
 	});
@@ -119,7 +119,7 @@
 	}
 </script>
 
-{#each sortedSegments as [id, segmentData], i (id)}
+{#each sortedSegments as [id, segmentData], _i (id)}
 	{@const reviews = relatedReviews[+id] ?? []}
 	{#if segmentData.translationReview}
 		<!-- Complete -->

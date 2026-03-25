@@ -2,7 +2,7 @@
 	import type { ForwardTranslationInsert, SegmentData, SegmentMap } from '$lib/supabase/types';
 	import { onMount } from 'svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { button } from '$lib/styles';
 	import { UpdateProgress_ForwardSubmission } from '$lib/supabase/translationProgress';
 	import TranslateSegment from './translateSegment.svelte';
@@ -106,7 +106,8 @@
 			await UpdateProgress_ForwardSubmission(newForwardTranslations, 'forward');
 
 			// Invalidate data so that it reloads current data.
-			await invalidateAll();
+			//await invalidateAll();
+			await invalidate("app:data");
 		}
 
 		if (shouldContinue) await onsubmit(shouldContinue);
