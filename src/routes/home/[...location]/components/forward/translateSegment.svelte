@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { card, card_static } from '$lib/styles';
-	import { typeLabels, type forwardStatus } from '$lib/types';
-	import { quintInOut, quintOut } from 'svelte/easing';
-	import { blur, draw, fade, fly, scale } from 'svelte/transition';
-	import type { Database } from '$lib/database.types';
+	import { card } from '$lib/styles';
+	import { typeLabels } from '$lib/types';
+	import { quintInOut } from 'svelte/easing';
+	import { draw, fade } from 'svelte/transition';
+
 	import CommentViewer from '../commentViewer.svelte';
 	import CompletionIndicator from '../completionIndicator.svelte';
+	import type { Database } from '$lib/supabase/database.types';
 
 	let {
 		completed,
@@ -29,18 +30,19 @@
 
 	let inProgress: boolean = $derived(translation.trim().length > 0);
 
-	let completion: forwardStatus = $derived.by(() => {
-		if (translation.length > 1) return 'inProgress';
-		if (completed) return 'forwardTranslated';
-		if (skipped) return 'skipped';
-		return 'toForwardTranslate';
-	});
+	let _completion: 'inProgress' | 'forwardTranslated' | 'skipped' | 'toForwardTranslate' =
+		$derived.by(() => {
+			if (translation.length > 1) return 'inProgress';
+			if (completed) return 'forwardTranslated';
+			if (skipped) return 'skipped';
+			return 'toForwardTranslate';
+		});
 </script>
 
 <div class=" md:ml-4">
 	<div class="w-full flex justify-between">
 		<div class="flex mr-7 w-full justify-between items-center">
-			<div class="flex  w-1/3">
+			<div class="flex w-1/3">
 				<!-- Open/Close Button -->
 				<button
 					class=" flex group hover:underline cursor-pointer"
@@ -135,9 +137,7 @@
 		</div>
 	</div>
 
-	<div
-		class="flex w-full h-full transition-all {open ? ' max-h-[1200px] duration-[.5s] ' : 'max-h-0'}"
-	>
+	<div class="flex w-full h-full transition-all {open ? ' max-h-300 duration-500 ' : 'max-h-0'}">
 		{#if open}
 			<div
 				in:fade={{ duration: 200 }}

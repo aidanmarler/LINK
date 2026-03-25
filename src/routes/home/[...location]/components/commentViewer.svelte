@@ -12,7 +12,7 @@
 	let menuContainer: HTMLDivElement;
 	let menuOpen = $state(false);
 
-	const buttonStyle =
+	const _buttonStyle =
 		'h-7 flex justify-left cursor-pointer hover:bg-white dark:hover:bg-stone-800 rounded-md opacity-70 hover:opacity-100';
 
 	const textStyle = ' min-h-7 flex bg-stone-50 p-0.5 px-2 dark:bg-stone-800 rounded-md ';

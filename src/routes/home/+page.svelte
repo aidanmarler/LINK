@@ -1,34 +1,25 @@
 <script lang="ts">
 	import { button, style } from '$lib/styles.js';
-	import { presetOptions } from '$lib/supabase/presets';
 	import { capitalizeFirstLetter } from '$lib/utils/utils.js';
 	import { fade, fly } from 'svelte/transition';
-	import { supabase } from '../../supabaseClient';
 	import { goto } from '$app/navigation';
 	import CompletionChart from './[...location]/completionChart.svelte';
 	import { findNextSegment } from '$lib/utils/nextSegment';
+	import DocumentSelect from './[...location]/documentSelect.svelte';
+	import { getContext } from 'svelte';
+	import { getLinkContext } from './loadLink';
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
 	let presetsOpen = $derived(!profile.selected_preset);
 
 	let routes = ['arc', 'lists'];
+	const refreshLinkData = getContext<() => void>('refreshLinkData');
 
-	async function handlePresetChange(preset: null | string) {
-		// Change this user's preset
-		const { error } = await supabase
-			.from('profiles')
-			.update({ selected_preset: preset })
-			.eq('id', profile.id);
-
-		if (error) console.error(error);
-
-		// Reload the page
-		window.location.href = 'home'; // Full page reload
-
-		//invalidateAll(); // This re-runs all load functions
-	}
+	const linkContext = getLinkContext();
 </script>
+
+<button onclick={refreshLinkData}>Refresh</button>
 
 {#if profile}
 	<div in:fade|global={{ duration: 500, delay: 100 }} out:fade|global={{ duration: 100 }}>
@@ -105,42 +96,38 @@
 						? 'rounded-t-lg'
 						: 'rounded-lg'} flex justify-between items-end p-2 px-4 border-inherit text-xl cursor-pointer hover:underline font-semibold"
 				>
-					<p>CRF to Translate</p>
+					<div class=" items-center flex">
+						<svg
+							class="{presetsOpen
+								? 'rotate-90'
+								: ''} stroke-stone-900 dark:stroke-stone-200 duration-100 transition-transform mr-2 h-6 w-6"
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+						>
+							<path
+								fill="none"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="3"
+								d="m9 5l6 7l-6 7"
+							/>
+						</svg>
+						CRF to Translate
+					</div>
 
 					<p>
-						{Object.keys(presetOptions).find(
-							(key) => presetOptions[key] === profile.selected_preset
-						) ?? 'None'}
+						{profile.selected_preset}
 					</p>
 				</button>
 
 				<!-- presets -->
 				{#if presetsOpen}
 					<div class=" rounded-b-lg {style.border} border-x border-b">
-						{#await data.dataPromise}
-							<p>loading...</p>
-						{:then loadedData}
-							<p class="mb-2 text-lg font-normal italic text-center">
-								Which CRF would you like to review?
-							</p>
-							<div
-								class=" p-1 grid grid-cols-1 sm:grid-cols-2 rounded-md border-inherit gap-0.5 font-normal"
-							>
-								{#each Object.entries(loadedData.documentMap) as [title, _document]}
-									{@const selected = title == profile.selected_preset}
-									{@const toolTip = selected ? '' : 'Review ' + title}
-									<button
-										title={toolTip}
-										class="px-3 text-left {selected
-											? button.simple.inactive
-											: button.simple.active}"
-										onclick={() => handlePresetChange(title)}
-									>
-										{title}
-									</button>
-								{/each}
-							</div>
-						{/await}
+						{#if linkContext.data}
+							<DocumentSelect {profile} documentMap={linkContext.data.documentMap} />
+						{:else}<p>loading...</p>{/if}
 					</div>
 				{/if}
 			</div>
@@ -163,12 +150,22 @@
 						</p>
 					</button>
 					<div class="p-3 rounded-b-lg border-x border-b border-inherit text-lg {style.border}">
-						{#await data.dataPromise}
+						{#if linkContext.data}
+							{@const locationNode = linkContext.data.locationTree.children.get(route)}
+							{#if locationNode != undefined}
+								<CompletionChart
+									completion={locationNode.completion}
+									options={{ showKey: true, large: true }}
+								/>
+							{/if}
+						{/if}
+						<!--
+						{#await getLinkData()}
 							<div class="loading">
 								<p>Loading...</p>
 							</div>
-						{:then loadedData}
-							{@const locationNode = loadedData.locationTree.children.get(route)}
+						{:then linkData}
+							{@const locationNode = linkData.locationTree.children.get(route)}
 							{#if locationNode != undefined}
 								<CompletionChart
 									completion={locationNode.completion}
@@ -180,7 +177,7 @@
 								<p>Failed to load data: {error.message}</p>
 								<button onclick={() => window.location.reload()}>Retry</button>
 							</div>
-						{/await}
+						{/await}-->
 
 						{#if route == 'arc'}
 							<a
@@ -199,16 +196,10 @@
 		{/each}
 
 		<div class="w-full flex justify-center">
-			{#await data.dataPromise}
-				<button
-					class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
-				>
-					Go to Next Segment
-				</button>
-			{:then loadedData}
+			{#if linkContext.data}
 				{@const nextSegment = findNextSegment(
-					loadedData.locationTree,
-					loadedData.segmentMap,
+					linkContext.data.locationTree,
+					linkContext.data.segmentMap,
 					'/home'
 				)}
 
@@ -230,7 +221,36 @@
 						No more segments to translate!
 					</div>
 				{/if}
-			{/await}
+			{/if}
+			<!--
+			{#await getLinkData()}
+				<button
+					class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+				>
+					Go to Next Segment
+				</button>
+			{:then linkData}
+				{@const nextSegment = findNextSegment(linkData.locationTree, linkData.segmentMap, '/home')}
+
+				{#if nextSegment}
+					<button
+						title={'Next segment ' + nextSegment}
+						onclick={() => {
+							goto(nextSegment);
+						}}
+						class="{button.green.default} {button.green
+							.hover} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+					>
+						Go to Next Segment: {nextSegment.split('/').at(-1)}
+					</button>
+				{:else}
+					<div
+						class=" border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+					>
+						No more segments to translate!
+					</div>
+				{/if}
+			{/await}-->
 		</div>
 	</div>
 {/if}

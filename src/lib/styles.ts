@@ -49,6 +49,11 @@ export const button = {
 			'  cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white rounded-sm hover:border-stone-500 hover:underline ',
 		inactive: ' opacity-80 font-medium rounded-sm bg-stone-300 dark:bg-stone-700 '
 	},
+	giro: {
+		active:
+			'  cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white rounded-2xl hover:border-stone-500 hover:underline ',
+		inactive: ' opacity-80 font-medium rounded-2xl bg-stone-300 dark:bg-stone-700 '
+	},
 	green: {
 		default: ' border-green-900 bg-green-700/20 dark:border-green-800 dark:bg-green-900/50 ',
 		hover:

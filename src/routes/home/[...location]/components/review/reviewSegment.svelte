@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { Database } from '$lib/database.types';
-	import { card, card_dynamic, newStyle } from '$lib/styles';
+	import { card, } from '$lib/styles';
 	import type {
 		ForwardTranslationRow,
-		RelatedTranslations,
+		
 		ReviewComment,
 		TranslationReviewRow
 	} from '$lib/supabase/types';
@@ -13,8 +12,7 @@
 	import { draw, fade } from 'svelte/transition';
 	import CommentViewer from '../commentViewer.svelte';
 	import CompletionIndicator from '../completionIndicator.svelte';
-	import { compileModule } from 'svelte/compiler';
-	import { onMount } from 'svelte';
+	import type { Database } from '$lib/supabase/database.types';
 
 	let {
 		completed, // has segment already been reviewed?
@@ -157,7 +155,7 @@
 
 				<!-- Translation Options to select from -->
 				{#if options}
-					{#each Object.entries(options) as [text, option], index}
+					{#each Object.entries(options) as [text, option], _index}
 						{@const optionId:number = getEarliestEvent(Object.values(option)).id}
 						<div class="relative w-full">
 							<fieldset id={segment} class="w-full flex border-inherit" role="radiogroup">
