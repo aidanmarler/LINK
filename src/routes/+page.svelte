@@ -8,8 +8,11 @@
 
 <div class="p-5">
 	<div class="mx-auto w-full text-center mt-15">
-		<h1 class="font-bold text-8xl">LINK</h1>
-		<h4 class="italic mb-3 text-2xl">Language Integration Network Kit</h4>
+		<div class="mx-auto w-full justify-center flex">
+			<img alt="LINK icon" class="dark:invert-0 invert w-22 mt-1 opacity-80" src="/link.svg" />
+			<h1 class="font-bold text-8xl">LINK</h1>
+		</div>
+		<h4 class="italic mb-15 mt-3 text-xl">Language Integration Network Kit</h4>
 	</div>
 	<div class=" rounded-lg w-full mt-10 max-w-2xl mx-auto">
 		<div class="flex-wrap px-4">

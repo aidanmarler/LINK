@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { LocationCompletion } from '$lib/utils/locationTree';
-	import { fade } from 'svelte/transition';
 	type Options = {
 		showKey?: boolean;
 		large?: boolean;

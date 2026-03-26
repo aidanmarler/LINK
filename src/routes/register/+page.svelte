@@ -1,25 +1,41 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
 	import type { AvailableLanguage } from '../../lib/types';
-	import { button_B, button_green, form_element } from '$lib/styles';
+	import { button_green, form_element } from '$lib/styles';
 	import ThemeManager from '../components/themeManager.svelte';
 	import { goto } from '$app/navigation';
 
 	let name: string = '';
 	let email: string = '';
+	let confirmEmail: string = '';
 	let password: string = '';
 	let confirmPassword: string = '';
 	let language: AvailableLanguage = 'none';
 	let profession: string = '';
 
-	const inputStyle =
+	const _inputStyle =
 		'w-full text-sm font-medium rounded-md p-1 border-2 border-stone-400 dark:border-stone-500 text-black dark:text-white';
 	//const labelStyle = 'leading-1.5 w-full block font-bold text-stone-800 dark:text-stone-300 bg-green-300 m-auto';
 	const labelStyle = 'grid items-center w-full font-bold text-stone-800 dark:text-stone-300 ';
-	const sublabelStyle = 'grid items-center font-normal text-stone-800 dark:text-stone-300 text-xs';
+	const _sublabelStyle = 'grid items-center font-normal text-stone-800 dark:text-stone-300 text-xs';
 
 	async function handleSignUp(event: Event) {
 		event.preventDefault();
+
+		if (language == 'none') {
+			alert('No language selected');
+			return;
+		}
+
+		if (profession == '') {
+			alert('No profession selected');
+			return;
+		}
+
+		if (email !== confirmEmail) {
+			alert('Email addresses do not match');
+			return;
+		}
 
 		if (password !== confirmPassword) {
 			alert('Passwords do not match');
@@ -38,7 +54,7 @@
 			}
 		});
 
-		console.log(data, error)
+		console.log(data, error);
 
 		if (error) {
 			alert(error.message);
@@ -51,7 +67,11 @@
 </script>
 
 <div class=" max-w-96 p-2 mt-20 mx-auto border-inherit">
-	<h1 class="text-3xl font-bold w-full text-center mb-2 mt-6">Register New Account</h1>
+	<a class="mx-auto w-full justify-center flex hover:underline" href="/">
+		<img alt="LINK icon" class="dark:invert-0 invert w-9 opacity-80" src="/link.svg" />
+		<h1 class="font-bold text-4xl">LINK</h1>
+	</a>
+	<h1 class="text-3xl font-semibold w-full text-center mt-4">Register New Account</h1>
 	<div
 		class="
 		px-7 my-5 py-7 shadow-sm border border-stone-400 dark:border-stone-800 rounded-xl text-xl w-full
@@ -73,7 +93,7 @@
 
 			<label
 				title="Please provide an email through which we can verify your account"
-				class="{labelStyle} mb-3"
+				class="{labelStyle} mb-1"
 			>
 				Email
 
@@ -82,10 +102,24 @@
 					required
 					name="email"
 					type="email"
-					id="email"
 					placeholder="your@email.com"
 					autocomplete="email"
 					bind:value={email}
+				/>
+			</label>
+
+			<label
+				title="Please provide an email through which we can verify your account"
+				class="{labelStyle} mb-3"
+			>
+				<input
+					class={form_element}
+					required
+					name="email"
+					type="email"
+					placeholder="Confirm your@email.com"
+					autocomplete="email webauthn"
+					bind:value={confirmEmail}
 				/>
 			</label>
 
@@ -121,9 +155,9 @@
 				Native Language
 				<select
 					class="{form_element} cursor-pointer"
+					bind:value={language}
 					name="language"
 					required
-					bind:value={language}
 				>
 					<!--<option value="none">None</option>-->
 					<option value="spanish">Español</option>
@@ -137,7 +171,12 @@
 				class="{labelStyle} mb-3"
 			>
 				Profession
-				<select class="{form_element} cursor-pointer" name="profession" required>
+				<select
+					class="{form_element} cursor-pointer"
+					bind:value={profession}
+					name="profession"
+					required
+				>
 					<option value="clinical">Clinical Staff</option>
 					<option value="researcher">Disease/Clinical Researcher</option>
 					<option value="translator">Translator</option>

@@ -14,20 +14,20 @@
 
 	let { data } = $props();
 
-	let currentForm: UserForm = $state('Forward Translate');
+	let currentForm: UserForm = $state('Translate');
 
-	const forms: UserForm[] = ['Forward Translate', 'Review']; //'Backward Translate'
+	const forms: UserForm[] = ['Translate', 'Review']; //'Backward Translate'
 
 	const gotoState = history.state['sveltekit:states']['form'];
 
 	onMount(() => {
-		if (gotoState == 'forward') currentForm = 'Forward Translate';
+		if (gotoState == 'forward') currentForm = 'Translate';
 		else if (gotoState == 'review') currentForm = 'Review';
 	});
 
 	// Store
 	const formStepMap: Record<UserForm, string> = {
-		'Forward Translate': 'forward',
+		'Translate': 'forward',
 		'Backward Translate': 'backward',
 		Review: 'review'
 	};
@@ -74,7 +74,7 @@
 		// if next segment found, go to it
 		if (slug) {
 			await goto(slug);
-			if (nextSegmentTuple[1] == 'forward') currentForm = 'Forward Translate';
+			if (nextSegmentTuple[1] == 'forward') currentForm = 'Translate';
 			else if (nextSegmentTuple[1] == 'review') currentForm = 'Review';
 		} else {
 			return;
@@ -240,7 +240,7 @@
 						{/each}
 					</div>
 					<div>
-						{#if currentForm == 'Forward Translate'}
+						{#if currentForm == 'Translate'}
 							{#key currentPath}
 								<ForwardTranslationsForm
 									segmentMap={pageSegments['forward']}

@@ -52,7 +52,10 @@
 
 <div class="p-4">
 	<div class="mx-auto w-full text-center my-20">
-		<h1 class="font-bold text-7xl">LINK</h1>
+		<a class="mx-auto w-full justify-center flex hover:underline" href="/">
+			<img alt="LINK icon" class="dark:invert-0 invert w-17 mt-1 opacity-80" src="/link.svg" />
+			<h1 class="font-bold text-7xl">LINK</h1>
+		</a>
 		<h4 class="italic my-3 text-lg">Language Integration Network Kit</h4>
 	</div>
 	<div

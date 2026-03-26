@@ -25,7 +25,7 @@ export type Profile = {
 
 //#region Forms
 
-export type UserForm = 'Forward Translate' | 'Review' | 'Backward Translate';
+export type UserForm = 'Translate' | 'Review' | 'Backward Translate';
 
 //#endregion Forms
 
