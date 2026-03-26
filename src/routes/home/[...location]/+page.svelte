@@ -10,12 +10,21 @@
 	import { makeFolderLabel } from '$lib/utils/utils';
 	import TranslationReviewForm from './components/review/reviewForm.svelte';
 	import type { LocationNode } from '$lib/utils/locationTree';
+	import { onMount } from 'svelte';
 
 	let { data } = $props();
 
 	let currentForm: UserForm = $state('Forward Translate');
 
 	const forms: UserForm[] = ['Forward Translate', 'Review']; //'Backward Translate'
+
+	const gotoState = history.state['sveltekit:states']['form'];
+
+	onMount(() => {
+		if (gotoState == 'forward') currentForm = 'Forward Translate';
+		else if (gotoState == 'review') currentForm = 'Review';
+	});
+
 	// Store
 	const formStepMap: Record<UserForm, string> = {
 		'Forward Translate': 'forward',
@@ -53,16 +62,20 @@
 		console.log('find next segment');
 
 		// find next segment
-		const nextSegment = findNextSegment(
+		const nextSegmentTuple = findNextSegment(
 			resolvedData.locationTree,
 			resolvedData.segmentMap,
 			'/home',
+			'forward',
 			data.currentNode
 		);
+		const slug = nextSegmentTuple?.[0];
 
 		// if next segment found, go to it
-		if (nextSegment) {
-			await goto(nextSegment);
+		if (slug) {
+			await goto(slug);
+			if (nextSegmentTuple[1] == 'forward') currentForm = 'Forward Translate';
+			else if (nextSegmentTuple[1] == 'review') currentForm = 'Review';
 		} else {
 			return;
 		}

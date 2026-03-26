@@ -1,52 +1,34 @@
 import type { SegmentMap } from '$lib/supabase/types';
 import type { LocationNode } from './locationTree';
 
-export function findNextSegmentOld(
-	location: LocationNode,
-	segmentMap: SegmentMap,
-	startingRoute: string,
-	startLocation?: string
-): string | null {
-	console.log(startLocation, location);
+/*
+Current:
+for each segment,
+if has hit "starting segment", start searching
+once has found a segment that is missing a forward translation, 
+	slug = getslug( segment )
+	return slug
 
-	// Check if current node has segments
-	if (location.segmentIds != undefined && location.segmentIds.length > 0) {
-		//console.log('segments found!', location.slug);
-		const address = startingRoute + '/' + location.slug;
-		for (const id of location.segmentIds) {
-			const segment = segmentMap[id];
-			// Added review or backward translate steps? Add them here!
-			if (
-				!segment.forwardTranslation &&
-				segment.translationProgress.translation_step == 'forward'
-			) {
-				return address;
-			}
-		}
-	}
+New:
+for each segment,
+if has hit "starting segment", start searching.
+	if ( forwardState )
+		get first segment that is in state forward missing a forward segment
+	if ( reviewState || forwardState failed )
+		get first segment that is in review state missing a review
+	slug = getslug( segment )
+	form = getform( segment ) ( ForwardTranslate, Review , BackwardTranslate )
 
-	// Recursively search children
-	for (const child of location.children) {
-		const result = findNextSegmentOld(
-			child[1],
-			segmentMap,
-			location.slug ? startingRoute + '/' + location.slug : startingRoute
-		);
-		// Return immediately when found
-		if (result) return result;
-	}
-
-	// No valid segment found in this branch
-	return null;
-}
+*/
 
 // Find next segment from segmentMap given a starting route,
 export function findNextSegment(
 	locationTree: LocationNode,
 	segmentMap: SegmentMap,
 	startingRoute: string,
+	target: 'forward' | 'review',
 	startLocation?: LocationNode
-) {
+): [string | null, 'forward' | 'review'] | undefined {
 	// Searching: is currently searching for next incomplete segment
 	let searching = false;
 	if (!startLocation) searching = true;
@@ -59,14 +41,33 @@ export function findNextSegment(
 			// - skip if this is an answer option... they do not actually have a location
 			if (segment.originalSegment.type == 'answerOption') continue;
 			// - if no forward translation, this is the next to go to
-			if (segment.forwardTranslation) continue;
+			if (target == 'forward') {
+				if (segment.forwardTranslation) continue;
+				if (segment.translationProgress.translation_step !== 'forward') continue;
+			}
+			// - if no forward translation, this is the next to go to
+			else if (target == 'review') {
+				if (segment.translationReview) continue;
+				if (segment.translationProgress.translation_step !== 'review') continue;
+			}
+
+			// * get segment slug
+			const slug = getSegmentSlug(+id, locationTree, startingRoute);
 
 			// == Searching is Over! == //
-			return getSegmentSlug(+id, locationTree, startingRoute);
+			return [slug, target] as const;
 		} else {
 			// if not yet starting search, start search if start location has been found
 			if (startLocation?.segmentIds.includes(+id)) searching = true;
 		}
+	}
+
+	// if got to end, start again with no start location if had start location
+	// if got to end without start location and in forward, try ag
+	if (target == 'forward') {
+		return findNextSegment(locationTree, segmentMap, startingRoute, 'review', startLocation);
+	} else if (startLocation) {
+		return findNextSegment(locationTree, segmentMap, startingRoute, 'review');
 	}
 }
 

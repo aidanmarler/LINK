@@ -43,6 +43,7 @@ export const load: LayoutLoad = async () => {
 			document = myDocumentRow.data;
 	} // * if I don't have one, get default document
 	else {
+		console.log("no document yet")
 		const defaultDocumentRow = await supabase
 			.from('documents')
 			.select('*')

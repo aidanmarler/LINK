@@ -6,14 +6,12 @@
 	import CompletionChart from './[...location]/completionChart.svelte';
 	import { findNextSegment } from '$lib/utils/nextSegment';
 	import DocumentSelect from './documentSelect.svelte';
-	
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
 	let presetsOpen = $derived(!profile.selected_preset);
 
 	let routes = ['arc', 'lists'];
-
 </script>
 
 {#if profile}
@@ -92,10 +90,17 @@
 						: 'rounded-lg'} flex justify-between items-end p-2 px-4 border-inherit text-xl cursor-pointer hover:underline font-semibold"
 				>
 					<div class=" items-center flex">
-						<svg class="{presetsOpen ? 'rotate-90' : ''} stroke-stone-900 dark:stroke-stone-200 duration-100 transition-transform mr-2  h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+						<svg
+							class="{presetsOpen
+								? 'rotate-90'
+								: ''} stroke-stone-900 dark:stroke-stone-200 duration-100 transition-transform mr-2 h-6 w-6"
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+						>
 							<path
 								fill="none"
-								
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="3"
@@ -183,22 +188,23 @@
 					Go to Next Segment
 				</button>
 			{:then loadedData}
-				{@const nextSegment = findNextSegment(
+				{@const nextSegmentTuple = findNextSegment(
 					loadedData.locationTree,
 					loadedData.segmentMap,
-					'/home'
+					'/home',
+					'forward'
 				)}
-
-				{#if nextSegment}
+				{@const slug = nextSegmentTuple?.[0]}
+				{#if slug}
 					<button
-						title={'Next segment ' + nextSegment}
+						title={'Next segment ' + slug}
 						onclick={() => {
-							goto(nextSegment);
+							goto(slug, { state: { form: nextSegmentTuple[1] } });
 						}}
 						class="{button.green.default} {button.green
 							.hover} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
 					>
-						Go to Next Segment: {nextSegment.split('/').at(-1)}
+						Go to Next Segment: {slug.split('/').at(-1)}
 					</button>
 				{:else}
 					<div
