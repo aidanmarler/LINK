@@ -20,7 +20,7 @@
 				Do you have native or bilingual fluency in Spanish, French, or Portuguese?
 			</p>
 			<p class="font-normal text-lg italic text-center">
-				Help translate ISARIC's ARCH database of CRF questions so that our Bridge is more accessible
+				Help translate ISARIC's ARC database of CRF questions so that our Bridge is more accessible
 				to researchers and clinitians around the world
 			</p>
 		</div>
