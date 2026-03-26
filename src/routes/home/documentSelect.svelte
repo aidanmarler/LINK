@@ -83,7 +83,7 @@
 		// Sort the versionMap alphabetically at all levels
 		const versionMapSorted: Map<string, { main: string[]; sub: Map<string, string[]> }> = new Map(
 			[...versionMap.entries()]
-				.sort(([a], [b]) => a.localeCompare(b))
+				.sort(([a], [b]) => b.localeCompare(a))
 				.map(([version, entry]) => [
 					version,
 					{
@@ -102,8 +102,6 @@
 
 		return versionMapSorted;
 	});
-
-	$inspect(newMap);
 </script>
 
 <div

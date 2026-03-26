@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { button, style } from '$lib/styles.js';
-	import { capitalizeFirstLetter } from '$lib/utils/utils.js';
 	import { fade, fly } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import CompletionChart from './[...location]/completionChart.svelte';
 	import { findNextSegment } from '$lib/utils/nextSegment';
 	import DocumentSelect from './documentSelect.svelte';
+	import Welcome from './welcome.svelte';
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
@@ -27,57 +27,8 @@
 		out:fly|global={{ y: 10, duration: 100 }}
 	>
 		<div class="w-full">
-			<div class="w-full text-stone-800 dark:text-stone-300">
-				<div class="max-w-3xl p-2 m-auto text-lg font-normal">
-					<h3 class="italic text-3xl p-0 font-medium w-full mb-10 text-center">
-						<span class=""
-							><span class="font-bold">L</span>anguage
-							<span class="font-bold">I</span>ntegration
-							<span class="font-bold">N</span>etwork
-							<span class="font-bold">K</span>it</span
-						>
-					</h3>
-					<p class="text-center">
-						Welcome, <em in:fade={{ duration: 1000, delay: 100 }}>{profile.name}</em>
-					</p>
-					<p class="mb-8 w-full italic text-center text-base">
-						Thank you ❤️ for helping to translate ARC from English into {capitalizeFirstLetter(
-							profile.language ? profile.language : ''
-						)}.
-					</p>
 
-					<p>High-quality translations require three steps:</p>
-					<ol class="p-3">
-						<li>
-							1. <span class="font-bold"> Forward Translation:</span> translate phrases from English
-							into {capitalizeFirstLetter(profile.language ? profile.language : '')}.
-						</li>
-						<li>
-							2. <span class="font-bold"> Review:</span> select the correct translation, or write a new
-							one with a justification.
-						</li>
-						<li>
-							3. <span class="font-bold"> Backward Translation:</span> translating reviewed translations
-							back into English.
-						</li>
-					</ol>
-					<p class="text-base text-center py-6">
-						All translations will be reviewed, and the ones that are agreed by your peers to be best
-						will be added to the ARC database to be used around the world!
-					</p>
-					<p class="text-base text-center">
-						If you do not know, <span class="font-bold"> skip</span>
-					</p>
-					<p class="text-base text-center">
-						If you have something to say, <span class="font-bold">leave a comment</span>
-					</p>
-
-					<p class="text-center text-xl font-medium py-6">
-						Thank you, good luck, and happy translating!
-					</p>
-				</div>
-			</div>
-
+			<Welcome {profile}/>
 			<div class=" border-inherit w-full text-stone-800 dark:text-stone-300">
 				<button
 					onclick={() => {

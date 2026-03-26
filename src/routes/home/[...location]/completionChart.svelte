@@ -82,7 +82,11 @@
 	</div>
 
 	{#if options.showKey}
-		<div class="flex justify-center w-full p-1 flex-wrap {options.large ? 'text-md' : 'text-xs'} font-normal">
+		<div
+			class="flex justify-center w-full p-1 flex-wrap {options.large
+				? 'text-md'
+				: 'text-xs'} font-normal"
+		>
 			{#if complete > 0}
 				<div class=" mx-0.5 flex flex-row rounded-md">
 					<div
@@ -90,7 +94,15 @@
 							? 'mt-1 h-3 w-3'
 							: 'h-2 w-2'}"
 					></div>
-					<p class="-mt-1 px-1">{complete} Complete</p>
+					<p class="-mt-1 px-1">
+						{complete} Complete
+
+						{#if complete == total}<span
+								class="bg-stone-950/25 dark:bg-stone-50/25 rounded-full p-[1.5px]"
+							>
+								⭐
+							</span>{/if}
+					</p>
 				</div>
 			{/if}
 			{#if total - complete > 0}

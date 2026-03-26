@@ -128,21 +128,27 @@ export function computeCompletion(node: LocationNode, segmentMap: SegmentMap): L
 		const segment = segmentMap[id];
 		if (!segment) return;
 
-		// Check forward translation
-		if (segment.forwardTranslation) {
-			completion.forwardComplete++;
-		} else {
-			completion.forwardNeeded++;
+		// Check completed steps
+		if (segment.forwardTranslation) completion.forwardComplete++;
+		if (segment.translationReview) completion.reviewComplete++;
+		// @ add backward translation here
+
+		//
+		if (segment.translationProgress) {
+			if (!segment.forwardTranslation && segment.translationProgress.translation_step == 'forward')
+				completion.forwardNeeded++;
+			if (!segment.translationReview && segment.translationProgress.translation_step == 'review')
+				completion.reviewNeeded++;
 		}
 	});
 
 	return completion;
 }
 
-function getAllDescendantIds(node: LocationNode): number[] {
-	const ids = [...node.segmentIds];
+function getAllDescendantIds(node: LocationNode): Set<number> {
+	const ids: Set<number> = new Set(node.segmentIds);
 	node.children.forEach((child) => {
-		ids.push(...getAllDescendantIds(child));
+		getAllDescendantIds(child).forEach((id) => ids.add(id));
 	});
 	return ids;
 }
