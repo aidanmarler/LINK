@@ -2,18 +2,31 @@
 	import '../app.css';
 	import Footer from './components/footer.svelte';
 
-	let { children } = $props();
-
 	import { supabase } from '../supabaseClient';
 	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
-	
+	import type { Session } from '@supabase/supabase-js';
+
+	let { children } = $props();
+
+	let currentSession: Session | null = null;
+
 	onMount(() => {
 		const {
 			data: { subscription }
-		} = supabase.auth.onAuthStateChange((event) => {
-			if (event === 'INITIAL_SESSION') return;
-			invalidateAll();
+		} = supabase.auth.onAuthStateChange((event, session) => {
+			if (event === 'INITIAL_SESSION') {
+				currentSession = session;
+				return;
+			}
+
+			const sessionChanged =
+				session?.user?.id !== currentSession?.user?.id ||
+				session?.access_token !== currentSession?.access_token;
+
+			currentSession = session;
+
+			if (sessionChanged) invalidateAll();
 		});
 		return () => subscription.unsubscribe();
 	});

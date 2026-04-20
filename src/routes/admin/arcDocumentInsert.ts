@@ -66,7 +66,7 @@ async function CreateDocumentInserts(version: string, segments: OriginalSegmentR
 
 	// = (1) = Get arc presets to assign to documents
 	const [arcPresetMap, listsPresetMap] = await GetArcPresets(version);
-	//console.log(arcPresetMap, listsPresetMap);
+	console.log(arcPresetMap, listsPresetMap);
 
 	// if variable_id == [], add simply to "ARC"
 	// if variable_id == [preset_name], add to document titled "preset_name"
@@ -140,14 +140,15 @@ async function CreateDocumentInserts(version: string, segments: OriginalSegmentR
 				if (!listItem) continue;
 				documentMap['ARC'].add(listItem.id);
 				for (const preset of _presets) {
-					if (!documentMap[preset]) documentMap[preset] = new Set();
+					if (!documentMap[preset]) continue;
+					//if (!documentMap[preset]) documentMap[preset] = new Set();
 					documentMap[preset].add(listItem.id);
 				}
 			}
 		}
 	}
 
-	//console.log('documentMap', documentMap);
+	console.log('documentMap', documentMap);
 
 	for (const [title, ids] of Object.entries(documentMap)) {
 		documentInserts.push({ title: title, version: version, original_ids: Array.from(ids) });
