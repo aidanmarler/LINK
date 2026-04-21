@@ -129,13 +129,15 @@ async function loadDataProgressively(
 	computeNodeCompletions(locationTree);
 
 	// = ( 5 ) = Map documents by title
-	const documentMap: Record<string, { id: number; title: string; version: string }[]> = {};
-	if (document_rows.data) {
+	let documents: { id: number; title: string; version: string }[] = [];
+	if (document_rows.data) documents = document_rows.data
+	/*
+	{
 		for (const document of document_rows.data) {
 			if (!documentMap[document.title]) documentMap[document.title] = [];
 			documentMap[document.title].push(document);
 		}
-	}
+	}*/
 
 	printTime('computed node completions');
 	console.log('== complete ==');
@@ -144,7 +146,7 @@ async function loadDataProgressively(
 		segmentMap,
 		locationTree,
 		slugMapping,
-		documentMap
+		documents
 	};
 }
 

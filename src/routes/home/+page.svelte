@@ -72,7 +72,7 @@
 						{#await data.dataPromise}
 							<p>loading...</p>
 						{:then loadedData}
-							<DocumentSelect {profile} documentMap={loadedData.documentMap} />
+							<DocumentSelect {profile} documents={loadedData.documents} />
 						{/await}
 					</div>
 				{/if}

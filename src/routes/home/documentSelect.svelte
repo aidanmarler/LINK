@@ -4,10 +4,10 @@
 	import { supabase } from '../../supabaseClient';
 
 	let {
-		documentMap,
+		documents,
 		profile
 	}: {
-		documentMap: Record<string, { id: number; title: string; version: string }[]>;
+		documents: { id: number; title: string; version: string }[];
 		profile: {
 			clinical_expertise: boolean | null;
 			created_at: string;
@@ -37,8 +37,22 @@
 
 	const _archetypeStarts = ['Disease_', 'ARChetype Disease CRF_', 'ARC'];
 
-	let archVersion: string = $state('1.2.2');	
+	//let archVersion: string = $state('1.1.5');
+	//let archVersion: string = $derived(documents.find((d) => d.version));
 
+	let archVersion: string = $derived(
+		documents.reduce((best, d) => (d.version > best ? d.version : best), '')
+	);
+
+
+	$inspect(archVersion);
+
+	//let newDocuments = $derived.by(()=>{
+	//	for (const doc of documentMap)
+	//	documents
+	//})
+
+	/*
 	let newMap = $derived.by(() => {
 		const versionMap: Map<string, { main: string[]; sub: Map<string, string[]> }> = new Map();
 		const initial = Object.entries(documentMap);
@@ -79,7 +93,7 @@
         insert main values by alphabetical
         insert sublists by alphabetical
         insert sublist values by alphabetical
-        */
+        
 		// Sort the versionMap alphabetically at all levels
 		const versionMapSorted: Map<string, { main: string[]; sub: Map<string, string[]> }> = new Map(
 			[...versionMap.entries()]
@@ -101,26 +115,33 @@
 		);
 
 		return versionMapSorted;
+	});*/
+
+	let ordedDocuments = $derived.by(() => {
+		const returnValue = { main: new Set(), sub: new Map() };
+		for (const d of documents) {
+			if (d.version !== archVersion) continue;
+
+			const splitName = d.title.split('_');
+			if (splitName.length == 1) {
+				returnValue.main.add(d.title);
+			}
+			if (splitName.length === 2) {
+				const [category, item] = splitName;
+				// Create missing entry
+				if (!returnValue.sub.has(category)) returnValue.sub.set(category, new Set());
+				returnValue.sub.get(category).add(item);
+			}
+		}
+
+		return returnValue;
 	});
 </script>
 
-<div
-	class="text-xl w-full font-semibold text-center mx-auto max-w-80 py-3 rounded-2xl border-inherit"
->
-	ARC Version:
-	<select
-		bind:value={archVersion}
-		class="px-3 m-1 text-left border-2 border-inherit {button.simple.active}"
-	>
-		{#each newMap.keys() as version}
-			<option>{version}</option>
-		{/each}
-	</select>
-</div>
-
 <div class="p-1 border-inherit font-normal">
+	<!-- Main documents (ARC)-->
 	<div class="items-center justify-center w-full flex">
-		{#each newMap.get(archVersion)?.main as title}
+		{#each ordedDocuments.main as title}
 			{@const selected = title == profile.selected_preset}
 			{@const toolTip = selected ? '' : 'Review ' + title}
 			<button
@@ -134,8 +155,8 @@
 			</button>
 		{/each}
 	</div>
-
-	{#each newMap.get(archVersion)?.sub as [label, section]}
+	<!-- Main documents (ARC)-->
+	{#each ordedDocuments.sub as [label, section]}
 		<div class="flex text-center items-center justify-center">
 			{#if label == 'ARChetype Disease CRF'}
 				<div class="justify-center mt-2 items-center text-center text-lg">
@@ -177,3 +198,63 @@
 		</div>
 	{/each}
 </div>
+<!--
+<div
+	class="text-xl w-full font-semibold text-center mx-auto max-w-80 py-3 rounded-2xl border-inherit"
+>
+	ARC Version:
+	<select
+		bind:value={archVersion}
+		class="px-3 m-1 text-left border-2 border-inherit {button.simple.active}"
+	>
+		{#each newMap.keys() as version}
+			<option>{version}</option>
+		{/each}
+	</select>
+</div>
+-->
+<!--
+		
+<!--
+	{#each newMap.get(archVersion)?.sub as [label, section]}
+		<div class="flex text-center items-center justify-center">
+			{#if label == 'ARChetype Disease CRF'}
+				<div class="justify-center mt-2 items-center text-center text-lg">
+					{#each section as title}
+						{@const selected = label + '_' + title == profile.selected_preset}
+						{@const toolTip = selected ? '' : 'Review ' + label + ': ' + title}
+						<button
+							title={toolTip}
+							class="px-3 border-2 mr-1 mb-1 text-left {selected
+								? button.giro.inactive
+								: button.giro.active}"
+							onclick={() => handlePresetChange(label + '_' + title)}
+						>
+							{title}
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div class="flex align-middle items-center">
+					{label}:
+				</div>
+
+				<div class=" p-1 rounded-md border-inherit gap-0.5 font-normal">
+					{#each section as title}
+						{@const selected = label + '_' + title == profile.selected_preset}
+						{@const toolTip = selected ? '' : 'Review ' + label + ': ' + title}
+						<button
+							title={toolTip}
+							class="px-3 border-2 mr-1 mb-1 text-left {selected
+								? button.giro.inactive
+								: button.giro.active}"
+							onclick={() => handlePresetChange(label + '_' + title)}
+						>
+							{title}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/each}
+	-->
