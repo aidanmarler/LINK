@@ -215,6 +215,11 @@ export const modifyArcFromLink = async (
 				// + get arc current variable
 				const variable = segment.location.at(-1) as string;
 
+				if (!arc[v][langArc]['ARCH.csv'][variable]) {
+					console.warn("missing variable", variable, column, arc[v][langArc]['ARCH.csv'][variable]);
+					continue
+				}
+
 				// == Set New Translation! == //
 				arc[v][langArc]['ARCH.csv'][variable][column] = translationText;
 
@@ -306,8 +311,13 @@ export const modifyArcFromLink = async (
 					if (value.Form.trim() == segment.segment) keys.push(key);
 
 				for (const key of keys) {
-					arc[v][langArc]['ARCH.csv'][key].Form = translationText;
-					arc[v][langArc]['ARCH.csv'][key]['Form Translation Reviewers'] = translationScore;
+					//console.log(key, arc[v][langArc]['ARCH.csv'][key]);
+					if (arc[v][langArc]['ARCH.csv'][key]) {
+						if (arc[v][langArc]['ARCH.csv'][key].Form) {
+							arc[v][langArc]['ARCH.csv'][key].Form = translationText;
+							arc[v][langArc]['ARCH.csv'][key]['Form Translation Reviewers'] = translationScore;
+						}
+					}
 				}
 			} else if (segment.type == 'sectionLabel') {
 				if (!arc[v][langArc]['ARCH.csv']) {
@@ -323,8 +333,15 @@ export const modifyArcFromLink = async (
 					if (value.Section.trim() == segment.segment) keys.push(key);
 
 				for (const key of keys) {
-					arc[v][langArc]['ARCH.csv'][key].Section = translationText;
-					arc[v][langArc]['ARCH.csv'][key]['Section Translation Reviewers'] = translationScore;
+					//console.log(key, arc[v][langArc]['ARCH.csv'][key]);
+					if (arc[v][langArc]['ARCH.csv'][key]) {
+						if (arc[v][langArc]['ARCH.csv'][key].Section) {
+							arc[v][langArc]['ARCH.csv'][key].Section = translationText;
+							arc[v][langArc]['ARCH.csv'][key]['Section Translation Reviewers'] = translationScore;
+						}
+					} else {
+						console.log('missing key:', key, arc[v][langArc]['ARCH.csv']);
+					}
 				}
 			}
 

@@ -66,7 +66,7 @@ async function CreateDocumentInserts(version: string, segments: OriginalSegmentR
 
 	// = (1) = Get arc presets to assign to documents
 	const [arcPresetMap, listsPresetMap] = await GetArcPresets(version);
-	console.log(arcPresetMap, listsPresetMap);
+	console.log("listsPresetMap", listsPresetMap);
 
 	// if variable_id == [], add simply to "ARC"
 	// if variable_id == [preset_name], add to document titled "preset_name"

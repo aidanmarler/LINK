@@ -462,7 +462,12 @@ export async function AddArcVersionToLink(version: string, _languages: GithubLan
 	const newTranslations = await HandleNewForwardTranslations(arcT, newSegments, translationData);
 	console.log('translationsToInsert', newTranslations);
 
-	// = (5) = for translations, create translation progress row
+
+	// = (5, a) = check if existingSegments have progresses in link
+	console.log("5a existingSegments", existingSegments)
+	console.log("5a Link", [segments, translationData])
+
+	// = (5, b) = for translations, create translation progress row
 	const newProgresses = await HandleNewProgresses(newTranslations);
 	console.log('newProgresses', newProgresses);
 

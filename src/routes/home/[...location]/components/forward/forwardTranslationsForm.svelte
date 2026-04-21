@@ -134,7 +134,8 @@
 			comment={segmentData.forwardTranslation.comment}
 			skipped={segmentData.forwardTranslation.skipped}
 		/>
-	{:else if segmentData.translationProgress?.translation_step !== 'forward'}
+	
+	{:else if (segmentData.translationProgress) && (segmentData.translationProgress.translation_step !== 'forward')}
 		<PlaceholderSegment
 			open={true}
 			label={segmentData.originalSegment.type}

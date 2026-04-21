@@ -15,10 +15,6 @@ export function ArcEnglishToInsert(
 ) {
 	const segmentsToAdd: OriginalSegmentInsert[] = [];
 	for (const row of englishArc) {
-		if (row.Variable.includes('_calc')) {
-			console.log('CALC found', row);
-			continue;
-		}
 
 		if (typeof row.Form != 'string') console.log('!row.Form ', row, row.Form);
 		let f: string | null = null;

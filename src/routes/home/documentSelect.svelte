@@ -37,7 +37,7 @@
 
 	const _archetypeStarts = ['Disease_', 'ARChetype Disease CRF_', 'ARC'];
 
-	let archVersion: string = $state('1.1.5');
+	let archVersion: string = $state('1.2.2');	
 
 	let newMap = $derived.by(() => {
 		const versionMap: Map<string, { main: string[]; sub: Map<string, string[]> }> = new Map();
