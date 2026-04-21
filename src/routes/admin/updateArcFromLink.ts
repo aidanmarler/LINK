@@ -28,6 +28,7 @@ export const formatArc = async (arc: ArcVersionStructure) => {
 				// @ fix answer options
 				if (arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] == undefined)
 					if (r['Answer Options'] !== '') {
+						/*
 						const ao_cleaned = arc[v][l]['ARCH.csv'][k]['Answer Options']
 							.trim()
 							.split('|')
@@ -36,14 +37,15 @@ export const formatArc = async (arc: ArcVersionStructure) => {
 								return text;
 							});
 
+						
 						let ao_formatted = '';
 
 						for (let i = 0; i < ao_cleaned.length; i++) {
 							ao_formatted += ao_cleaned[i] + ': 0';
 							if (i < ao_cleaned.length - 1) ao_formatted += ' | ';
-						}
+						}*/
 
-						arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = ao_formatted;
+						arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = '0';
 					}
 			}
 		}
