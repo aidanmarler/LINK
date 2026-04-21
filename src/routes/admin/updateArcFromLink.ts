@@ -216,8 +216,8 @@ export const modifyArcFromLink = async (
 				const variable = segment.location.at(-1) as string;
 
 				if (!arc[v][langArc]['ARCH.csv'][variable]) {
-					console.warn("missing variable", variable, column, arc[v][langArc]['ARCH.csv'][variable]);
-					continue
+					console.warn('missing variable', variable, column, arc[v][langArc]['ARCH.csv'][variable]);
+					continue;
 				}
 
 				// == Set New Translation! == //
@@ -245,6 +245,10 @@ export const modifyArcFromLink = async (
 					arcEnglish['Lists'][segment.location[1]][segment.location[2] + '.csv'];
 				const csvTranslated: Record<string, string>[] =
 					arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'];
+
+				console.log('csvEnglish', segment.location, csvEnglish);
+				console.log('csvTranslated', segment.location, csvTranslated);
+				if (!csvEnglish || !csvTranslated) continue;
 
 				// + get item column name (contition, country, species, etc.)
 				const listColumns: string[] = Object.keys(csvTranslated[0] as Record<string, string>);
@@ -354,6 +358,8 @@ export const modifyArcFromLink = async (
 
 		const eCsv = Object.entries(arc[v]['English']['ARCH.csv']);
 		for (const [k, r] of eCsv) {
+			if (!arc[v][langArc]['ARCH.csv'][k]) continue;
+
 			if (r['Answer Options'] == '') continue;
 			const ao_array = r['Answer Options']
 				.trim()
@@ -366,6 +372,8 @@ export const modifyArcFromLink = async (
 			let ao_formatted = '';
 
 			for (let i = 0; i < ao_array.length; i++) {
+				console.log(ao_array);
+				if (!ao_array[i]) continue;
 				if (!answerMap[ao_array[i].trim()]) {
 					console.warn('Answer Map missing |' + ao_array[i].trim() + '|');
 					continue;
