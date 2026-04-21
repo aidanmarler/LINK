@@ -84,7 +84,7 @@ export async function GetArcPresets(
 		return folderNames;
 	}
 
-	// Function to pull tag from ARC
+	// & Function to pull tag from ARC
 	async function fetchAndParseArcMain(
 		version: string,
 		owner = 'ISARICResearch',
@@ -121,6 +121,7 @@ export async function GetArcPresets(
 		return parsedData;
 	}
 
+	// &
 	async function fetchAndParseListsMain(
 		version: string,
 		path: string,
@@ -199,12 +200,14 @@ export async function GetArcPresets(
 
 	const listFolder = await fetchFolderNames(version);
 
-	const arcMain = await fetchAndParseArcMain(version);
+	console.log("listFolder", listFolder);
 
+	const arcMain = await fetchAndParseArcMain(version);
 	const arcPresetMap = await mapArcPresets(arcMain);
 
 	const listsMain: { [list: string]: { [sublist: string]: Record<string, string>[] } } = {};
 	const listsPresetMap: { [list: string]: { [sublist: string]: Record<string, string[]> } } = {};
+	// map lists to lists presets
 	await Promise.all(
 		listFolder.map(async (list: string) => {
 			listsMain[list] = await fetchAndParseListsMain(version, 'Lists/' + list);

@@ -256,6 +256,10 @@ async function HandleNewForwardTranslations(
 				const archcsv = arc[language]['ARCH.csv'];
 				if (!archcsv) continue;
 				const tRow = Object.values(archcsv)[index];
+				if (!tRow) {
+					console.log(archcsv, index)	
+					continue;
+				}
 
 				const t: ForwardTranslationInsert = {
 					language: l,

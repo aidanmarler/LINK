@@ -15,11 +15,13 @@
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange((event, session) => {
+			console.log(event);
+			
 			if (event === 'INITIAL_SESSION') {
 				currentSession = session;
 				return;
 			}
-
+			
 			const sessionChanged =
 				session?.user?.id !== currentSession?.user?.id ||
 				session?.access_token !== currentSession?.access_token;

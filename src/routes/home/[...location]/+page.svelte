@@ -27,7 +27,7 @@
 
 	// Store
 	const formStepMap: Record<UserForm, string> = {
-		'Translate': 'forward',
+		Translate: 'forward',
 		'Backward Translate': 'backward',
 		Review: 'review'
 	};
@@ -120,6 +120,15 @@
 	<!-- Get Uer profile -->
 
 	<!-- Now, filter down segments on this page and sort them by step -->
+	{@const newPageSegments: SegmentMap = (()=>{
+		if (!currentNode) return {} as SegmentMap;
+		const segments: SegmentMap = {};
+		for (const id of currentNode.segmentIds) {
+			const segmentData = segmentMap[id];
+			if (segmentData) segments[id] = segmentData;
+		}
+		return segments;
+	 })()}
 	{@const pageSegments:  Record<string, SegmentMap> = (() => {
 		if (!currentNode) return {} as SegmentMap;
 		// Store segmentMap for each translation step
@@ -243,7 +252,7 @@
 						{#if currentForm == 'Translate'}
 							{#key currentPath}
 								<ForwardTranslationsForm
-									segmentMap={pageSegments['forward']}
+									segmentMap={newPageSegments}
 									{profile}
 									{onsubmit}
 								/>

@@ -8,6 +8,7 @@
 	import TranslateSegment from './translateSegment.svelte';
 	import { InsertForwardTranslations } from '$lib/supabase/utils';
 	import { sortSegmentMap } from '$lib/utils/utils';
+	import PlaceholderSegment from '../placeholderSegment.svelte';
 
 	let {
 		segmentMap,
@@ -107,7 +108,7 @@
 
 			// Invalidate data so that it reloads current data.
 			//await invalidateAll();
-			await invalidate("app:data");
+			await invalidate('app:data');
 		}
 
 		if (shouldContinue) await onsubmit(shouldContinue);
@@ -132,6 +133,12 @@
 				: ''}
 			comment={segmentData.forwardTranslation.comment}
 			skipped={segmentData.forwardTranslation.skipped}
+		/>
+	{:else if segmentData.translationProgress?.translation_step !== 'forward'}
+		<PlaceholderSegment
+			open={true}
+			label={segmentData.originalSegment.type}
+			segment={segmentData.originalSegment.segment}
 		/>
 	{:else if Object.entries(translationsToPush).length > 0}
 		<!-- Incomplete -->

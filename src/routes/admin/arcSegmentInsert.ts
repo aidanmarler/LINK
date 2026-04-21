@@ -15,6 +15,11 @@ export function ArcEnglishToInsert(
 ) {
 	const segmentsToAdd: OriginalSegmentInsert[] = [];
 	for (const row of englishArc) {
+		if (row.Variable.includes('_calc')) {
+			console.log('CALC found', row);
+			continue;
+		}
+
 		if (typeof row.Form != 'string') console.log('!row.Form ', row, row.Form);
 		let f: string | null = null;
 		if (row.Form) if (row.Form.trim() != '') f = row.Form.trim();
@@ -35,12 +40,16 @@ export function ArcEnglishToInsert(
 					.trim()
 					.split('|')
 					.map((optionString) => {
-						const [_codeStr, text] = optionString.split(',').map((s) => s.trim());
+						const parts = optionString.split(',').map((s) => s.trim());
+						const [codeStr, text] = parts;
+						if (parts.length !== 2 || isNaN(Number(codeStr)) || !text) return null;
 						return text;
 					});
 
 		const ao_cleaned =
-			!ao_array || ao_array.length == 0 ? [] : ao_array.filter((ao) => ao.trim() !== '');
+			!ao_array || ao_array.length === 0 || ao_array.some((ao) => ao === null)
+				? []
+				: ao_array.filter((ao) => ao!.trim() !== '');
 
 		//['ARC', f, s, row.Variable];
 		const baseLocation = ['ARC'];
