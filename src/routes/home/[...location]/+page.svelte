@@ -258,7 +258,7 @@
 								/>
 							{/key}
 						{:else if currentForm == 'Review'}
-							<TranslationReviewForm segmentMap={pageSegments['review']} {profile} {onsubmit} />
+							<TranslationReviewForm segmentMap={newPageSegments} {profile} {onsubmit} />
 						{:else if currentForm == 'Backward Translate'}
 							<p class="w-full text-center text-xl mt-10">Backward Translation is Coming Soon!</p>
 						{/if}

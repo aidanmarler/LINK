@@ -76,13 +76,15 @@
 		{#if open}
 			<div
 				in:fade={{ duration: 200 }}
-				class="rounded-md border-2 w-full flex opacity-70 {card.translate.incomplete}"
+				class="rounded-md border-0 bg-stone-300 dark:bg-stone-500 w-full flex mr-6 opacity-70 {card.translate.complete}"
 			>
 				<!--Original Segment-->
 				<div class="w-full border-inherit px-2">
 					{segment}
 				</div>
+              
 			</div>
+            
 		{/if}
 	</div>
 </div>

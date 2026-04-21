@@ -16,6 +16,7 @@
 		handleSubmit
 	} from './reviewForm';
 	import { sortSegmentMap } from '$lib/utils/utils';
+	import PlaceholderSegment from '../placeholderSegment.svelte';
 
 	let {
 		segmentMap,
@@ -136,6 +137,12 @@
 			comments={segmentData.translationReview.comments as Record<number, string | null>}
 			ftranslation={null}
 			fcomment={null}
+		/>
+	{:else if segmentData.translationProgress?.translation_step !== 'review'}
+		<PlaceholderSegment
+			open={true}
+			label={segmentData.originalSegment.type}
+			segment={segmentData.originalSegment.segment}
 		/>
 	{:else if Object.entries(reviewsToPush).length > 0}
 		<!-- Incomplete -->
