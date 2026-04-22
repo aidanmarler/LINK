@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { userProfile } from '$lib/global.svelte';
-	import { fly, scale } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
 	import { goto } from '$app/navigation';
 

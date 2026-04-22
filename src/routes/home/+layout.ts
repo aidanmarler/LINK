@@ -14,6 +14,7 @@ import type {
 import { pullOriginalRowsById, pullRowsForOriginalId } from '$lib/supabase/utils';
 import { supabase } from '../../supabaseClient';
 import { redirect } from '@sveltejs/kit';
+import { loading } from '../components/loading/loadingState.svelte';
 
 export const ssr = false; // Force client-side for authentication
 
@@ -30,6 +31,8 @@ const printTime = (message: string = '') => {
 
 // == on load home page or children == //
 export const load: LayoutLoad = async ({ parent, depends }) => {
+	loading.message = 'Getting document...';
+	loading.active = true;
 	printTime();
 
 	const { session, profile, document } = await parent();
@@ -40,6 +43,7 @@ export const load: LayoutLoad = async ({ parent, depends }) => {
 	if (!session || !profile) redirect(302, '/login');
 
 	depends('app:data');
+	loading.active = false;
 	return {
 		profile,
 		document,
@@ -56,6 +60,8 @@ async function loadDataProgressively(
 	language: TranslationLanguage,
 	document: DocumentRow | null
 ) {
+	loading.message = 'Pulling segments...';
+	loading.active = true;
 	const segmentMap: SegmentMap = {};
 	const original_ids = document ? document.original_ids : [];
 
@@ -130,7 +136,7 @@ async function loadDataProgressively(
 
 	// = ( 5 ) = Map documents by title
 	let documents: { id: number; title: string; version: string }[] = [];
-	if (document_rows.data) documents = document_rows.data
+	if (document_rows.data) documents = document_rows.data;
 	/*
 	{
 		for (const document of document_rows.data) {
@@ -142,6 +148,7 @@ async function loadDataProgressively(
 	printTime('computed node completions');
 	console.log('== complete ==');
 
+	loading.active = false;
 	return {
 		segmentMap,
 		locationTree,

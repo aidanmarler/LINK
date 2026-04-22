@@ -9,6 +9,7 @@
 	import { InsertForwardTranslations } from '$lib/supabase/utils';
 	import { sortSegmentMap } from '$lib/utils/utils';
 	import PlaceholderSegment from '../placeholderSegment.svelte';
+	import { loading } from '../../../../components/loading/loadingState.svelte';
 
 	let {
 		segmentMap,
@@ -100,6 +101,8 @@
 		}
 
 		if (newForwardTranslations.length > 0) {
+			loading.message = 'Pushing translation...';
+			loading.active = true;
 			// Insert new translations to supabase ForwardTranslations table
 			await InsertForwardTranslations(newForwardTranslations);
 
@@ -113,6 +116,7 @@
 
 		if (shouldContinue) await onsubmit(shouldContinue);
 
+		loading.active = false;
 		return;
 	}
 </script>
@@ -134,8 +138,7 @@
 			comment={segmentData.forwardTranslation.comment}
 			skipped={segmentData.forwardTranslation.skipped}
 		/>
-	
-	{:else if (segmentData.translationProgress) && (segmentData.translationProgress.translation_step !== 'forward')}
+	{:else if segmentData.translationProgress && segmentData.translationProgress.translation_step !== 'forward'}
 		<PlaceholderSegment
 			open={true}
 			label={segmentData.originalSegment.type}

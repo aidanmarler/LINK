@@ -6,6 +6,7 @@
 	import { button_green, card_static, form_element } from '$lib/styles';
 	import { checkAdminStatus } from '$lib/supabase/auth';
 	import { goto } from '$app/navigation';
+	import { loading } from '../components/loading/loadingState.svelte';
 
 	let session: AuthSession | null;
 	let email: string = '';
@@ -25,6 +26,8 @@
 	});
 
 	async function handleSignIn(event: Event) {
+		loading.active = true;
+		loading.message = "Logging in..."
 		event.preventDefault();
 
 		const { data, error } = await supabase.auth.signInWithPassword({
@@ -33,6 +36,8 @@
 		});
 
 		if (error) {
+			loading.active = false;
+			
 			alert(error.message);
 			return;
 		}
@@ -41,6 +46,8 @@
 		//await supabase.auth.getSession();
 
 		const isAdmin = await checkAdminStatus(data.user.id);
+
+		loading.active = false;
 
 		if (isAdmin) {
 			goto('/admin');

@@ -16,6 +16,7 @@ import {
 	pullRowsForOriginalId
 } from '$lib/supabase/utils';
 import type { Profile, TranslationLanguage } from '$lib/types';
+import { loading } from '../../../../components/loading/loadingState.svelte';
 
 // Get and map related translations
 export async function getRelatedTranslations(
@@ -65,6 +66,8 @@ export async function handleSubmit(
 	>,
 	profile: Profile
 ) {
+	loading.message = 'Pushing review...';
+	loading.active = true;
 	// Stored userReview minus ones they didn't fill out
 	const filteredReviews: Record<
 		number,
@@ -215,8 +218,10 @@ export async function handleSubmit(
 	// Update progress and reset app
 	if (newTranslations.length > 0 || newReviews.length > 0) {
 		//await invalidateAll();
-		await invalidate("app:data");
+		await invalidate('app:data');
 	}
+
+	loading.active = false;
 
 	return errors;
 }
