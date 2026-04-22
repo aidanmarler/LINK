@@ -44,7 +44,6 @@
 		documents.reduce((best, d) => (d.version > best ? d.version : best), '')
 	);
 
-
 	$inspect(archVersion);
 
 	//let newDocuments = $derived.by(()=>{
@@ -118,7 +117,7 @@
 	});*/
 
 	let ordedDocuments = $derived.by(() => {
-		const returnValue = { main: new Set(), sub: new Map() };
+		const returnValue = { main: new Set<string>(), sub: new Map() };
 		for (const d of documents) {
 			if (d.version !== archVersion) continue;
 
@@ -129,7 +128,7 @@
 			if (splitName.length === 2) {
 				const [category, item] = splitName;
 				// Create missing entry
-				if (!returnValue.sub.has(category)) returnValue.sub.set(category, new Set());
+				if (!returnValue.sub.has(category)) returnValue.sub.set(category, new Set<string>());
 				returnValue.sub.get(category).add(item);
 			}
 		}

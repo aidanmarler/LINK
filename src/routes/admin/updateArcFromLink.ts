@@ -27,26 +27,28 @@ export const formatArc = async (arc: ArcVersionStructure) => {
 						r['Completion Guideline'] == '' ? '' : '0';
 				// @ fix answer options
 				if (arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] == undefined)
-					if (r['Answer Options'] !== '') {
-						/*
-						const ao_cleaned = arc[v][l]['ARCH.csv'][k]['Answer Options']
-							.trim()
-							.split('|')
-							.map((optionString) => {
-								const [_codeStr, text] = optionString.split(',').map((s) => s.trim());
-								return text;
-							});
+					arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] =
+						r['Answer Options'] == '' ? '' : '0';
+				/*
+								if (r['Answer Options'] !== '') {
+								const ao_cleaned = arc[v][l]['ARCH.csv'][k]['Answer Options']
+									.trim()
+									.split('|')
+									.map((optionString) => {
+										const [_codeStr, text] = optionString.split(',').map((s) => s.trim());
+										return text;
+									});
 
-						
-						let ao_formatted = '';
+								
+								let ao_formatted = '';
 
-						for (let i = 0; i < ao_cleaned.length; i++) {
-							ao_formatted += ao_cleaned[i] + ': 0';
-							if (i < ao_cleaned.length - 1) ao_formatted += ' | ';
-						}*/
+								for (let i = 0; i < ao_cleaned.length; i++) {
+									ao_formatted += ao_cleaned[i] + ': 0';
+									if (i < ao_cleaned.length - 1) ao_formatted += ' | ';
+								}
 
-						arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = '0';
-					}
+								arc[v][l]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = '0';
+							}*/
 			}
 		}
 
@@ -371,7 +373,8 @@ export const modifyArcFromLink = async (
 					return text;
 				});
 
-			let ao_formatted = '';
+			let _ao_formatted = '';
+			let ao_minimum = Infinity;
 
 			for (let i = 0; i < ao_array.length; i++) {
 				console.log(ao_array);
@@ -382,12 +385,15 @@ export const modifyArcFromLink = async (
 				}
 
 				const ft = answerMap[ao_array[i].trim()].ft;
-				const score = answerMap[ao_array[i].trim()].score;
-				ao_formatted += ft + ': ' + score;
-				if (i < ao_array.length - 1) ao_formatted += ' | ';
+				const score = +answerMap[ao_array[i].trim()].score;
+				if (score < ao_minimum) ao_minimum = score;
+				_ao_formatted += ft + ': ' + score;
+				if (i < ao_array.length - 1) _ao_formatted += ' | ';
 			}
 
-			arc[v][langArc]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = ao_formatted;
+			if (ao_minimum == Infinity) ao_minimum = 0;
+
+			arc[v][langArc]['ARCH.csv'][k]['Answer Options Translation Reviewers'] = String(ao_minimum);
 		}
 	}
 	return arc;
