@@ -22,13 +22,14 @@ if has hit "starting segment", start searching.
 */
 
 // Find next segment from segmentMap given a starting route,
+// location, form, label
 export function findNextSegment(
 	locationTree: LocationNode,
 	segmentMap: SegmentMap,
 	startingRoute: string,
 	target: 'forward' | 'review',
 	startLocation?: LocationNode
-): [string | null, 'forward' | 'review'] | undefined {
+): [string | null, 'forward' | 'review', string | null] | undefined {
 	// Searching: is currently searching for next incomplete segment
 	let searching = false;
 	if (!startLocation) searching = true;
@@ -54,8 +55,10 @@ export function findNextSegment(
 			// * get segment slug
 			const slug = getSegmentSlug(+id, locationTree, startingRoute);
 
+			console.log("label", segment, locationTree);
+
 			// == Searching is Over! == //
-			return [slug, target] as const;
+			return [slug, target, 'label'] as const;
 		} else {
 			// if not yet starting search, start search if start location has been found
 			if (startLocation?.segmentIds.includes(+id)) searching = true;

@@ -39,7 +39,7 @@
 <span
 	class="font-normal border-stone-600 dark:border-stone-600 bg-stone-200 dark:bg-stone-950 text-stone-950 dark:text-stone-100"
 >
-	<div class="w-full p-4 md:max-w-4xl md:mx-auto">
+	<div class="w-full px-4 bg-amber-300 md:max-w-4xl md:mx-auto">
 		{#if loading.active}
 			<LoadingModal />
 		{/if}

@@ -5,7 +5,7 @@
 
 <div
 	transition:fly={{ x: 10, duration: 100 }}
-	class="flex z-20 top-10 w-60 right-0 fixed border p-1 font-semibold -translate-x-30 shadow h-auto rounded-full cursor-progress text-lg
+	class="flex z-20 top-4 w-60 right-38 fixed border p-1 font-semibold -translate-x-30 shadow h-auto rounded-full cursor-progress text-lg
             dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
 >
 	<svg

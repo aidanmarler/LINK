@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { button } from '$lib/styles';
 	import { capitalizeFirstLetter } from '$lib/utils/utils';
 	import { fade } from 'svelte/transition';
 	let {
@@ -37,7 +38,7 @@
 		</p>
 
 		<p>
-			Each word or phrase will be translated from English into {language} in using two steps:
+			Each word or phrase will be translated from English into {language} using two steps:
 		</p>
 
 		<ol class="p-3">
@@ -55,10 +56,45 @@
 			be added to the ARC database to be used around the world!
 		</p>
 		<p class="text-base text-center">
-			If you do not know, <span class="font-bold"> skip</span>
+			If you do not know, <span class="font-bold"> skip</span><svg
+				class="w-5 h-5 inline mb-0.5 ml-0.5"
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 28 28"
+			>
+				<path
+					fill="currentColor"
+					d="M15.637 4.857c-1.066-.845-2.635-.086-2.635 1.273v4.57L5.636 4.858c-1.065-.845-2.634-.086-2.634 1.273V21.87c0 1.359 1.57 2.118 2.634 1.273l7.366-5.84v4.565c0 1.359 1.57 2.118 2.634 1.273l9.637-7.64a1.917 1.917 0 0 0 0-3.004z"
+				/>
+			</svg>
 		</p>
 		<p class="text-base text-center">
-			If you have something to say, <span class="font-bold">leave a comment</span>
+			If you have something to say, <span class="font-bold">leave a comment</span><svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				class="inline mb-0.5 ml-0.5"
+				height="24"
+				viewBox="0 0 24 24"
+			>
+				<path
+					fill="currentColor"
+					class=" h-5 stroke-2 w-5 inline"
+					d="M5 8a1 1 0 0 0 2 0V7h1a1 1 0 0 0 0-2H7V4a1 1 0 0 0-2 0v1H4a1 1 0 0 0 0 2h1Zm13-3h-6a1 1 0 0 0 0 2h6a1 1 0 0 1 1 1v9.72l-1.57-1.45a1 1 0 0 0-.68-.27H8a1 1 0 0 1-1-1v-3a1 1 0 0 0-2 0v3a3 3 0 0 0 3 3h8.36l3 2.73A1 1 0 0 0 20 21a1.1 1.1 0 0 0 .4-.08A1 1 0 0 0 21 20V8a3 3 0 0 0-3-3"
+				/>
+			</svg>
+		</p>
+
+		<p class="mt-10 mb-4 text-center">
+			⚠️ As this is LINK's Pilot Test, you will likely encounter bugs and issues when using the app.
+			When that happens, <a
+				target="_blank"
+				href="https://minimart.games"
+				title="Issue Report Form"
+				class="font-bold bg-stone-200 {button.simple
+					.active} rounded-lg p-0.5 px-1 hover:underline cursor-pointer"
+				>📋 please report the issue here.</a
+			>
 		</p>
 
 		<p class="text-center text-xl font-medium py-6">Thank you, and happy translating!</p>
