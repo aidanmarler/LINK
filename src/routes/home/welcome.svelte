@@ -89,7 +89,7 @@
 			⚠️ As this is LINK's Pilot Test, you will likely encounter bugs and issues when using the app.
 			When that happens, <a
 				target="_blank"
-				href="https://minimart.games"
+				href="https://ucdenver.co1.qualtrics.com/jfe/form/SV_8Bcvg9YcrkRHkt8"
 				title="Issue Report Form"
 				class="font-bold bg-stone-200 {button.simple
 					.active} rounded-lg p-0.5 px-1 hover:underline cursor-pointer"

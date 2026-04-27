@@ -44,7 +44,7 @@
 		title="Issue Report Form"
 			target="_blank"
 			class="hover:underline {button_A_active} not-italic p-1 px-3 font-semibold mb-5"
-			href="https://www.contagio.network/"
+			href="https://ucdenver.co1.qualtrics.com/jfe/form/SV_8Bcvg9YcrkRHkt8"
 		>
 			Report it here.</a
 		>
