@@ -12,7 +12,7 @@ import {
 	pullArcTranslations,
 	type ArcLanguageStructure,
 	type ArcStructure
-} from './pullArcTranslations';
+} from './export/pullArcTranslations';
 import { pullLink, type LinkSegments, type LinkTranslationsRecord } from './pullLink';
 import { supabase } from '../../supabaseClient';
 import _ from 'lodash';

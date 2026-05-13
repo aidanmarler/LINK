@@ -3,9 +3,9 @@
 	import { fly } from 'svelte/transition';
 	import { getArcVersions } from './getArcVersions';
 	import { goto } from '$app/navigation';
-	import { exportMain } from './export';
 	import { AddArcVersionToLink } from './githubToSupabaseNew';
 	import type { GithubLanguage } from '$lib/types';
+	import { exportToZip, exportToGit } from './export/export';
 
 	let arcVersions: Promise<Record<string, string[]>> = $state(getArcVersions());
 	let selectedVersion = $derived(Object.keys(arcVersions)[0]);
@@ -37,7 +37,11 @@
 						"
 					onclick={async () => {
 						//if (selectedVersion) await UpdateFromARC(selectedVersion, versions[selectedVersion] as GithubLanguage[]);
-						if (selectedVersion) await AddArcVersionToLink(selectedVersion, versions[selectedVersion] as GithubLanguage[]);
+						if (selectedVersion)
+							await AddArcVersionToLink(
+								selectedVersion,
+								versions[selectedVersion] as GithubLanguage[]
+							);
 						else console.error('no selected ARCH version');
 					}}
 				>
@@ -65,7 +69,7 @@
 						dark:border-green-600 dark:hover:bg-green-600/20
 					"
 					onclick={async () => {
-						const zipUrl = await exportMain(selectedVersion);
+						const zipUrl = await exportToZip(selectedVersion);
 
 						// Crazy gpt stuff -> creats an a and href then deletes it.
 						if (zipUrl) {
@@ -78,7 +82,19 @@
 						}
 					}}
 				>
-					Export LINK to CSV
+					Export LINK to .zip
+				</button>
+				<button
+					title="Push Test"
+					class="w-1/3 mt-1 min-w-60 h-8 opacity-80 hover:opacity-100 border-3 hover:shadow mr-2 font-semibold rounded-lg cursor-pointer
+						border-green-700 hover:bg-green-700/20
+						dark:border-green-600 dark:hover:bg-green-600/20
+					"
+					onclick={async () => {
+						await exportToGit(selectedVersion);
+					}}
+				>
+					Export LINK to GitHub
 				</button>
 				<ol>
 					<li>Exports LINK as a folder of CSVs</li>

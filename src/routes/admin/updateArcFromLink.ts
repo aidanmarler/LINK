@@ -1,5 +1,5 @@
 import type { OriginalSegmentRow } from '$lib/supabase/types';
-import type { ArcVersionStructure } from './pullArcTranslations';
+import type { ArcVersionStructure } from './export/pullArcTranslations';
 import type { LinkTranslation, LinkTranslationsRecord } from './pullLink';
 
 // == == Format arc to have needed new columns == == //
@@ -250,8 +250,8 @@ export const modifyArcFromLink = async (
 				const csvTranslated: Record<string, string>[] =
 					arc[v][langArc]['Lists'][segment.location[1]][segment.location[2] + '.csv'];
 
-				console.log('csvEnglish', segment.location, csvEnglish);
-				console.log('csvTranslated', segment.location, csvTranslated);
+				//console.log('csvEnglish', segment.location, csvEnglish);
+				//console.log('csvTranslated', segment.location, csvTranslated);
 				if (!csvEnglish || !csvTranslated) continue;
 
 				// + get item column name (contition, country, species, etc.)
@@ -377,7 +377,7 @@ export const modifyArcFromLink = async (
 			let ao_minimum = Infinity;
 
 			for (let i = 0; i < ao_array.length; i++) {
-				console.log(ao_array);
+				//console.log(ao_array);
 				if (!ao_array[i]) continue;
 				if (!answerMap[ao_array[i].trim()]) {
 					console.warn('Answer Map missing |' + ao_array[i].trim() + '|');

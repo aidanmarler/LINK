@@ -1,8 +1,9 @@
 import JSZip from 'jszip';
 import { pullArcTranslations, type ArcVersionStructure } from './pullArcTranslations';
 import Papa from 'papaparse';
-import { pullLink } from './pullLink';
-import { formatArc, modifyArcFromLink } from './updateArcFromLink';
+import { pullLink } from '../pullLink';
+import { formatArc, modifyArcFromLink } from '../updateArcFromLink';
+import { pushFolderToGitHub } from './pushToGithub';
 
 // == == Zip Tree Strucure, return blob == == //
 const zipFolderTree = async (tree: ArcVersionStructure): Promise<string> => {
@@ -44,8 +45,29 @@ const zipFolderTree = async (tree: ArcVersionStructure): Promise<string> => {
 	return zipUrl;
 };
 
+function flattenArcToFiles(modifiedArc: ArcVersionStructure): Record<string, string> {
+	const files: Record<string, string> = {};
+
+	function recurse(node: Record<string, unknown>, currentPath: string) {
+		for (const key in node) {
+			const value = node[key];
+			const nextPath = currentPath ? `${currentPath}/${key}` : key;
+
+			if (key.endsWith('.csv')) {
+				// Convert parsed data back to CSV string
+				files[nextPath] = Papa.unparse(Object.values(value as Record<string, unknown>));
+			} else if (typeof value === 'object' && value !== null) {
+				recurse(value as Record<string, unknown>, nextPath);
+			}
+		}
+	}
+
+	recurse(modifiedArc as unknown as Record<string, unknown>, '');
+	return files;
+}
+
 // == == MAIN == ==
-export async function exportMain(version: string) {
+export async function exportToZip(version: string) {
 	// ( 1 ) pull arc
 	const arc = await pullArcTranslations(version);
 
@@ -63,5 +85,29 @@ export async function exportMain(version: string) {
 	// ( 4 ) ZIP folder
 	const zipUrl = await zipFolderTree(modifiedArc);
 
+	// store modifedArc locally so I don't have to run this over and over
+
 	return zipUrl;
+}
+
+export async function exportToGit(version: string) {
+	// ( 1 ) pull arc
+	const arc = await pullArcTranslations(version);
+
+	// ( 2 ) pull link
+	const [segments, translationData] = await pullLink(version);
+
+	// ( 3 ) add new columns
+	const formattedArc = await formatArc(arc);
+
+	// ( 3 ) modify Arc-Translations
+	const modifiedArc = await modifyArcFromLink(formattedArc, segments, translationData);
+
+	console.log('modifiedArc', modifiedArc);
+
+	const files = flattenArcToFiles(modifiedArc);
+
+	console.log('files', files);
+
+	pushFolderToGitHub(files, `Update ARCH${version} translations`);
 }
