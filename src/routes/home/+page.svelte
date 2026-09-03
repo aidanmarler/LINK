@@ -6,6 +6,7 @@
 	import { findNextSegment } from '$lib/utils/nextSegment';
 	import DocumentSelect from './documentSelect.svelte';
 	import Welcome from './welcome.svelte';
+	import Instructions from './instructions.svelte';
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
@@ -13,6 +14,8 @@
 
 	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset);
 	let routes = ['arc', 'lists'];
+	const start_style =
+		'text-4xl font-bold hover:shadow-sm px-8 py-4 cursor-pointer rounded-xl';
 </script>
 
 {#if profile}
@@ -26,69 +29,14 @@
 	<div
 		in:fly|global={{ y: 20, duration: 500, delay: 100 }}
 		out:fly|global={{ y: 10, duration: 100 }}
+		class="w-full"
 	>
-		<div class="w-full">
-			<Welcome {profile} />
+		<Welcome {profile} />
 
-			<fieldset
-				class=" bg-stone-200 border {presetsOpen
-					? 'shadow-md border-stone-700'
-					: 'border-stone-400'} rounded-lg mb-15"
-			>
-				<legend class="ml-3 px-1 text-lg flex"
-					><button
-						onclick={() => (presetsOpen = !presetsOpen)}
-						class="font-bold flex hover:shadow-xs hover:underline object-center text-2xl px-1 pr-3 hover:bg-stone-100 rounded-lg cursor-pointer"
-						><svg
-							class="{presetsOpen
-								? 'rotate-90'
-								: ''} stroke-stone-900 dark:stroke-stone-200 duration-200 transition-transform h-8 w-8 p-1"
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-						>
-							<path
-								fill="none"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="3"
-								d="m9 5l6 7l-6 7"
-							/>
-						</svg>
-						Form to Translate
-					</button>
-					<p
-						class="h-full align-bottom origin-bottom object-bottom mt-0.5 px-2 font-serif italic bg-stone-300 rounded-xl mx-1"
-					>
-						{presetName}
-					</p>
-				</legend>
-				<div
-					class="{presetsOpen
-						? 'max-h-210 '
-						: 'max-h-0 '} transition-all overflow-scroll duration-400"
-				>
-					{#if presetsOpen}
-						<div class={style.border}>
-							{#await data.dataPromise}
-								<p>loading...</p>
-							{:then loadedData}
-								<DocumentSelect {profile} documents={loadedData.documents} />
-							{/await}
-						</div>
-					{/if}
-				</div>
-			</fieldset>
-		</div>
-
-		<div class="w-full flex justify-center">
+		<!--Start button-->
+		<div class="  w-full flex my-5 justify-center">
 			{#await data.dataPromise}
-				<button
-					class="{button.green} border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
-				>
-					Go to Next Segment
-				</button>
+				<button class="{button.green}  opacity-40 border-[3px] {start_style}"> START </button>
 			{:then loadedData}
 				{@const nextSegmentTuple = findNextSegment(
 					loadedData.locationTree,
@@ -104,19 +52,68 @@
 							goto(slug, { state: { form: nextSegmentTuple[1] } });
 						}}
 						class="{button.green.default} {button.green
-							.hover} border-[3px] text-lg right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
+							.hover}  opacity-90 border-[3px] hover:opacity-100 {start_style}"
 					>
-						Go to Next Segment: {slug.split('/').at(-1)}
+						START
 					</button>
 				{:else}
-					<div
-						class=" border-[3px] text-lg right-0 font-semibold opacity-40 hover:opacity-100 hover:shadow-sm px-4 cursor-pointer rounded-xl mt-5"
-					>
-						No more segments to translate!
-					</div>
+					<div class="  opacity-40 border-[3px] {start_style}">No more segments to translate!</div>
 				{/if}
 			{/await}
 		</div>
+
+		<Instructions language={profile.language ?? ''} />
+
+		<fieldset
+			class=" bg-stone-200 border {presetsOpen
+				? 'shadow-md border-stone-700'
+				: 'border-stone-400'} w-full rounded-lg mb-15"
+		>
+			<legend class="ml-3 px-1 text-lg flex"
+				><button
+					onclick={() => (presetsOpen = !presetsOpen)}
+					class="font-bold flex hover:shadow-xs hover:underline object-center text-2xl px-1 pr-3 hover:bg-stone-100 rounded-lg cursor-pointer"
+					><svg
+						class="{presetsOpen
+							? 'rotate-90'
+							: ''} stroke-stone-900 dark:stroke-stone-200 duration-200 transition-transform h-8 w-8 p-1"
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="none"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="3"
+							d="m9 5l6 7l-6 7"
+						/>
+					</svg>
+					Form to Translate
+				</button>
+				<p
+					class="h-full align-bottom origin-bottom object-bottom mt-0.5 px-2 font-serif italic bg-stone-300 rounded-xl mx-1"
+				>
+					{presetName}
+				</p>
+			</legend>
+
+			<div
+				class="transition-all overflow-auto duration-400
+							{presetsOpen ? 'max-h-220 ' : 'max-h-0 '} "
+			>
+				{#if presetsOpen}
+					<div class={style.border}>
+						{#await data.dataPromise}
+							<p>loading...</p>
+						{:then loadedData}
+							<DocumentSelect {profile} documents={loadedData.documents} />
+						{/await}
+					</div>
+				{/if}
+			</div>
+		</fieldset>
 
 		{#each routes as route}
 			<div class="w-full mt-5">
