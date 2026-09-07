@@ -1,6 +1,6 @@
 import type { TranslationLanguage } from '$lib/types';
 import { buildLocationTree, computeCompletion, type LocationNode } from '$lib/utils/locationTree';
-import { createSlugMapping } from '$lib/utils/slug';
+//import { createSlugMapping } from '$lib/utils/slug';
 import type { LayoutLoad } from './$types';
 //import { redirect } from '@sveltejs/kit';
 
@@ -104,7 +104,9 @@ async function loadDataProgressively(
 
 	// = ( 3 ) = Build location tree and slug mapping
 	const locationTree = buildLocationTree(original_segments || []);
-	const slugMapping = createSlugMapping(original_segments || []);
+	console.log("locationTree",locationTree);
+	//const slugMapping = createSlugMapping(original_segments || []);
+	//const locationList = 
 
 	// * Add progress to segmentMap
 	(translation_progress || []).forEach((t) => {
@@ -152,7 +154,8 @@ async function loadDataProgressively(
 	return {
 		segmentMap,
 		locationTree,
-		slugMapping,
+		
+		//slugMapping,
 		documents
 	};
 }

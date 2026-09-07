@@ -25,7 +25,7 @@
 	}: {
 		segmentMap: SegmentMap;
 		profile: Profile;
-		onsubmit: (shouldContinue: boolean) => Promise<void>;
+		onsubmit: (shouldContinue: boolean, forward: boolean) => Promise<void>;
 	} = $props();
 
 	// Store if actively saving to LINK database
@@ -197,7 +197,7 @@
 				if (newErrors) errors = newErrors;
 				saving = false;
 			}
-			await onsubmit(true);
+			await onsubmit(true, true);
 		}}
 		class=" border-[3px] text-lg right-0 font-semibold px-4 rounded-xl cursor-pointer
 		{button.green.default} {button.green.hover} "

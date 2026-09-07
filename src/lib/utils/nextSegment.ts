@@ -23,6 +23,80 @@ if has hit "starting segment", start searching.
 
 // Find next segment from segmentMap given a starting route,
 // location, form, label
+function initalizePath(root: LocationNode, startingLocation: string[]): LocationNode[] {
+	let current: LocationNode = root;
+	const path: LocationNode[] = [root];
+	for (const key of startingLocation) {
+		const value = current.children.get(key);
+		if (!value) return path;
+		current = value;
+		path.push(value);
+	}
+	return path;
+}
+
+// unconditional: we only ever call this once, right after arriving at `node`
+// via a fresh down/sideways move, so its children are guaranteed unexplored.
+const firstUnexploredChild = (node: LocationNode, forward: boolean): LocationNode | undefined => {
+	const children = Array.from(node.children.values());
+	if (children.length === 0) return undefined;
+	return forward ? children[0] : children[children.length - 1];
+};
+
+// index-based: find node's position among its parent's children, step +1/-1.
+const nextSibling = (path: LocationNode[], forward: boolean): LocationNode | undefined => {
+	if (path.length < 2) return undefined; // root has no siblings
+	const parent = path[path.length - 2];
+	const node = path[path.length - 1];
+	const siblings = Array.from(parent.children.values());
+	const idx = siblings.indexOf(node);
+	const target = siblings[idx + (forward ? 1 : -1)];
+	return target;
+};
+
+function traverse(path: LocationNode[], forward: boolean): LocationNode[] | undefined {
+	const node = path[path.length - 1];
+	console.log("trying:", node.name);
+
+	if (node.segmentIds.length > 0) {
+		console.log("success!", node.name);
+		return path;
+	}
+
+	// 1. deeper
+	const down = firstUnexploredChild(node, forward);
+	if (down) return traverse([...path, down], forward);
+
+	// 2. sideways — try at this level, then climb and try again, etc.
+	let climb = path;
+	while (climb.length > 1) {
+		const sib = nextSibling(climb, forward);
+		if (sib) return traverse([...climb.slice(0, -1), sib], forward);
+		climb = climb.slice(0, -1); // 3. out
+	}
+
+	return undefined; // exhausted the whole tree
+}
+
+export function initializeTraversal(locationTree: LocationNode, startingLocation: string[], forward: boolean) {
+	const path = initalizePath(locationTree, startingLocation);
+	console.log("Initialized traverse!", path.map(n => n.name), forward);
+
+	// don't let the starting node itself count as a hit — start the search
+	// from its first child / next sibling instead
+	const node = path[path.length - 1];
+	const down = firstUnexploredChild(node, forward);
+	if (down) return traverse([...path, down], forward);
+
+	let climb = path;
+	while (climb.length > 1) {
+		const sib = nextSibling(climb, forward);
+		if (sib) return traverse([...climb.slice(0, -1), sib], forward);
+		climb = climb.slice(0, -1);
+	}
+	return undefined;
+}
+
 export function findNextSegment(
 	locationTree: LocationNode,
 	segmentMap: SegmentMap,
@@ -55,7 +129,7 @@ export function findNextSegment(
 			// * get segment slug
 			const slug = getSegmentSlug(+id, locationTree, startingRoute);
 
-			console.log("label", segment, locationTree);
+			console.log('label', segment, locationTree);
 
 			// == Searching is Over! == //
 			return [slug, target, 'label'] as const;
@@ -74,11 +148,12 @@ export function findNextSegment(
 	}
 }
 
-function getSegmentSlug(
+export function getSegmentSlug(
 	segmentId: number,
 	locationTree: LocationNode,
 	startingRoute: string
 ): string | null {
+	//console.log("startingRoute", startingRoute)
 	const address = startingRoute + '/' + locationTree.slug;
 	//console.log('searching... ', address);
 	// Check if current node has segments
@@ -106,3 +181,12 @@ function getSegmentSlug(
 	// No valid segment found in this branch
 	return null;
 }
+
+/*
+
+Re-writing "next segment again!"
+
+We should store a list of all segments, therefore clearly ordered. 
+We should essentially be on segment[i], next = i+1, back = i-1
+
+*/

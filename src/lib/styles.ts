@@ -59,6 +59,11 @@ export const button = {
 		hover:
 			' hover:bg-green-600/50 hover:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 '
 	},
+	rose: {
+		default: ' border-rose-900 bg-rose-700/20 dark:border-rose-800 dark:bg-rose-900/50 ',
+		hover:
+			' hover:bg-rose-600/50 hover:border-rose-800 dark:hover:bg-rose-900 dark:hover:border-rose-600 '
+	},
 	stanley:
 		style.border_interactive +
 		' border cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white hover:underline ',

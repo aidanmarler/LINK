@@ -5,11 +5,11 @@
 	import { invalidate } from '$app/navigation';
 	import { button } from '$lib/styles';
 	import { UpdateProgress_ForwardSubmission } from '$lib/supabase/translationProgress';
-	import TranslateSegment from './translateSegment.svelte';
 	import { InsertForwardTranslations } from '$lib/supabase/utils';
 	import { sortSegmentMap } from '$lib/utils/utils';
-	import PlaceholderSegment from '../placeholderSegment.svelte';
-	import { loading } from '../../../../components/loading/loadingState.svelte';
+	import TranslateSegment from './forward/translateSegment.svelte';
+	import PlaceholderSegment from './placeholderSegment.svelte';
+	import { loading } from '../../../components/loading/loadingState.svelte';
 
 	let {
 		segmentMap,
@@ -69,7 +69,7 @@
 		});
 	});
 
-	async function handleSubmit(shouldContinue: boolean) {
+	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
 		const newForwardTranslations: ForwardTranslationInsert[] = [];
 
 		// Organize translation to push
@@ -114,7 +114,7 @@
 			await invalidate('app:data');
 		}
 
-		if (shouldContinue) await onsubmit(shouldContinue, true);
+		if (shouldContinue) await onsubmit(shouldContinue, forward);
 
 		loading.active = false;
 		return;
@@ -159,12 +159,36 @@
 	<br />
 {/each}
 
-<div class="w-full mt-2 justify-between max-w-2xl px-3 m-auto flex">
+<div class="w-full mt-2 justify-between px-3 m-auto flex">
+    <!-- Save & Continue -->
+	<button
+		onclick={async () => {
+			saving = true;
+			await handleSubmit(true, false);
+			translationsToPush = {};
+			Object.entries(segmentMap).forEach(([id, segmentData]) => {
+				if (!segmentData.forwardTranslation) {
+					if (!translationsToPush[+id]) {
+						translationsToPush[+id] = { translation: '', comment: '', skipped: false };
+					}
+				}
+			});
+			saving = false;
+		}}
+		class="text-lg border-[3px] transition-transform duration-100 right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm cursor-pointer px-4 rounded-xl
+		 {button.stone} {button.stoneHover}"
+	>
+		{#if canSave}
+			Save ({saveCount}) & Back
+		{:else}
+			Back
+		{/if}
+	</button>
 	<!-- Save -->
 	<button
 		onclick={async () => {
 			saving = true;
-			await handleSubmit(false);
+			await handleSubmit(false, false);
 			translationsToPush = {};
 			Object.entries(segmentMap).forEach(([id, segmentData]) => {
 				//console.log('id...', id);
@@ -178,7 +202,7 @@
 			});
 			saving = false;
 		}}
-		class="{button.stone} border-[3px] text-lg right-0 font-semibold {canSave
+		class="{button.stone}  text-lg right-0 font-semibold {canSave
 			? 'opacity-90 hover:opacity-100 hover:shadow-sm cursor-pointer ' + button.stoneHover
 			: 'opacity-40'} px-4 rounded-xl"
 	>
@@ -188,7 +212,7 @@
 	<button
 		onclick={async () => {
 			saving = true;
-			await handleSubmit(true);
+			await handleSubmit(true, true);
 			translationsToPush = {};
 			Object.entries(segmentMap).forEach(([id, segmentData]) => {
 				if (!segmentData.forwardTranslation) {

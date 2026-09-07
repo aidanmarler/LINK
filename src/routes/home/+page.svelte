@@ -12,6 +12,16 @@
 	let profile = $derived(data.profile);
 	let presetsOpen = $derived(!profile.selected_preset);
 
+	/*
+	onMount(async()=>{
+		const loadedData = await data.dataPromise 
+		const nextSegment = initializeTraversal(loadedData.locationTree, ['root'], true)
+		const lastSegment = initializeTraversal(loadedData.locationTree, ['root'], true)
+
+		console.log("nextSegment: ",nextSegment)
+		console.log("lastSegment: ",lastSegment)
+	})*/
+
 	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset);
 	let routes = ['arc', 'lists'];
 	const start_style =
