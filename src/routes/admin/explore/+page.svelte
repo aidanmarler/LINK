@@ -14,7 +14,7 @@
 	let tables: Record<string, null | Record<string, unknown>[]> = $state({});
 
 	onMount(async () => {
-		const startTime = performance.now();
+		//const startTime = performance.now();
 		console.log('Start PullLinkForReview');
 		const [
 			profiles,

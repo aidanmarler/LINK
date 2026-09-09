@@ -1,33 +1,40 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
-	import type { AuthSession } from '@supabase/supabase-js';
+	//import type { AuthSession } from '@supabase/supabase-js';
 	import ThemeManager from '../components/themeManager.svelte';
 	import { button_green, card_static, form_element } from '$lib/styles';
 	import { checkAdminStatus } from '$lib/supabase/auth';
 	import { goto } from '$app/navigation';
 	import { loading } from '../components/loading/loadingState.svelte';
 
-	let session: AuthSession | null;
-	let email: string = '';
-	let password: string = '';
+	//let session: AuthSession | null;
+	let email: string = $state('');
+	let password: string = $state('');
 
-	onMount(() => {
+	let { data } = $props();
+
+	onMount(async () => {
+		loading.active = false;
+		const profile = await data.profile
+		console.log('login loaded profile:', profile);
+		if (profile) window.location.href = '/home';
+		/*
 		supabase.auth.getSession().then(({ data }) => {
 			session = data.session;
-			if (session) {
-				window.location.href = '/home';
-			}
+			console.log('login loaded session:', session);
+
+			//if (session != undefined || null) window.location.href = '/home';
 		});
 
 		supabase.auth.onAuthStateChange((_event, _session) => {
 			session = _session;
-		});
+		});*/
 	});
 
 	async function handleSignIn(event: Event) {
 		loading.active = true;
-		loading.message = "Logging in..."
+		loading.message = 'Logging in...';
 		event.preventDefault();
 
 		const { data, error } = await supabase.auth.signInWithPassword({
@@ -37,7 +44,7 @@
 
 		if (error) {
 			loading.active = false;
-			
+
 			alert(error.message);
 			return;
 		}

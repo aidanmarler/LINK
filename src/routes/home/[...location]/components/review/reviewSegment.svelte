@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { card, } from '$lib/styles';
+	import { card } from '$lib/styles';
 	import type {
 		ForwardTranslationRow,
-		
 		ReviewComment,
 		TranslationReviewRow
 	} from '$lib/supabase/types';
@@ -74,15 +73,15 @@
 	<div class="flex p-0.5">
 		<!-- Open/Close Button-->
 		<button
-			class=" flex md:ml-4 group hover:underline cursor-pointer"
+			class=" flex group ml-[13px] bg-sky-500/20 text-stone-600 rounded-md hover:bg-sky-500/30 dark:text-stone-400 px-2 hover:underline cursor-pointer"
 			onclick={() => {
 				open = !open;
 			}}
 		>
 			<div
-				class="w-4 p-0.5 h-4 rounded-full
-					group-hover:bg-white group-hover:fill-stone-600 group-hover:stroke-stone-600 stroke-stone-500
-					dark:group-hover:bg-stone-800 dark:group-hover:fill-stone-400 dark:group-hover:stroke-stone-400 dark:stroke-stone-300"
+				class="w-4 p-0.5 h-4 flex justify-center align-middle rounded-full
+					 stroke-stone-500
+					 dark:stroke-stone-400"
 			>
 				{#if open}
 					<svg
@@ -117,7 +116,7 @@
 					</svg>{/if}
 			</div>
 
-			<span class="text-sm font-semibold italic text-stone-600">{typeLabels[label]}</span>
+			<span class="text-sm font-semibold italic text-stone-600">Review {typeLabels[label]}</span>
 		</button>
 		<!--Skip Button-->
 		<!--Completion Indicator-->

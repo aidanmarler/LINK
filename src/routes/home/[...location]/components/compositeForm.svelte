@@ -1,15 +1,29 @@
 <script lang="ts">
-	import type { ForwardTranslationInsert, SegmentData, SegmentMap } from '$lib/supabase/types';
+	import type {
+		RelatedTranslations,
+		SegmentData,
+		SegmentMap,
+		TranslationReviewRow
+	} from '$lib/supabase/types';
 	import { onMount } from 'svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
 	import { invalidate } from '$app/navigation';
 	import { button } from '$lib/styles';
-	import { UpdateProgress_ForwardSubmission } from '$lib/supabase/translationProgress';
-	import { InsertForwardTranslations } from '$lib/supabase/utils';
 	import { sortSegmentMap } from '$lib/utils/utils';
 	import TranslateSegment from './forward/translateSegment.svelte';
 	import PlaceholderSegment from './placeholderSegment.svelte';
 	import { loading } from '../../../components/loading/loadingState.svelte';
+	import { getRelatedReviews, getRelatedTranslations } from './review/reviewForm';
+	import {
+		blankPageTranslations,
+		getCompositeForm,
+		handlePageTranslationSubmission,
+		initPageTranslations,
+		transformPageForSubmission,
+		type PageSubmissions,
+		type PageTranslations
+	} from './compositeForm';
+	import ReviewSegment from './review/reviewSegment.svelte';
 
 	let {
 		segmentMap,
@@ -23,97 +37,91 @@
 
 	let saving: boolean = $state(false);
 
-	// Translations to push - bind to translation segments
-	let translationsToPush: Record<
-		number,
-		{ translation: string; comment: string; skipped: boolean }
-	> = $state({});
+	// Store translations related to the set of original ids
+	let pageTranslations: PageTranslations = $state(blankPageTranslations());
+	let relatedTranslations: RelatedTranslations = $state({});
+	let relatedReviews: Record<number, TranslationReviewRow[]> = $state({});
+	let errors: Record<number, string> = $state({});
 
-	let canSave: boolean = $derived.by(() => {
-		return Object.values(translationsToPush).some(
-			(t) => t.translation.trim().length > 0 || t.skipped
-		);
+	// Calculate what will be submitted
+	let pageSubmissions: PageSubmissions = $derived.by(() =>
+		transformPageForSubmission($state.snapshot(pageTranslations), profile)
+	);
+
+	let changeCount = $derived.by(() => {
+		let ids: Set<number> = new Set();
+		ids = new Set([...ids, ...pageSubmissions.forwardPush.map((r) => r.original_id)]);
+		ids = new Set([...ids, ...pageSubmissions.forwardEdit.map((r) => r.original_id)]);
+		ids = new Set([...ids, ...pageSubmissions.reviewPush.map((r) => r.original_id)]);
+		ids = new Set([...ids, ...pageSubmissions.reviewEdit.map((r) => r.original_id)]);
+
+		return ids.size;
 	});
 
-	let saveCount: number = $derived.by(() => {
-		return Object.values(translationsToPush).filter(
-			(t) => t.translation.trim().length > 0 || t.skipped
-		).length;
-	});
+	// Check if form can be saved
+	let canSave: boolean = $derived(changeCount > 0);
 
-	let translationsToPushFiltered = $derived.by(() => {
-		return Object.fromEntries(
-			Object.entries(translationsToPush).filter(
-				([_key, t]) => t.translation.trim().length > 0 || t.skipped
-			)
-		);
-	});
-
+	// Order segments by type
 	let sortedSegments: [number, SegmentData][] = $derived.by(() => {
 		return sortSegmentMap(segmentMap);
 	});
 
-	//$inspect(sortedSegments);
+	let fsegments: number = $derived(Object.keys(pageTranslations.forwardPush).length);
+	let rsegments: number = $derived(Object.keys(pageTranslations.reviewPush).length);
+	let pageTitle: string = $derived(
+		(sortedSegments[0][1].originalSegment.type == 'formLabel'
+			? 'Form: '
+			: sortedSegments[0][1].originalSegment.type == 'sectionLabel'
+				? 'Section: '
+				: '') + sortedSegments[0][1].originalSegment.segment.split(':')[0]
+	);
 
-	onMount(() => {
-		//console.log('segmentMap!', segmentMap);
-		Object.entries(segmentMap).forEach(([id, segmentData]) => {
-			//console.log('id...', id);
-			if (!segmentData.forwardTranslation) {
-				const numId = Number(id);
-				if (!translationsToPush[numId]) {
-					translationsToPush[numId] = { translation: '', comment: '', skipped: false };
-				}
-				//console.log(numId, translationsToPush);
+	// & Initialize comments from an empty object to showing each review that was considered
+	const initializeReviewCommentsToPush = (page: PageTranslations): PageTranslations => {
+		// For each original segment,
+		for (const oid in page.reviewPush) {
+			for (const t in relatedTranslations[+oid]) {
+				const tid = relatedTranslations[+oid][t][0].id;
+				page.reviewPush[+oid].comments[tid] = null;
 			}
-		});
+		}
+		return page;
+	};
+
+	onMount(async () => {
+		/* 
+			@Aidan:
+				pull this data on page load or with hover function, not on component mount.
+		*/
+
+		// pull related translations
+		relatedTranslations = await getRelatedTranslations(
+			Object.keys(segmentMap).map(Number),
+			profile.language as TranslationLanguage
+		);
+		relatedReviews = await getRelatedReviews(
+			Object.keys(segmentMap).map(Number),
+			profile.language as TranslationLanguage
+		);
+
+		pageTranslations = initPageTranslations(segmentMap, relatedReviews);
+
+		// pull other reviews for these segments
+		initializeReviewCommentsToPush(pageTranslations);
 	});
 
 	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
-		const newForwardTranslations: ForwardTranslationInsert[] = [];
+		loading.active = true;
 
-		// Organize translation to push
-		for (const id in translationsToPush) {
-			// Skip Translations if skip is pressed
-			if (translationsToPush[id].skipped == true) {
-				newForwardTranslations.push({
-					original_id: Number(id),
-					user_id: profile.id,
-					language: profile.language as TranslationLanguage,
-					translation: '',
-					comment: translationsToPush[id].comment,
-					skipped: translationsToPush[id].skipped
-				});
-			}
+		if (changeCount > 0) {
+			// Handle organizing and submitting changes to SupaBase
+			await handlePageTranslationSubmission(pageSubmissions, profile);
 
-			// Ignore if no text data
-			if (translationsToPush[id].translation == '') continue;
-
-			// New Translation
-			newForwardTranslations.push({
-				original_id: Number(id),
-				user_id: profile.id,
-				language: profile.language as TranslationLanguage,
-				translation: translationsToPush[id].translation.trim(),
-				comment: translationsToPush[id].comment.trim(),
-				skipped: translationsToPush[id].skipped
-			});
-		}
-
-		if (newForwardTranslations.length > 0) {
-			loading.message = 'Pushing translation...';
-			loading.active = true;
-			// Insert new translations to supabase ForwardTranslations table
-			await InsertForwardTranslations(newForwardTranslations);
-
-			// Handle check translation progress for submitted translations
-			await UpdateProgress_ForwardSubmission(newForwardTranslations, 'forward');
-
-			// Invalidate data so that it reloads current data.
-			//await invalidateAll();
+			// Reload data
 			await invalidate('app:data');
 		}
 
+		// Tell page to move through tree
 		if (shouldContinue) await onsubmit(shouldContinue, forward);
 
 		loading.active = false;
@@ -121,11 +129,38 @@
 	}
 </script>
 
+<h1 class="font-semibold text-3xl text-center my-4 ml-5 text-stone-600 dark:text-stone-400">
+	{pageTitle}
+</h1>
+<p class="font-normal flex text-md px-20 justify-center text-stone-700 dark:text-stone-300">
+	<span class="{fsegments == 0 ? 'opacity-30' : 'bg-green-500/30'} px-4 mr-1 rounded-lg">
+		<span class=" rounded-full">Translate <b>{fsegments}</b></span>
+		<span class=""></span> segment{fsegments == 1 ? '' : 's'}
+	</span>
+	<span class="{rsegments == 0 ? 'opacity-30' : 'bg-sky-500/30'} px-4 ml-1 rounded-lg">
+		<span class=" rounded-full">Review <b>{rsegments}</b></span>
+		<span class=""></span> segment{rsegments == 1 ? '' : 's'}
+	</span>
+</p>
 <br />
 
 {#each sortedSegments as [id, segmentData], _i (id)}
-	{#if segmentData.forwardTranslation}
-		<!-- Complete -->
+	{@const form = getCompositeForm(pageTranslations, id)}
+	{@const reviews = relatedReviews[+id] ?? []}
+	{#if form == 'forwardPush'}
+		forwardPush
+		<TranslateSegment
+			completed={false}
+			open={true}
+			label={segmentData.originalSegment.type}
+			segment={segmentData.originalSegment.segment}
+			saving={saving && pageSubmissions.reviewPush.map((r) => r.original_id).includes(id)}
+			bind:translation={pageTranslations.forwardPush[id].translation}
+			bind:comment={pageTranslations.forwardPush[id].comment}
+			bind:skipped={pageTranslations.forwardPush[id].skipped}
+		/>
+	{:else if form == 'forwardEdit' && segmentData.forwardTranslation}
+		forwardEdit
 		<TranslateSegment
 			completed={true}
 			open={true}
@@ -138,96 +173,155 @@
 			comment={segmentData.forwardTranslation.comment}
 			skipped={segmentData.forwardTranslation.skipped}
 		/>
-	{:else if segmentData.translationProgress && segmentData.translationProgress.translation_step !== 'forward'}
+	{:else if form == 'forwardLocked' && segmentData.forwardTranslation}
+		forwardLocked
+		<TranslateSegment
+			completed={true}
+			open={true}
+			label={segmentData.originalSegment.type}
+			segment={segmentData.originalSegment.segment}
+			saving={false}
+			translation={segmentData.forwardTranslation.translation
+				? segmentData.forwardTranslation.translation
+				: ''}
+			comment={segmentData.forwardTranslation.comment}
+			skipped={segmentData.forwardTranslation.skipped}
+		/>
+	{:else if form == 'reviewPush'}
+		reviewPush
+		<ReviewSegment
+			completed={false}
+			open={true}
+			label={segmentData.originalSegment.type}
+			segment={segmentData.originalSegment.segment}
+			options={relatedTranslations[+id]}
+			relatedReviews={reviews}
+			error={errors[+id]}
+			saving={saving && pageSubmissions.reviewPush.map((r) => r.original_id).includes(id)}
+			bind:selectedTranslation={pageTranslations.reviewPush[id].translation_id}
+			bind:comments={pageTranslations.reviewPush[id].comments}
+			bind:ftranslation={pageTranslations.reviewPush[id].ftranslation}
+			bind:fcomment={pageTranslations.reviewPush[id].fcomment}
+		/>
+	{:else if form == 'reviewEdit' && segmentData.translationReview}
+		reviewEdit
+		<ReviewSegment
+			completed={false}
+			open={true}
+			label={segmentData.originalSegment.type}
+			segment={segmentData.originalSegment.segment}
+			options={relatedTranslations[+id]}
+			relatedReviews={reviews}
+			error={undefined}
+			saving={false}
+			selectedTranslation={segmentData.translationReview.translation_id}
+			comments={segmentData.translationReview.comments as Record<number, string | null>}
+			ftranslation={null}
+			fcomment={null}
+		/>
+	{:else if form == 'reviewLocked' && segmentData.translationReview}
+		reviewLocked
+		<ReviewSegment
+			completed={true}
+			open={true}
+			label={segmentData.originalSegment.type}
+			segment={segmentData.originalSegment.segment}
+			options={relatedTranslations[+id]}
+			relatedReviews={reviews}
+			error={undefined}
+			saving={false}
+			selectedTranslation={segmentData.translationReview.translation_id}
+			comments={segmentData.translationReview.comments as Record<number, string | null>}
+			ftranslation={null}
+			fcomment={null}
+		/>
+	{:else}
+		{'form: ' + form}
 		<PlaceholderSegment
 			open={true}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 		/>
-	{:else if Object.entries(translationsToPush).length > 0}
-		<!-- Incomplete -->
-		<TranslateSegment
-			completed={false}
-			open={true}
-			label={segmentData.originalSegment.type}
-			segment={segmentData.originalSegment.segment}
-			saving={saving && Object.keys(translationsToPushFiltered).includes(String(id))}
-			bind:translation={translationsToPush[id].translation}
-			bind:comment={translationsToPush[id].comment}
-			bind:skipped={translationsToPush[id].skipped}
-		/>{/if}
+	{/if}
 	<br />
 {/each}
 
+<!-- Back, Save, Continue -->
+
 <div class="w-full mt-2 justify-between px-3 m-auto flex">
-    <!-- Save & Continue -->
+	<!-- Back -->
 	<button
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(true, false);
-			translationsToPush = {};
+			/*
+			DEPtranslationsToPush = {};
 			Object.entries(segmentMap).forEach(([id, segmentData]) => {
 				if (!segmentData.forwardTranslation) {
-					if (!translationsToPush[+id]) {
-						translationsToPush[+id] = { translation: '', comment: '', skipped: false };
+					if (!DEPtranslationsToPush[+id]) {
+						DEPtranslationsToPush[+id] = { translation: '', comment: '', skipped: false };
 					}
 				}
-			});
+			});*/
 			saving = false;
 		}}
 		class="text-lg border-[3px] transition-transform duration-100 right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm cursor-pointer px-4 rounded-xl
 		 {button.stone} {button.stoneHover}"
 	>
 		{#if canSave}
-			Save ({saveCount}) & Back
+			Save ({changeCount}) & Back
 		{:else}
 			Back
 		{/if}
 	</button>
+
 	<!-- Save -->
 	<button
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(false, false);
-			translationsToPush = {};
+			/*
+			DEPtranslationsToPush = {};
 			Object.entries(segmentMap).forEach(([id, segmentData]) => {
 				//console.log('id...', id);
 				if (!segmentData.forwardTranslation) {
 					const numId = Number(id);
-					if (!translationsToPush[numId]) {
-						translationsToPush[numId] = { translation: '', comment: '', skipped: false };
+					if (!DEPtranslationsToPush[numId]) {
+						DEPtranslationsToPush[numId] = { translation: '', comment: '', skipped: false };
 					}
 					//console.log(numId, translationsToPush);
 				}
-			});
+			});*/
 			saving = false;
 		}}
 		class="{button.stone}  text-lg right-0 font-semibold {canSave
 			? 'opacity-90 hover:opacity-100 hover:shadow-sm cursor-pointer ' + button.stoneHover
 			: 'opacity-40'} px-4 rounded-xl"
 	>
-		Save ({saveCount})
+		Save ({changeCount})
 	</button>
+
 	<!-- Save & Continue -->
 	<button
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(true, true);
-			translationsToPush = {};
+			/*
+			DEPtranslationsToPush = {};
 			Object.entries(segmentMap).forEach(([id, segmentData]) => {
 				if (!segmentData.forwardTranslation) {
-					if (!translationsToPush[+id]) {
-						translationsToPush[+id] = { translation: '', comment: '', skipped: false };
+					if (!DEPtranslationsToPush[+id]) {
+						DEPtranslationsToPush[+id] = { translation: '', comment: '', skipped: false };
 					}
 				}
-			});
+			});*/
 			saving = false;
 		}}
 		class="border-[3px] text-lg transition-transform duration-100 right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm cursor-pointer px-4 rounded-xl
 		{button.green.default} {button.green.hover}"
 	>
 		{#if canSave}
-			Save ({saveCount}) & Continue
+			Save ({changeCount}) & Continue
 		{:else}
 			Continue
 		{/if}

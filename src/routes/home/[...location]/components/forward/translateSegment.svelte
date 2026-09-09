@@ -42,18 +42,18 @@
 <div class=" md:ml-4">
 	<div class="w-full flex justify-between">
 		<div class="flex mr-7 w-full justify-between items-center">
-			<div class="flex w-1/3">
+			<div class="flex w-1/2">
 				<!-- Open/Close Button -->
 				<button
-					class=" flex group hover:underline cursor-pointer"
+					class=" flex group bg-green-500/20 text-stone-600  rounded-md hover:bg-green-500/30 dark:text-stone-400 px-2 hover:underline cursor-pointer"
 					onclick={() => {
 						open = !open;
 					}}
 				>
 					<div
 						class="w-4 p-0.5 h-4 rounded-full
-					group-hover:bg-white group-hover:fill-stone-600 group-hover:stroke-stone-600 stroke-stone-500
-					dark:group-hover:bg-stone-800 dark:group-hover:fill-stone-400 dark:group-hover:stroke-stone-400 dark:stroke-stone-300"
+					  stroke-stone-500
+					  dark:stroke-stone-400"
 					>
 						{#if open}
 							<svg
@@ -88,7 +88,7 @@
 							</svg>{/if}
 					</div>
 
-					<span class="text-sm font-semibold italic text-stone-600">{typeLabels[label]}</span>
+					<span class="text-sm font-semibold italic">Translate {typeLabels[label]}</span>
 				</button>
 
 				<!-- Completion Indicator -->
@@ -101,7 +101,7 @@
 				/>
 			</div>
 
-			<div class="flex h-6 w-2/3">
+			<div class="flex h-6">
 				<!-- Skip button -->
 				{#if !completed && open}
 					<button
@@ -141,26 +141,26 @@
 		{#if open}
 			<div
 				in:fade={{ duration: 200 }}
-				class="rounded-md border-2 w-full flex {completed ? 'opacity-70' : '  '} {completed
-					? card.translate.complete
-					: card.translate.incomplete}"
+				class="rounded-md border-2 w-full z-4 flex flex-col {completed
+					? 'opacity-70'
+					: '  '} {completed ? card.translate.complete : card.translate.incomplete}"
 			>
 				<!--Original Segment-->
-				<div class="w-1/3 border-r-2 border-inherit px-2">
+				<div class="w-full border-b-2 border-inherit px-2">
 					{segment}
 				</div>
 				<!--Translation Area-->
 				{#if skipped}
 					<!-- skipped message -->
-					<div class=" w-2/3 px-2 italic opacity-60">Translation Skipped</div>
+					<div class=" w-full px-2 italic opacity-60">Translation Skipped</div>
 				{:else if completed}
 					<!-- existing translation -->
-					<div class=" w-2/3 px-2">{translation}</div>
+					<div class=" w-full px-2">{translation}</div>
 				{:else}
 					<!-- text input translation -->
 					<textarea
 						placeholder="Translate segment here..."
-						class="bg-white rounded-r dark:bg-black w-2/3 px-2 min-h-full"
+						class="bg-white z-20 rounded-b dark:bg-stone-800 w-full px-2 min-h-6"
 						rows="1"
 						bind:value={translation}
 					></textarea>
