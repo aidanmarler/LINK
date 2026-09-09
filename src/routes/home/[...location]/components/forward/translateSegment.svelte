@@ -7,9 +7,12 @@
 	import CommentViewer from '../commentViewer.svelte';
 	import CompletionIndicator from '../completionIndicator.svelte';
 	import type { Database } from '$lib/supabase/database.types';
+	import { onMount } from 'svelte';
 
 	let {
 		completed,
+		canEdit,
+		editing,
 		label,
 		segment,
 		saving,
@@ -19,6 +22,8 @@
 		skipped = $bindable()
 	}: {
 		completed: boolean;
+		canEdit: boolean;
+		editing: boolean;
 		label: Database['public']['Enums']['SegmentType'];
 		segment: string;
 		saving: boolean;
@@ -28,7 +33,10 @@
 		skipped: boolean;
 	} = $props();
 
+	let interactable = $derived(!completed || (completed && editing));
+
 	let inProgress: boolean = $derived(translation.trim().length > 0);
+	let ogText: string = $state('');
 
 	let _completion: 'inProgress' | 'forwardTranslated' | 'skipped' | 'toForwardTranslate' =
 		$derived.by(() => {
@@ -37,6 +45,10 @@
 			if (skipped) return 'skipped';
 			return 'toForwardTranslate';
 		});
+
+	onMount(() => {
+		ogText = translation;
+	});
 </script>
 
 <div class=" md:ml-4">
@@ -45,7 +57,8 @@
 			<div class="flex w-1/2">
 				<!-- Open/Close Button -->
 				<button
-					class=" flex group bg-green-500/20 text-stone-600  rounded-md hover:bg-green-500/30 dark:text-stone-400 px-2 hover:underline cursor-pointer"
+					class=" {!interactable ? ' opacity-50  ' : ''} 
+					flex group bg-green-500/20 hover:bg-green-500/30 text-stone-600 rounded-md dark:text-stone-400 px-2 hover:underline cursor-pointer"
 					onclick={() => {
 						open = !open;
 					}}
@@ -93,6 +106,7 @@
 
 				<!-- Completion Indicator -->
 				<CompletionIndicator
+					{editing}
 					{completed}
 					{inProgress}
 					{skipped}
@@ -103,7 +117,7 @@
 
 			<div class="flex h-6">
 				<!-- Skip button -->
-				{#if !completed && open}
+				{#if interactable && open}
 					<button
 						in:fade={{ duration: 100 }}
 						title="Skip translating this segment"
@@ -133,6 +147,52 @@
 						</div>
 					</button>
 				{/if}
+				<!--Edit-->
+				{#if canEdit && open}
+					<button
+						in:fade={{ duration: 100 }}
+						title="Edit submitted translation"
+						class=" ml-1 flex items-center pl-2.5 pr-1 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
+						 {editing
+							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
+							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
+						onclick={() => {
+							editing = !editing;
+						}}
+					>
+						<span class="text-sm font-bold">Edit</span>
+
+						<div class="w-5 px-0.5 text-inherit h-full">
+							<svg
+								class="w-full h-full"
+								xmlns="http://www.w3.org/2000/svg"
+								width="1024"
+								height="1024"
+								viewBox="0 0 1024 1024"
+							>
+								<path d="M0 0h1024v1024H0z" fill="none" />
+								<path
+									fill="currentColor"
+									d="M880 836H144c-17.7 0-32 14.3-32 32v36c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-36c0-17.7-14.3-32-32-32m-622.3-84c2 0 4-.2 6-.5L431.9 722c2-.4 3.9-1.3 5.3-2.8l423.9-423.9a9.96 9.96 0 0 0 0-14.1L694.9 114.9c-1.9-1.9-4.4-2.9-7.1-2.9s-5.2 1-7.1 2.9L256.8 538.8c-1.5 1.5-2.4 3.3-2.8 5.3l-29.5 168.2a33.5 33.5 0 0 0 9.4 29.8c6.6 6.4 14.9 9.9 23.8 9.9"
+								/>
+							</svg>
+							<!--
+							<svg
+								class="w-full h-full"
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+							>
+								<path d="M0 0h24v24H0z" fill="none" />
+								<path
+									fill="currentColor"
+									d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"
+								/>
+							</svg>-->
+						</div>
+					</button>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -141,9 +201,9 @@
 		{#if open}
 			<div
 				in:fade={{ duration: 200 }}
-				class="rounded-md border-2 w-full z-4 flex flex-col {completed
+				class="rounded-md border-2 w-full z-4 flex flex-col {!interactable
 					? 'opacity-70'
-					: '  '} {completed ? card.translate.complete : card.translate.incomplete}"
+					: '  '} {!interactable ? card.translate.complete : card.translate.incomplete}"
 			>
 				<!--Original Segment-->
 				<div class="w-full border-b-2 border-inherit px-2">
@@ -153,9 +213,9 @@
 				{#if skipped}
 					<!-- skipped message -->
 					<div class=" w-full px-2 italic opacity-60">Translation Skipped</div>
-				{:else if completed}
+				{:else if !interactable}
 					<!-- existing translation -->
-					<div class=" w-full px-2">{translation}</div>
+					<div class=" w-full px-2">{ogText}</div>
 				{:else}
 					<!-- text input translation -->
 					<textarea
@@ -169,7 +229,7 @@
 
 			<!--Comment button-->
 			<div class="w-6 p-0.5 h-5">
-				<CommentViewer bind:completed bind:comment />
+				<CommentViewer completed={!interactable} bind:comment />
 			</div>
 		{/if}
 	</div>

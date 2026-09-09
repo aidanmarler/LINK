@@ -145,12 +145,14 @@
 <br />
 
 {#each sortedSegments as [id, segmentData], _i (id)}
-	{@const form = getCompositeForm(pageTranslations, id)}
+	{@const form = getCompositeForm($state.snapshot(pageTranslations), id)}
+	{form}
 	{@const reviews = relatedReviews[+id] ?? []}
 	{#if form == 'forwardPush'}
-		forwardPush
 		<TranslateSegment
 			completed={false}
+			canEdit={false}
+			editing={false}
 			open={true}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
@@ -160,10 +162,11 @@
 			bind:skipped={pageTranslations.forwardPush[id].skipped}
 		/>
 	{:else if form == 'forwardEdit' && segmentData.forwardTranslation}
-		forwardEdit
 		<TranslateSegment
 			completed={true}
 			open={true}
+			canEdit={true}
+			editing={false}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
@@ -174,10 +177,11 @@
 			skipped={segmentData.forwardTranslation.skipped}
 		/>
 	{:else if form == 'forwardLocked' && segmentData.forwardTranslation}
-		forwardLocked
 		<TranslateSegment
 			completed={true}
 			open={true}
+			canEdit={false}
+			editing={false}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
@@ -188,7 +192,6 @@
 			skipped={segmentData.forwardTranslation.skipped}
 		/>
 	{:else if form == 'reviewPush'}
-		reviewPush
 		<ReviewSegment
 			completed={false}
 			open={true}
@@ -204,7 +207,6 @@
 			bind:fcomment={pageTranslations.reviewPush[id].fcomment}
 		/>
 	{:else if form == 'reviewEdit' && segmentData.translationReview}
-		reviewEdit
 		<ReviewSegment
 			completed={false}
 			open={true}
@@ -220,7 +222,6 @@
 			fcomment={null}
 		/>
 	{:else if form == 'reviewLocked' && segmentData.translationReview}
-		reviewLocked
 		<ReviewSegment
 			completed={true}
 			open={true}
@@ -236,7 +237,6 @@
 			fcomment={null}
 		/>
 	{:else}
-		{'form: ' + form}
 		<PlaceholderSegment
 			open={true}
 			label={segmentData.originalSegment.type}

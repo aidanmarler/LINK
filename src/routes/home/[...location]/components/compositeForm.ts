@@ -95,12 +95,16 @@ export function initPageTranslations(
 
 			// If something pushed, but no reviewed, allow edit
 			if (!reviewed) {
+				//console.log("Forward Edit! ", segmentData.forwardTranslation, reviewed)
+
 				page.forwardEdit.push(+id);
 				continue;
 			}
 
 			// If something pushed and reviewed, lock from interaction
 			else if (reviewed && inForward) {
+				//console.log("Forward Locked! ", segmentData.forwardTranslation, reviewed)
+
 				page.forwardLocked.push(+id);
 				continue;
 			}
@@ -145,8 +149,14 @@ export function initPageTranslations(
 
 // & Given a segment id, get which form it populates with ( forwardPush et al. )
 export function getCompositeForm(pageTranslations: PageTranslations, id: number) {
+	console.log(pageTranslations);
 	for (const key of Object.keys(pageTranslations) as (keyof PageTranslations)[]) {
-		if (id in pageTranslations[key]) return key;
+		const value = pageTranslations[key];
+		if (Array.isArray(value)) {
+			if (value.includes(id as number)) return key;
+		} else {
+			if (id in value) return key;
+		}
 	}
 	return undefined;
 }
@@ -156,6 +166,46 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 	// @ aidan: finish setting this up for Forward Translations and Forward Edits
 
 	const submissions: PageSubmissions = blankPageSubmissions();
+
+	const handleForwardPush = () => {
+		const newForwardTranslations: ForwardTranslationInsert[] = [];
+
+		// Organize translation to push
+		for (const id in page.forwardPush) {
+			// Skip Translations if skip is pressed
+			if (page.forwardPush[id].skipped == true) {
+				newForwardTranslations.push({
+					original_id: Number(id),
+					user_id: profile.id,
+					language: profile.language as TranslationLanguage,
+					translation: '',
+					comment: page.forwardPush[id].comment,
+					skipped: page.forwardPush[id].skipped
+				});
+			}
+
+			// Ignore if no text data
+			if (page.forwardPush[id].translation == '') continue;
+
+			// New Translation
+			newForwardTranslations.push({
+				original_id: Number(id),
+				user_id: profile.id,
+				language: profile.language as TranslationLanguage,
+				translation: page.forwardPush[id].translation.trim(),
+				comment: page.forwardPush[id].comment.trim(),
+				skipped: page.forwardPush[id].skipped
+			});
+		}
+
+		return newForwardTranslations;
+	};
+
+	const handleForwardEdit = () => {
+		//console.log('handleForwardEdit', page.forwardEdit);
+		const newForwardEdits: ForwardTranslationRow[] = [];
+		return newForwardEdits;
+	};
 
 	const handleReviewPush = () => {
 		// Stored userReview minus ones they didn't fill out
@@ -213,7 +263,7 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 				if (c == '') cleanedReviews[+id].comments[+i] = null;
 			}
 
-			console.log('commentAdded', commentAdded);
+			//console.log('commentAdded', commentAdded);
 
 			// If translation id is a number, we know they selected one
 			if (typeof filteredReviews[+id].translation_id == 'number') {
@@ -242,10 +292,12 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 				errors[+id] = 'No translation selected';
 		}
 
+		/*
 		console.log('  page.reviewPush', page.reviewPush);
 		console.log('  filteredReviews', filteredReviews);
 		console.log('  cleanedReviews', cleanedReviews);
 		console.log('  errors', errors);
+		*/
 
 		const newTranslations: ForwardTranslationInsert[] = [];
 		const newReviews: TranslationReviewInsert[] = [];
@@ -290,9 +342,7 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 			}
 		}
 
-		console.log('  newTranslations', newTranslations);
-		console.log('  newReviews', newReviews);
-		console.log('  errors', errors);
+		//console.log('  errors', errors);
 
 		if (Object.values(errors).length > 0) {
 			console.warn("sorry, won't submit with errors");
@@ -302,10 +352,12 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 		return { newTranslations: newTranslations, newReviews: newReviews, errors: errors };
 	};
 
-	const handleForwardPush = () => {}
-
 	// Handle adding page pushes
+	const forwardPushData = handleForwardPush();
+	const forwardEditData = handleForwardEdit();
 	const reviewPushData = handleReviewPush();
+	submissions.forwardPush.push(...forwardPushData);
+	submissions.forwardEdit.push(...forwardEditData);
 	submissions.forwardPush.push(...reviewPushData.newTranslations);
 	submissions.reviewPush.push(...reviewPushData.newReviews);
 	console.log('  submissions', submissions);
