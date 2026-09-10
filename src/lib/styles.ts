@@ -77,8 +77,8 @@ export const button = {
 
 export const card = {
 	translate: {
-		complete: ' border font-medium dark:border-stone-700 dark:bg-stone-950 ',
+		complete: ' shadow-sm shadow-stone-700/0 border font-medium border-stone-600  dark:border-stone-700 dark:bg-stone-950 ',
 		incomplete:
-			' shadow-sm shadow-stone-700/10 border font-medium dark:border-stone-700 dark:bg-stone-950 '
+			' shadow-sm shadow-stone-700/20 border font-medium dark:border-stone-700 dark:bg-stone-950 '
 	}
 };

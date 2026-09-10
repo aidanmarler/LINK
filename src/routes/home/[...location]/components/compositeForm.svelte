@@ -7,7 +7,6 @@
 	} from '$lib/supabase/types';
 	import { onMount } from 'svelte';
 	import type { Profile, TranslationLanguage } from '$lib/types';
-	import { invalidate } from '$app/navigation';
 	import { button } from '$lib/styles';
 	import { sortSegmentMap } from '$lib/utils/utils';
 	import TranslateSegment from './forward/translateSegment.svelte';
@@ -16,12 +15,14 @@
 	import { getRelatedReviews, getRelatedTranslations } from './review/reviewForm';
 	import {
 		blankPageTranslations,
+		blankTranslationVariables,
 		getCompositeForm,
 		handlePageTranslationSubmission,
 		initPageTranslations,
 		transformPageForSubmission,
 		type PageSubmissions,
-		type PageTranslations
+		type PageTranslations,
+		type TranslationVariables
 	} from './compositeForm';
 	import ReviewSegment from './review/reviewSegment.svelte';
 
@@ -42,10 +43,11 @@
 	let relatedTranslations: RelatedTranslations = $state({});
 	let relatedReviews: Record<number, TranslationReviewRow[]> = $state({});
 	let errors: Record<number, string> = $state({});
+	let segmentsEditing: Record<number, boolean> = $state({});
 
 	// Calculate what will be submitted
 	let pageSubmissions: PageSubmissions = $derived.by(() =>
-		transformPageForSubmission($state.snapshot(pageTranslations), profile)
+		transformPageForSubmission($state.snapshot(pageTranslations), sortedSegments, segmentsEditing, profile)
 	);
 
 	let changeCount = $derived.by(() => {
@@ -62,9 +64,10 @@
 	let canSave: boolean = $derived(changeCount > 0);
 
 	// Order segments by type
-	let sortedSegments: [number, SegmentData][] = $derived.by(() => {
-		return sortSegmentMap(segmentMap);
-	});
+	let sortedSegments: [number, SegmentData][] = $derived.by(() => sortSegmentMap(segmentMap));
+
+	$inspect(sortedSegments);
+	//$inspect(segmentMap);
 
 	let fsegments: number = $derived(Object.keys(pageTranslations.forwardPush).length);
 	let rsegments: number = $derived(Object.keys(pageTranslations.reviewPush).length);
@@ -104,21 +107,24 @@
 			profile.language as TranslationLanguage
 		);
 
-		pageTranslations = initPageTranslations(segmentMap, relatedReviews);
+		[pageTranslations, segmentsEditing] = initPageTranslations(segmentMap, relatedReviews);
 
 		// pull other reviews for these segments
 		initializeReviewCommentsToPush(pageTranslations);
+
 	});
 
 	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
 		loading.active = true;
+
+		console.log('changeCount: ', changeCount);
 
 		if (changeCount > 0) {
 			// Handle organizing and submitting changes to SupaBase
 			await handlePageTranslationSubmission(pageSubmissions, profile);
 
 			// Reload data
-			await invalidate('app:data');
+			//await invalidate('app:data');
 		}
 
 		// Tell page to move through tree
@@ -129,6 +135,7 @@
 	}
 </script>
 
+{Object.keys(pageTranslations.forwardPush)}
 <h1 class="font-semibold text-3xl text-center my-4 ml-5 text-stone-600 dark:text-stone-400">
 	{pageTitle}
 </h1>
@@ -147,49 +154,53 @@
 {#each sortedSegments as [id, segmentData], _i (id)}
 	{@const form = getCompositeForm($state.snapshot(pageTranslations), id)}
 	{form}
+	{segmentData.forwardTranslation?.translation}
 	{@const reviews = relatedReviews[+id] ?? []}
 	{#if form == 'forwardPush'}
 		<TranslateSegment
 			completed={false}
 			canEdit={false}
-			editing={false}
 			open={true}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={saving && pageSubmissions.reviewPush.map((r) => r.original_id).includes(id)}
-			bind:translation={pageTranslations.forwardPush[id].translation}
-			bind:comment={pageTranslations.forwardPush[id].comment}
-			bind:skipped={pageTranslations.forwardPush[id].skipped}
+			submittedData={blankTranslationVariables()}
+			editing={false}
+			bind:newData={pageTranslations.forwardPush[id]}
 		/>
 	{:else if form == 'forwardEdit' && segmentData.forwardTranslation}
+		{@const submittedData: TranslationVariables = { 
+				translation: segmentData.forwardTranslation.translation ?? '',
+				comment:segmentData.forwardTranslation.comment,
+				skipped:segmentData.forwardTranslation.skipped
+			}}
 		<TranslateSegment
 			completed={true}
 			open={true}
 			canEdit={true}
-			editing={false}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
-			translation={segmentData.forwardTranslation.translation
-				? segmentData.forwardTranslation.translation
-				: ''}
-			comment={segmentData.forwardTranslation.comment}
-			skipped={segmentData.forwardTranslation.skipped}
+			{submittedData}
+			bind:editing={segmentsEditing[id]}
+			bind:newData={pageTranslations.forwardEdit[id]}
 		/>
 	{:else if form == 'forwardLocked' && segmentData.forwardTranslation}
+		{@const submittedData: TranslationVariables = { 
+				translation: segmentData.forwardTranslation.translation ?? '',
+				comment:segmentData.forwardTranslation.comment,
+				skipped:segmentData.forwardTranslation.skipped
+			}}
 		<TranslateSegment
 			completed={true}
 			open={true}
 			canEdit={false}
-			editing={false}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
-			translation={segmentData.forwardTranslation.translation
-				? segmentData.forwardTranslation.translation
-				: ''}
-			comment={segmentData.forwardTranslation.comment}
-			skipped={segmentData.forwardTranslation.skipped}
+			{submittedData}
+			editing={false}
+			newData={blankTranslationVariables()}
 		/>
 	{:else if form == 'reviewPush'}
 		<ReviewSegment
@@ -208,7 +219,7 @@
 		/>
 	{:else if form == 'reviewEdit' && segmentData.translationReview}
 		<ReviewSegment
-			completed={false}
+			completed={true}
 			open={true}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}

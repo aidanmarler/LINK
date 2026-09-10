@@ -123,6 +123,7 @@
 		<CompletionIndicator
 			{completed}
 			{inProgress}
+			editing={false}
 			skipped={false}
 			{saving}
 			completedText={'reviewed'}
@@ -144,8 +145,9 @@
 			<div
 				in:fade={{ duration: 200 }}
 				class="rounded border-2 border-inherit w-full h-full z-0 flex flex-wrap {completed
-					? 'opacity-70'
-					: '  '} {card.translate.complete}"
+					? ' opacity-70 '
+					: ''} 
+					{completed ? card.translate.complete : card.translate.incomplete} "
 			>
 				<!--Original Segment-->
 				<h3 class="w-full border-b border-inherit px-2">
@@ -202,7 +204,11 @@
 							<!-- Add comment button-->
 							<div class="w-6 -right-[25.5px] top-0 opacity-100 absolute p-0.5 h-5">
 								{#if !completed}
-									<CommentViewer bind:completed bind:comment={comments[optionId]} />
+									<CommentViewer
+										interactable={!completed}
+										bind:live={comments[optionId]}
+										captured={'Test'}
+									/>
 								{/if}
 							</div>
 						</div>

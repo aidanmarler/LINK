@@ -1,19 +1,31 @@
 import type {
 	ForwardTranslationInsert,
 	ForwardTranslationRow,
+	SegmentData,
 	SegmentMap,
 	TranslationReviewInsert,
 	TranslationReviewRow
 } from '$lib/supabase/types';
 import type { Profile, TranslationLanguage } from '$lib/types';
+import _ from 'lodash';
 
 // MARK: - Types
+export type TranslationVariables = {
+	translation: string;
+	comment: string;
+	skipped: boolean;
+};
+
+export const blankTranslationVariables = (): TranslationVariables => {
+	return {
+		translation: '',
+		comment: '',
+		skipped: false
+	};
+};
 
 // T: How we store existing and modified page data
-export type PageForward = Record<
-	number,
-	{ translation: string; comment: string; skipped: boolean }
->;
+export type PageForward = Record<number, TranslationVariables>;
 export type PageReview = Record<
 	number,
 	{
@@ -28,7 +40,7 @@ export type PageAccepted = Record<number, string>;
 // T: Create Page Translations, to store Page Data
 export type PageTranslations = {
 	forwardPush: PageForward;
-	forwardEdit: number[];
+	forwardEdit: PageForward;
 	forwardLocked: number[];
 	reviewPush: PageReview;
 	reviewEdit: number[];
@@ -39,7 +51,7 @@ export type PageTranslations = {
 export const blankPageTranslations = (): PageTranslations => {
 	return {
 		forwardPush: {},
-		forwardEdit: [],
+		forwardEdit: {},
 		forwardLocked: [],
 		reviewPush: {},
 		reviewEdit: [],
@@ -56,6 +68,8 @@ export type PageSubmissions = {
 	reviewEdit: TranslationReviewRow[];
 };
 
+export type SegmentsEditing = Record<number, boolean>;
+
 export const blankPageSubmissions = (): PageSubmissions => {
 	return {
 		forwardPush: [],
@@ -71,8 +85,9 @@ export function initPageTranslations(
 	userData: SegmentMap,
 	//relatedTranslations: RelatedTranslations,
 	relatedReviews: Record<number, TranslationReviewRow[]>
-): PageTranslations {
+): [PageTranslations, SegmentsEditing] {
 	const page: PageTranslations = blankPageTranslations();
+	const segmentsEditing: SegmentsEditing = {};
 	for (const [id, segmentData] of Object.entries(userData)) {
 		const prog = segmentData.translationProgress;
 		const inForward = !prog || (prog && prog.translation_step == 'forward');
@@ -96,8 +111,8 @@ export function initPageTranslations(
 			// If something pushed, but no reviewed, allow edit
 			if (!reviewed) {
 				//console.log("Forward Edit! ", segmentData.forwardTranslation, reviewed)
-
-				page.forwardEdit.push(+id);
+				segmentsEditing[+id] = false;
+				page.forwardEdit[+id] = { translation: '', comment: '', skipped: false };
 				continue;
 			}
 
@@ -144,12 +159,11 @@ export function initPageTranslations(
 		}
 	}
 
-	return page;
+	return [page, segmentsEditing];
 }
 
 // & Given a segment id, get which form it populates with ( forwardPush et al. )
 export function getCompositeForm(pageTranslations: PageTranslations, id: number) {
-	console.log(pageTranslations);
 	for (const key of Object.keys(pageTranslations) as (keyof PageTranslations)[]) {
 		const value = pageTranslations[key];
 		if (Array.isArray(value)) {
@@ -158,13 +172,18 @@ export function getCompositeForm(pageTranslations: PageTranslations, id: number)
 			if (id in value) return key;
 		}
 	}
+	//console.log('getCompositeForm undefined', id, pageTranslations);
 	return undefined;
 }
 
 // MARK: - Submission
-export function transformPageForSubmission(page: PageTranslations, profile: Profile) {
-	// @ aidan: finish setting this up for Forward Translations and Forward Edits
-
+export function transformPageForSubmission(
+	page: PageTranslations,
+	segments: [number, SegmentData][],
+	segmentsEditing: SegmentsEditing,
+	profile: Profile
+) {
+	console.log('transforPageForSubmission segments:', segments);
 	const submissions: PageSubmissions = blankPageSubmissions();
 
 	const handleForwardPush = () => {
@@ -185,7 +204,7 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 			}
 
 			// Ignore if no text data
-			if (page.forwardPush[id].translation == '') continue;
+			if (page.forwardPush[id].translation == '' || !page.forwardPush[id].translation) continue;
 
 			// New Translation
 			newForwardTranslations.push({
@@ -202,8 +221,44 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 	};
 
 	const handleForwardEdit = () => {
-		//console.log('handleForwardEdit', page.forwardEdit);
 		const newForwardEdits: ForwardTranslationRow[] = [];
+		const blank = blankTranslationVariables();
+		for (const [id, d] of Object.entries(page.forwardEdit)) {
+			if (_.isEqual(d, blank)) continue;
+			if (!segmentsEditing[+id]) continue;
+			const segment = segments.find((s) => s[0] == +id);
+			if (!segment) continue;
+			const submitted = segment[1].forwardTranslation;
+			if (!submitted) continue;
+			//console.log('comment', submitted.comment, d.comment);
+			if (submitted.translation != d.translation) {
+				console.log('translation', 'og: ' + submitted.translation, 'new: ' + d.translation);
+			}
+			if (submitted.comment != d.comment) {
+				console.log('comment', submitted.comment, d.comment);
+			}
+			if (submitted.skipped != d.skipped) {
+				console.log('skipped', submitted.skipped, d.skipped);
+			}
+			const editRow: ForwardTranslationRow = { ...submitted };
+			if (d.skipped) {
+				editRow.skipped = true;
+				editRow.translation = null;
+				editRow.comment = d.comment;
+			} else {
+				editRow.skipped = false;
+				editRow.translation = d.translation;
+				editRow.comment = d.comment;
+			}
+
+			if (
+				editRow.translation == submitted.translation &&
+				editRow.comment == submitted.comment &&
+				editRow.skipped == submitted.skipped
+			)
+				continue;
+			newForwardEdits.push(editRow);
+		}
 		return newForwardEdits;
 	};
 
@@ -360,12 +415,12 @@ export function transformPageForSubmission(page: PageTranslations, profile: Prof
 	submissions.forwardEdit.push(...forwardEditData);
 	submissions.forwardPush.push(...reviewPushData.newTranslations);
 	submissions.reviewPush.push(...reviewPushData.newReviews);
-	console.log('  submissions', submissions);
 	return submissions;
 }
 
 //
-export async function handlePageTranslationSubmission(_page: PageSubmissions, _profile: Profile) {
+export async function handlePageTranslationSubmission(page: PageSubmissions, _profile: Profile) {
+	console.log('PageSubmissions:', page);
 	/*
 	const translationInserts: ForwardTranslationInsert[] = [];
 	const translationUpdates: ForwardTranslationRow[] = [];

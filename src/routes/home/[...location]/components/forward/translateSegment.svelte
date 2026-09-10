@@ -8,46 +8,46 @@
 	import CompletionIndicator from '../completionIndicator.svelte';
 	import type { Database } from '$lib/supabase/database.types';
 	import { onMount } from 'svelte';
+	import type { TranslationVariables } from '../compositeForm';
 
 	let {
 		completed,
 		canEdit,
-		editing,
 		label,
 		segment,
 		saving,
-		translation = $bindable(),
+		submittedData,
 		open = $bindable(),
-		comment = $bindable(),
-		skipped = $bindable()
+		editing = $bindable(),
+		newData = $bindable()
 	}: {
 		completed: boolean;
 		canEdit: boolean;
-		editing: boolean;
+
 		label: Database['public']['Enums']['SegmentType'];
 		segment: string;
 		saving: boolean;
-		translation: string;
 		open: boolean;
-		comment: string;
-		skipped: boolean;
+		submittedData: TranslationVariables;
+		editing: boolean;
+		newData: TranslationVariables;
 	} = $props();
+
+	$inspect(newData);
 
 	let interactable = $derived(!completed || (completed && editing));
 
-	let inProgress: boolean = $derived(translation.trim().length > 0);
-	let ogText: string = $state('');
+	let translation: string = $derived(
+		interactable ? newData.translation : submittedData.translation
+	);
+	let comment: string = $derived(interactable ? newData.comment : submittedData.comment);
+	let skipped: boolean = $derived(interactable ? newData.skipped : submittedData.skipped);
 
-	let _completion: 'inProgress' | 'forwardTranslated' | 'skipped' | 'toForwardTranslate' =
-		$derived.by(() => {
-			if (translation.length > 1) return 'inProgress';
-			if (completed) return 'forwardTranslated';
-			if (skipped) return 'skipped';
-			return 'toForwardTranslate';
-		});
+	let inProgress: boolean = $derived(translation.trim().length > 0 || comment.trim().length > 0);
 
 	onMount(() => {
-		ogText = translation;
+		if (submittedData && canEdit) newData = $state.snapshot(submittedData);
+		console.log('mounted:', $state.snapshot(newData));
 	});
 </script>
 
@@ -122,11 +122,11 @@
 						in:fade={{ duration: 100 }}
 						title="Skip translating this segment"
 						class="  flex items-center px-2.5 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
-						 {skipped
+						 {newData.skipped
 							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
 							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
 						onclick={() => {
-							skipped = !skipped;
+							newData.skipped = !newData.skipped;
 						}}
 					>
 						<span class="text-sm font-bold">Skip Translation</span>
@@ -215,22 +215,21 @@
 					<div class=" w-full px-2 italic opacity-60">Translation Skipped</div>
 				{:else if !interactable}
 					<!-- existing translation -->
-					<div class=" w-full px-2">{ogText}</div>
+					<div class=" w-full px-2">{submittedData.translation}</div>
 				{:else}
 					<!-- text input translation -->
 					<textarea
 						placeholder="Translate segment here..."
 						class="bg-white z-20 rounded-b dark:bg-stone-800 w-full px-2 min-h-6"
 						rows="1"
-						bind:value={translation}
+						bind:value={newData.translation}
 					></textarea>
 				{/if}
 			</div>
-
-			<!--Comment button-->
-			<div class="w-6 p-0.5 h-5">
-				<CommentViewer completed={!interactable} bind:comment />
-			</div>
 		{/if}
+		<!--Comment button-->
+		<div class="w-6 p-0.5 h-5">
+			<CommentViewer {interactable} captured={submittedData.comment} bind:live={newData.comment} />
+		</div>
 	</div>
 </div>
