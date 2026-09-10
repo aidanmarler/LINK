@@ -25,6 +25,7 @@
 		type TranslationVariables
 	} from './compositeForm';
 	import ReviewSegment from './review/reviewSegment.svelte';
+	import { invalidate } from '$app/navigation';
 
 	let {
 		segmentMap,
@@ -47,27 +48,31 @@
 
 	// Calculate what will be submitted
 	let pageSubmissions: PageSubmissions = $derived.by(() =>
-		transformPageForSubmission($state.snapshot(pageTranslations), sortedSegments, segmentsEditing, profile)
+		transformPageForSubmission(
+			$state.snapshot(pageTranslations),
+			sortedSegments,
+			segmentsEditing,
+			profile
+		)
 	);
 
-	let changeCount = $derived.by(() => {
+	let changed: Set<number> = $derived.by(() => {
 		let ids: Set<number> = new Set();
 		ids = new Set([...ids, ...pageSubmissions.forwardPush.map((r) => r.original_id)]);
 		ids = new Set([...ids, ...pageSubmissions.forwardEdit.map((r) => r.original_id)]);
 		ids = new Set([...ids, ...pageSubmissions.reviewPush.map((r) => r.original_id)]);
 		ids = new Set([...ids, ...pageSubmissions.reviewEdit.map((r) => r.original_id)]);
 
-		return ids.size;
+		return ids;
 	});
+
+	let changeCount = $derived(changed.size);
 
 	// Check if form can be saved
 	let canSave: boolean = $derived(changeCount > 0);
 
 	// Order segments by type
 	let sortedSegments: [number, SegmentData][] = $derived.by(() => sortSegmentMap(segmentMap));
-
-	$inspect(sortedSegments);
-	//$inspect(segmentMap);
 
 	let fsegments: number = $derived(Object.keys(pageTranslations.forwardPush).length);
 	let rsegments: number = $derived(Object.keys(pageTranslations.reviewPush).length);
@@ -111,7 +116,6 @@
 
 		// pull other reviews for these segments
 		initializeReviewCommentsToPush(pageTranslations);
-
 	});
 
 	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
@@ -120,11 +124,17 @@
 		console.log('changeCount: ', changeCount);
 
 		if (changeCount > 0) {
+			loading.message = 'Submitting...';
 			// Handle organizing and submitting changes to SupaBase
-			await handlePageTranslationSubmission(pageSubmissions, profile);
+			await handlePageTranslationSubmission(pageSubmissions, profile, changed);
 
+			loading.message = 'Reloading...';
 			// Reload data
-			//await invalidate('app:data');
+			await invalidate('app:data');
+		}
+
+		for (const k of Object.keys(segmentsEditing)) {
+			segmentsEditing[+k] = false;
 		}
 
 		// Tell page to move through tree
@@ -135,7 +145,6 @@
 	}
 </script>
 
-{Object.keys(pageTranslations.forwardPush)}
 <h1 class="font-semibold text-3xl text-center my-4 ml-5 text-stone-600 dark:text-stone-400">
 	{pageTitle}
 </h1>
@@ -153,8 +162,7 @@
 
 {#each sortedSegments as [id, segmentData], _i (id)}
 	{@const form = getCompositeForm($state.snapshot(pageTranslations), id)}
-	{form}
-	{segmentData.forwardTranslation?.translation}
+	<!--{form}-->
 	{@const reviews = relatedReviews[+id] ?? []}
 	{#if form == 'forwardPush'}
 		<TranslateSegment

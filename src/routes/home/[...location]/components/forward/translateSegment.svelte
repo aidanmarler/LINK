@@ -33,8 +33,6 @@
 		newData: TranslationVariables;
 	} = $props();
 
-	$inspect(newData);
-
 	let interactable = $derived(!completed || (completed && editing));
 
 	let translation: string = $derived(
@@ -47,7 +45,6 @@
 
 	onMount(() => {
 		if (submittedData && canEdit) newData = $state.snapshot(submittedData);
-		console.log('mounted:', $state.snapshot(newData));
 	});
 </script>
 

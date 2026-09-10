@@ -1,3 +1,7 @@
+import {
+	UpdatePATOnSubmission,
+	UpdateProgress_ForwardSubmission
+} from '$lib/supabase/translationProgress';
 import type {
 	ForwardTranslationInsert,
 	ForwardTranslationRow,
@@ -6,6 +10,11 @@ import type {
 	TranslationReviewInsert,
 	TranslationReviewRow
 } from '$lib/supabase/types';
+import {
+	InsertForwardTranslations,
+	InsertTranslationReviews,
+	UpdateForwardTranslations
+} from '$lib/supabase/utils';
 import type { Profile, TranslationLanguage } from '$lib/types';
 import _ from 'lodash';
 
@@ -183,7 +192,7 @@ export function transformPageForSubmission(
 	segmentsEditing: SegmentsEditing,
 	profile: Profile
 ) {
-	console.log('transforPageForSubmission segments:', segments);
+	//console.log('transforPageForSubmission segments:', segments);
 	const submissions: PageSubmissions = blankPageSubmissions();
 
 	const handleForwardPush = () => {
@@ -419,58 +428,24 @@ export function transformPageForSubmission(
 }
 
 //
-export async function handlePageTranslationSubmission(page: PageSubmissions, _profile: Profile) {
+export async function handlePageTranslationSubmission(
+	page: PageSubmissions,
+	profile: Profile,
+	changed: Set<number>
+) {
 	console.log('PageSubmissions:', page);
-	/*
-	const translationInserts: ForwardTranslationInsert[] = [];
-	const translationUpdates: ForwardTranslationRow[] = [];
-	const reviewInserts: TranslationReviewInsert[] = [];
-	const reviewUpdates: TranslationReviewRow[] = [];
 
-	// Filter to new pushes, rather than changed.
-	// Filter to edited sumbitted translations.
-	// Format
+	// Insert new translations to supabase ForwardTranslations table
+	const tasks: Promise<unknown>[] = [];
+	if (page.forwardPush.length > 0) tasks.push(InsertForwardTranslations(page.forwardPush));
+	if (page.reviewPush.length > 0) tasks.push(InsertTranslationReviews(page.reviewPush));
+	if (page.forwardEdit.length > 0) tasks.push(UpdateForwardTranslations(page.forwardEdit));
+	await Promise.all(tasks);
+	
+	// @ these should be both handled by 'Update PAT (Progress Accepted Translation) on submission'
+	if (page.forwardPush.length > 0)
+		await UpdateProgress_ForwardSubmission(page.forwardPush, 'review');
 
-	// Organize translation to push
-	for (const id in page.forwardPush) {
-		// Skip Translations if skip is pressed
-		if (page.forwardPush[id].skipped == true) {
-			translationInserts.push({
-				original_id: Number(id),
-				user_id: profile.id,
-				language: profile.language as TranslationLanguage,
-				translation: '',
-				comment: page.forwardPush[id].comment,
-				skipped: page.forwardPush[id].skipped
-			});
-		}
-
-		// Ignore if no text data
-		if (DEPtranslationsToPush[id].translation == '') continue;
-
-		// New Translation
-		translationInserts.push({
-			original_id: Number(id),
-			user_id: profile.id,
-			language: profile.language as TranslationLanguage,
-			translation: DEPtranslationsToPush[id].translation.trim(),
-			comment: DEPtranslationsToPush[id].comment.trim(),
-			skipped: DEPtranslationsToPush[id].skipped
-		});
-	}
-
-	if (translationInserts.length > 0) {
-		loading.message = 'Pushing translation...';
-		loading.active = true;
-		// Insert new translations to supabase ForwardTranslations table
-		await InsertForwardTranslations(translationInserts);
-
-		// Handle check translation progress for submitted translations
-		await UpdateProgress_ForwardSubmission(translationInserts, 'forward');
-
-		// Invalidate data so that it reloads current data.
-		//await invalidateAll();
-		await invalidate('app:data');
-	}
-		*/
+	if (page.reviewPush.length > 0)
+		await UpdatePATOnSubmission([...changed], profile.language as TranslationLanguage, 'review');
 }
