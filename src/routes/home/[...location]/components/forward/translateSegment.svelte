@@ -9,6 +9,7 @@
 	import type { Database } from '$lib/supabase/database.types';
 	import { onMount } from 'svelte';
 	import type { TranslationVariables } from '../compositeForm';
+	import SuggestedTranslationView from '../suggestion/suggestedTranslationView.svelte';
 
 	let {
 		completed,
@@ -32,6 +33,11 @@
 		editing: boolean;
 		newData: TranslationVariables;
 	} = $props();
+
+	let suggestionsOpen = $state(false);
+	let suggestionsCount = $state(0);
+	let suggestionColor = $derived(suggestionsCount == 0 ? 'text-inherit' : 'text-amber-400');
+	let suggestedTranslations = $derived([])
 
 	let interactable = $derived(!completed || (completed && editing));
 
@@ -113,6 +119,37 @@
 			</div>
 
 			<div class="flex h-6">
+				<!-- Skip button -->
+				{#if interactable && open}
+					<button
+						in:fade={{ duration: 100 }}
+						title="Skip translating this segment"
+						class="  flex items-center mr-1 px-2.5 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
+						 {suggestionsOpen
+							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
+							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
+						onclick={() => {
+							suggestionsOpen = !suggestionsOpen;
+						}}
+					>
+						<span class="text-sm font-bold"><b>{suggestionsCount}</b> Suggestions</span>
+
+						<div class="w-5 p-0.5 h-full">
+							<svg
+								class="w-full h-full opacity-full {suggestionColor}"
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="24"
+								viewBox="0 0 384 512"
+							>
+								<path
+									fill="currentColor"
+									d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c19.8 27.1 39.7 54.4 49.2 86.2h160zm-80 128c44.2 0 80-35.8 80-80v-16H112v16c0 44.2 35.8 80 80 80m-80-336c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80"
+								/>
+							</svg>
+						</div>
+					</button>
+				{/if}
 				<!-- Skip button -->
 				{#if interactable && open}
 					<button
@@ -222,11 +259,35 @@
 						bind:value={newData.translation}
 					></textarea>
 				{/if}
+
+				<div
+					class="{suggestionsOpen
+						? 'border-t-2 max-h-50'
+						: 'max-h-0'} transition-[max-height] duration-75 overflow-scroll"
+				>
+					
+					{#if suggestionsOpen}
+						<div transition:fade={{ duration: 75 }} class="px-2">
+							{#if suggestionsCount == 0}
+								<p class="italic opacity-80">No suggested translations.</p>
+							{:else}
+								<SuggestedTranslationView {suggestedTranslations}/>
+							{/if}
+						</div>
+					{/if}
+				</div>
 			</div>
 		{/if}
+
 		<!--Comment button-->
-		<div class="w-6 p-0.5 h-5">
-			<CommentViewer {interactable} captured={submittedData.comment} bind:live={newData.comment} />
+		<div class="flex flex-col">
+			<div class="w-6 flex flex-col p-0.5 h-5">
+				<CommentViewer
+					{interactable}
+					captured={submittedData.comment}
+					bind:live={newData.comment}
+				/>
+			</div>
 		</div>
 	</div>
 </div>

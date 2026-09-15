@@ -28,6 +28,9 @@ export type DocumentInsert = Database['public']['Tables']['documents']['Insert']
 export type DocumentUpdate = Database['public']['Tables']['documents']['Update'];
 export type DocumentRow = Database['public']['Tables']['documents']['Row'];
 
+// Enums
+export type TranslationStep = Database['public']['Enums']['TranslationStep'];
+
 export type TranslationVerificationData = {
 	translationProgress: TranslationProgressRow | null;
 	acceptedTranslation: AcceptedTranslationRow | null;
