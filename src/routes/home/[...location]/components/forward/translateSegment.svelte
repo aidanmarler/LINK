@@ -134,7 +134,7 @@
 					>
 						<span class="text-sm font-bold"><b>{suggestionsCount}</b> Suggestions</span>
 
-						<div class="w-5 p-0.5 h-full">
+						<div class="w-5 py-0.75 h-full">
 							<svg
 								class="w-full h-full opacity-full {suggestionColor}"
 								xmlns="http://www.w3.org/2000/svg"

@@ -38,10 +38,10 @@ export async function getSuggestedTranslations(
 	const exactMatches = await supabase
 		.from('original_segments')
 		.select('*')
-		.eq('text_hash', segmentHash)
+		.eq('segment_hash', segmentHash)
 		.neq('id', segmentId);
 
-	console.log(exactMatches);
+	console.log("exactMatches", exactMatches);
 	/*
     if (exactMatches.length() > 0) {
         const ids = exactMatches.map((s)=>s.id);

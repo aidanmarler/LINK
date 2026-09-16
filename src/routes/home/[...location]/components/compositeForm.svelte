@@ -26,6 +26,8 @@
 	} from './compositeForm';
 	import ReviewSegment from './review/reviewSegment.svelte';
 	import { invalidate } from '$app/navigation';
+	import { getSuggestedTranslations } from './suggestion/suggestion';
+	import { supabase } from '../../../../supabaseClient';
 
 	let {
 		segmentMap,
@@ -116,6 +118,32 @@
 
 		// pull other reviews for these segments
 		initializeReviewCommentsToPush(pageTranslations);
+
+
+		console.log ("pageTranslations ", pageTranslations)
+
+		const calls = [];
+
+		for (const id of Object.keys(segmentMap)) {
+			const form = getCompositeForm($state.snapshot(pageTranslations), +id)
+			
+			if (form == 'forwardPush') {
+				console.log ("find_similar_segments for", id)
+				calls.push(
+					supabase.rpc('find_similar_segments', {
+						p_segment_id: +id,
+						p_user_id: profile.id,
+						min_accepted_score: 0
+					})
+				);
+			}
+		}
+
+
+		console.log ("find_similar_segments for ", calls)
+
+		const result = await Promise.all(calls);
+		console.log(result);
 	});
 
 	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
