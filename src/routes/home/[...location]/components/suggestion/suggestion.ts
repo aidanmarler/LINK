@@ -18,35 +18,34 @@ Or if translation is accepted with at least score of 2.
 
 */
 
-import type { ForwardTranslationRow } from '$lib/supabase/types';
+import type { FindSimilarSegmentsResult, PromiseSuggestions } from '$lib/types';
 import { supabase } from '../../../../../supabaseClient';
 
 export async function getSuggestedTranslations(
-	segmentHash: string,
-	segmentId: number
-): Promise<ForwardTranslationRow[]> {
-	// & get accepted translations for segment ids
-	const _getAcceptedTranslations = async (ids: number[]) => {
-		const requests = [];
-		for (const id of ids) {
-			requests.push(supabase.from('accepted_translations').select('first').eq('original_id', id));
-		}
-		const result = await Promise.all(requests);
-		return result;
-	};
+	ids: number[],
+	profileId: string
+): PromiseSuggestions {
+	const calls = ids.map((id) =>
+		supabase.rpc('find_similar_segments', {
+			p_segment_id: id,
+			p_user_id: profileId,
+			min_accepted_score: 0
+		})
+	);
 
-	const exactMatches = await supabase
-		.from('original_segments')
-		.select('*')
-		.eq('segment_hash', segmentHash)
-		.neq('id', segmentId);
+	const results = await Promise.all(calls);
 
-	console.log("exactMatches", exactMatches);
-	/*
-    if (exactMatches.length() > 0) {
-        const ids = exactMatches.map((s)=>s.id);
-        await getAcceptedTranslations(ids);
-    }*/
+	const data: Record<number, FindSimilarSegmentsResult> = Object.fromEntries(
+		ids.map((id, index) => [id, results[index].data ?? []])
+	);
 
-	return [];
+	return data;
+}
+
+export async function getSuggestedTranslation(id: number, profileId: string) {
+	return await supabase.rpc('find_similar_segments', {
+		p_segment_id: id,
+		p_user_id: profileId,
+		min_accepted_score: 0
+	});
 }

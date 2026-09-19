@@ -27,7 +27,6 @@
 	import ReviewSegment from './review/reviewSegment.svelte';
 	import { invalidate } from '$app/navigation';
 	import { getSuggestedTranslations } from './suggestion/suggestion';
-	import { supabase } from '../../../../supabaseClient';
 
 	let {
 		segmentMap,
@@ -98,6 +97,18 @@
 		return page;
 	};
 
+	let forwardIds: number[] = $derived(
+		Object.keys(segmentMap).flatMap((i) => {
+			const form = getCompositeForm($state.snapshot(pageTranslations), +i);
+			if (form == 'forwardPush') return [+i];
+			return [];
+		})
+	);
+
+	let allSuggestions = $derived.by(() => getSuggestedTranslations(forwardIds, profile.id));
+
+	let profileId = $derived(profile.id)
+	
 	onMount(async () => {
 		/* 
 			@Aidan:
@@ -118,32 +129,6 @@
 
 		// pull other reviews for these segments
 		initializeReviewCommentsToPush(pageTranslations);
-
-
-		console.log ("pageTranslations ", pageTranslations)
-
-		const calls = [];
-
-		for (const id of Object.keys(segmentMap)) {
-			const form = getCompositeForm($state.snapshot(pageTranslations), +id)
-			
-			if (form == 'forwardPush') {
-				console.log ("find_similar_segments for", id)
-				calls.push(
-					supabase.rpc('find_similar_segments', {
-						p_segment_id: +id,
-						p_user_id: profile.id,
-						min_accepted_score: 0
-					})
-				);
-			}
-		}
-
-
-		console.log ("find_similar_segments for ", calls)
-
-		const result = await Promise.all(calls);
-		console.log(result);
 	});
 
 	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
@@ -194,6 +179,8 @@
 	{@const reviews = relatedReviews[+id] ?? []}
 	{#if form == 'forwardPush'}
 		<TranslateSegment
+			{id}
+			{profileId}
 			completed={false}
 			canEdit={false}
 			open={true}
@@ -202,6 +189,7 @@
 			saving={saving && pageSubmissions.reviewPush.map((r) => r.original_id).includes(id)}
 			submittedData={blankTranslationVariables()}
 			editing={false}
+			{allSuggestions}
 			bind:newData={pageTranslations.forwardPush[id]}
 		/>
 	{:else if form == 'forwardEdit' && segmentData.forwardTranslation}
@@ -211,12 +199,15 @@
 				skipped:segmentData.forwardTranslation.skipped
 			}}
 		<TranslateSegment
+			{id}
+			{profileId}
 			completed={true}
 			open={true}
 			canEdit={true}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
+			{allSuggestions}
 			{submittedData}
 			bind:editing={segmentsEditing[id]}
 			bind:newData={pageTranslations.forwardEdit[id]}
@@ -228,12 +219,15 @@
 				skipped:segmentData.forwardTranslation.skipped
 			}}
 		<TranslateSegment
+			{id}
+			{profileId}
 			completed={true}
 			open={true}
 			canEdit={false}
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
+			{allSuggestions}
 			{submittedData}
 			editing={false}
 			newData={blankTranslationVariables()}

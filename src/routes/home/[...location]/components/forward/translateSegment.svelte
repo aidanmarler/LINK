@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { card } from '$lib/styles';
-	import { typeLabels } from '$lib/types';
+	import { typeLabels, type PromiseSuggestions } from '$lib/types';
 	import { quintInOut } from 'svelte/easing';
 	import { draw, fade } from 'svelte/transition';
 
@@ -12,32 +12,34 @@
 	import SuggestedTranslationView from '../suggestion/suggestedTranslationView.svelte';
 
 	let {
+		id,
+		profileId,
 		completed,
 		canEdit,
 		label,
 		segment,
 		saving,
 		submittedData,
+		allSuggestions,
 		open = $bindable(),
 		editing = $bindable(),
 		newData = $bindable()
 	}: {
+		id: number;
+		profileId: string;
 		completed: boolean;
 		canEdit: boolean;
-
 		label: Database['public']['Enums']['SegmentType'];
 		segment: string;
 		saving: boolean;
-		open: boolean;
+		allSuggestions: PromiseSuggestions;
 		submittedData: TranslationVariables;
+		open: boolean;
 		editing: boolean;
 		newData: TranslationVariables;
 	} = $props();
 
 	let suggestionsOpen = $state(false);
-	let suggestionsCount = $state(0);
-	let suggestionColor = $derived(suggestionsCount == 0 ? 'text-inherit' : 'text-amber-400');
-	let suggestedTranslations = $derived([])
 
 	let interactable = $derived(!completed || (completed && editing));
 
@@ -119,7 +121,7 @@
 			</div>
 
 			<div class="flex h-6">
-				<!-- Skip button -->
+				<!-- Suggestion button -->
 				{#if interactable && open}
 					<button
 						in:fade={{ duration: 100 }}
@@ -132,22 +134,40 @@
 							suggestionsOpen = !suggestionsOpen;
 						}}
 					>
-						<span class="text-sm font-bold"><b>{suggestionsCount}</b> Suggestions</span>
-
-						<div class="w-5 py-0.75 h-full">
-							<svg
-								class="w-full h-full opacity-full {suggestionColor}"
-								xmlns="http://www.w3.org/2000/svg"
-								width="18"
-								height="24"
-								viewBox="0 0 384 512"
-							>
-								<path
-									fill="currentColor"
-									d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c19.8 27.1 39.7 54.4 49.2 86.2h160zm-80 128c44.2 0 80-35.8 80-80v-16H112v16c0 44.2 35.8 80 80 80m-80-336c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80"
-								/>
-							</svg>
-						</div>
+						{#await allSuggestions}
+							<span class="text-sm font-bold"><b>...</b> Suggestions</span>
+							<div class="w-5 py-0.75 h-full">
+								<svg
+									class="w-full h-full opacity-full"
+									xmlns="http://www.w3.org/2000/svg"
+									width="18"
+									height="24"
+									viewBox="0 0 384 512"
+								>
+									<path
+										fill="currentColor"
+										d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c19.8 27.1 39.7 54.4 49.2 86.2h160zm-80 128c44.2 0 80-35.8 80-80v-16H112v16c0 44.2 35.8 80 80 80m-80-336c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80"
+									/>
+								</svg>
+							</div>
+						{:then data}
+							{@const s = data[id]}
+							<span class="text-sm font-bold"><b>{s.length}</b> Suggestions</span>
+							<div class="w-5 py-0.75 h-full">
+								<svg
+									class="w-full h-full opacity-full text-amber-500"
+									xmlns="http://www.w3.org/2000/svg"
+									width="18"
+									height="24"
+									viewBox="0 0 384 512"
+								>
+									<path
+										fill="currentColor"
+										d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c19.8 27.1 39.7 54.4 49.2 86.2h160zm-80 128c44.2 0 80-35.8 80-80v-16H112v16c0 44.2 35.8 80 80 80m-80-336c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80"
+									/>
+								</svg>
+							</div>
+						{/await}
 					</button>
 				{/if}
 				<!-- Skip button -->
@@ -265,14 +285,9 @@
 						? 'border-t-2 max-h-50'
 						: 'max-h-0'} transition-[max-height] duration-75 overflow-scroll"
 				>
-					
 					{#if suggestionsOpen}
-						<div transition:fade={{ duration: 75 }} class="px-2">
-							{#if suggestionsCount == 0}
-								<p class="italic opacity-80">No suggested translations.</p>
-							{:else}
-								<SuggestedTranslationView {suggestedTranslations}/>
-							{/if}
+						<div transition:fade={{ duration: 75 }}>
+							<SuggestedTranslationView {id} {profileId} {allSuggestions} />
 						</div>
 					{/if}
 				</div>

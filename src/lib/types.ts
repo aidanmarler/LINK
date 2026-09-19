@@ -20,6 +20,10 @@ export type Profile = {
 	name: string;
 };
 
+export type FindSimilarSegmentsResult =
+		Database['public']['Functions']['find_similar_segments']['Returns'];
+
+export type PromiseSuggestions = Promise<Record<number, FindSimilarSegmentsResult>>
 //#endregion Languages
 
 
