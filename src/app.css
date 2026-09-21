@@ -1,3 +1,9 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+.suggestion-close {
+  transition-property: max-height, border-top-width;
+  transition-duration: 300ms, 0s;
+  transition-delay: 0s, 300ms;
+}

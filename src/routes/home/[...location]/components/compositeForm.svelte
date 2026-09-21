@@ -26,7 +26,7 @@
 	} from './compositeForm';
 	import ReviewSegment from './review/reviewSegment.svelte';
 	import { invalidate } from '$app/navigation';
-	import { getSuggestedTranslations } from './suggestion/suggestion';
+	//import { getSuggestedTranslations } from './suggestion/suggestion';
 
 	let {
 		segmentMap,
@@ -97,7 +97,7 @@
 		return page;
 	};
 
-	let forwardIds: number[] = $derived(
+	let _forwardIds: number[] = $derived(
 		Object.keys(segmentMap).flatMap((i) => {
 			const form = getCompositeForm($state.snapshot(pageTranslations), +i);
 			if (form == 'forwardPush') return [+i];
@@ -105,7 +105,7 @@
 		})
 	);
 
-	let allSuggestions = $derived.by(() => getSuggestedTranslations(forwardIds, profile.id));
+	//let allSuggestions = $derived.by(() => getSuggestedTranslations(forwardIds, profile.id));
 
 	let profileId = $derived(profile.id)
 	
@@ -189,7 +189,6 @@
 			saving={saving && pageSubmissions.reviewPush.map((r) => r.original_id).includes(id)}
 			submittedData={blankTranslationVariables()}
 			editing={false}
-			{allSuggestions}
 			bind:newData={pageTranslations.forwardPush[id]}
 		/>
 	{:else if form == 'forwardEdit' && segmentData.forwardTranslation}
@@ -207,7 +206,6 @@
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
-			{allSuggestions}
 			{submittedData}
 			bind:editing={segmentsEditing[id]}
 			bind:newData={pageTranslations.forwardEdit[id]}
@@ -227,7 +225,6 @@
 			label={segmentData.originalSegment.type}
 			segment={segmentData.originalSegment.segment}
 			saving={false}
-			{allSuggestions}
 			{submittedData}
 			editing={false}
 			newData={blankTranslationVariables()}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { card } from '$lib/styles';
-	import { typeLabels, type PromiseSuggestions } from '$lib/types';
+	import { typeLabels } from '$lib/types';
 	import { quintInOut } from 'svelte/easing';
 	import { draw, fade } from 'svelte/transition';
 
@@ -20,7 +20,6 @@
 		segment,
 		saving,
 		submittedData,
-		allSuggestions,
 		open = $bindable(),
 		editing = $bindable(),
 		newData = $bindable()
@@ -32,14 +31,21 @@
 		label: Database['public']['Enums']['SegmentType'];
 		segment: string;
 		saving: boolean;
-		allSuggestions: PromiseSuggestions;
 		submittedData: TranslationVariables;
 		open: boolean;
 		editing: boolean;
 		newData: TranslationVariables;
 	} = $props();
 
-	let suggestionsOpen = $state(false);
+	let suggestionOpen = $state(false);
+	let suggestionCount: number | undefined = $state(undefined);
+	let textArea: HTMLTextAreaElement | undefined = $state(undefined);
+	const onSuggest = (suggestion: string) => {
+		if (!textArea) return;
+		textArea.focus();
+		textArea.setSelectionRange(0, textArea.value.length);
+		document.execCommand('insertText', false, suggestion);
+	};
 
 	let interactable = $derived(!completed || (completed && editing));
 
@@ -127,14 +133,35 @@
 						in:fade={{ duration: 100 }}
 						title="Skip translating this segment"
 						class="  flex items-center mr-1 px-2.5 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
-						 {suggestionsOpen
+						 {suggestionOpen
 							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
 							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
 						onclick={() => {
-							suggestionsOpen = !suggestionsOpen;
+							suggestionOpen = !suggestionOpen;
 						}}
 					>
-						{#await allSuggestions}
+						<span class="text-sm font-bold"
+							><b>{suggestionCount ? suggestionCount : '...'}</b> Suggestions</span
+						>
+						<div class="w-5 py-0.75 h-full">
+							<svg
+								class="w-full h-full opacity-full text-amber-500"
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="24"
+								viewBox="0 0 384 512"
+							>
+								<path
+									fill="currentColor"
+									d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c19.8 27.1 39.7 54.4 49.2 86.2h160zm-80 128c44.2 0 80-35.8 80-80v-16H112v16c0 44.2 35.8 80 80 80m-80-336c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80"
+								/>
+							</svg>
+						</div>
+
+						<!--
+							{#await allSuggestions}
+							{:then data}
+							{@const s = [id]}
 							<span class="text-sm font-bold"><b>...</b> Suggestions</span>
 							<div class="w-5 py-0.75 h-full">
 								<svg
@@ -150,24 +177,8 @@
 									/>
 								</svg>
 							</div>
-						{:then data}
-							{@const s = data[id]}
-							<span class="text-sm font-bold"><b>{s.length}</b> Suggestions</span>
-							<div class="w-5 py-0.75 h-full">
-								<svg
-									class="w-full h-full opacity-full text-amber-500"
-									xmlns="http://www.w3.org/2000/svg"
-									width="18"
-									height="24"
-									viewBox="0 0 384 512"
-								>
-									<path
-										fill="currentColor"
-										d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c19.8 27.1 39.7 54.4 49.2 86.2h160zm-80 128c44.2 0 80-35.8 80-80v-16H112v16c0 44.2 35.8 80 80 80m-80-336c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80"
-									/>
-								</svg>
-							</div>
-						{/await}
+							{/await}
+							-->
 					</button>
 				{/if}
 				<!-- Skip button -->
@@ -273,6 +284,7 @@
 				{:else}
 					<!-- text input translation -->
 					<textarea
+						bind:this={textArea}
 						placeholder="Translate segment here..."
 						class="bg-white z-20 rounded-b dark:bg-stone-800 w-full px-2 min-h-6"
 						rows="1"
@@ -280,17 +292,13 @@
 					></textarea>
 				{/if}
 
-				<div
-					class="{suggestionsOpen
-						? 'border-t-2 max-h-50'
-						: 'max-h-0'} transition-[max-height] duration-75 overflow-scroll"
-				>
-					{#if suggestionsOpen}
-						<div transition:fade={{ duration: 75 }}>
-							<SuggestedTranslationView {id} {profileId} {allSuggestions} />
-						</div>
-					{/if}
-				</div>
+				<SuggestedTranslationView
+					{id}
+					{profileId}
+					open={suggestionOpen}
+					{onSuggest}
+					bind:count={suggestionCount}
+				/>
 			</div>
 		{/if}
 

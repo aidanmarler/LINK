@@ -42,10 +42,14 @@ export async function getSuggestedTranslations(
 	return data;
 }
 
-export async function getSuggestedTranslation(id: number, profileId: string) {
-	return await supabase.rpc('find_similar_segments', {
+export async function getSuggestedTranslation(
+	id: number,
+	profileId: string
+): Promise<FindSimilarSegmentsResult> {
+	const result = await supabase.rpc('find_similar_segments', {
 		p_segment_id: id,
 		p_user_id: profileId,
 		min_accepted_score: 0
 	});
+	return result.data ?? [];
 }
