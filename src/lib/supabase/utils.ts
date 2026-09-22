@@ -3,6 +3,7 @@ import { supabase } from '../../supabaseClient';
 import type { TranslationLanguage } from '$lib/types';
 import type {
 	ForwardTranslationInsert,
+	ForwardTranslationRow,
 	OriginalSegmentRow,
 	TranslationProgressInsert,
 	TranslationReviewInsert
@@ -101,6 +102,13 @@ export async function InsertTranslationReviews(rows: TranslationReviewInsert[]) 
 export async function InsertTranslationProgress(progresses: TranslationProgressInsert[]) {
 	const { error: insertError } = await supabase.from('translation_progress').insert(progresses);
 	if (insertError) return insertError;
+	return;
+}
+export async function UpdateForwardTranslations(updates: ForwardTranslationRow[]) {
+	const { error } = await supabase
+		.from('forward_translations')
+		.upsert(updates, { onConflict: 'id' });
+	if (error) return error;
 	return;
 }
 

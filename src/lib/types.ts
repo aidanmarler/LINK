@@ -1,6 +1,6 @@
 //#region Languages
 
-import type { Database } from "./supabase/database.types";
+import type { Database } from './supabase/database.types';
 
 // For user creation - what are you an expert in...
 export type AvailableLanguage = 'none' | 'spanish' | 'french' | 'portuguese';
@@ -20,15 +20,17 @@ export type Profile = {
 	name: string;
 };
 
-//#endregion Languages
+export type FindSimilarSegmentsResult =
+	Database['public']['Functions']['find_similar_segments']['Returns'];
 
+export type PromiseSuggestions = Promise<Record<number, FindSimilarSegmentsResult>>;
+//#endregion Languages
 
 //#region Forms
 
 export type UserForm = 'Translate' | 'Review' | 'Backward Translate';
 
 //#endregion Forms
-
 
 // On segments to translate, this is the label for the type of segment that it is
 export const typeLabels: Record<Database['public']['Enums']['SegmentType'], string> = {
@@ -41,7 +43,6 @@ export const typeLabels: Record<Database['public']['Enums']['SegmentType'], stri
 	listItem: 'Option'
 };
 
-
 export type ARCHData = {
 	[variable: string]: {
 		question: string;
@@ -52,7 +53,6 @@ export type ARCHData = {
 		form: string;
 	};
 };
-
 
 ///  - - - - - - - - - - - - - -  ///
 

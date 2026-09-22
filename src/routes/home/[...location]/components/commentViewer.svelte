@@ -2,11 +2,13 @@
 	import { fly } from 'svelte/transition';
 
 	let {
-		completed = $bindable(),
-		comment = $bindable()
+		interactable,
+		captured,
+		live = $bindable()
 	}: {
-		completed: boolean;
-		comment: string | null;
+		interactable: boolean;
+		captured: string | null;
+		live: string | null;
 	} = $props();
 
 	let menuContainer: HTMLDivElement;
@@ -52,12 +54,13 @@
 </script>
 
 <div bind:this={menuContainer}>
-	{#if completed && comment && comment.length > 0}
+	{#if !interactable}
+		<!-- && comment && comment.length > 0-->
 		<button
 			onclick={() => {
 				menuOpen = !menuOpen;
 			}}
-			class="opacity-60 hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
+			class="opacity-40 hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-70 w-8 h-8 cursor-pointer"
 			title="See comment"
 			><img
 				alt="See comment"
@@ -65,18 +68,18 @@
 				src="/interaction/comment.svg"
 			/></button
 		>
-	{:else if !completed}
+	{:else if interactable}
 		<button
 			onclick={() => {
 				menuOpen = !menuOpen;
 			}}
-			class="opacity-60 hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
+			class="opacity-60 hover:shadow transition-shadow duration-10 shadow-stone-500/20 active:shadow-none active:bg-white hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
 			title="Add a comment"
 			aria-label="Add comment"
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
 				<path
-					class=" h-full stroke-2 w-full {comment != undefined && comment?.length > 0
+					class=" h-full stroke-2 w-full {live != undefined && live?.length > 0
 						? ' fill-green-700 dark:fill-green-300 '
 						: ' fill-black dark:fill-white '}"
 					d="M5 8a1 1 0 0 0 2 0V7h1a1 1 0 0 0 0-2H7V4a1 1 0 0 0-2 0v1H4a1 1 0 0 0 0 2h1Zm13-3h-6a1 1 0 0 0 0 2h6a1 1 0 0 1 1 1v9.72l-1.57-1.45a1 1 0 0 0-.68-.27H8a1 1 0 0 1-1-1v-3a1 1 0 0 0-2 0v3a3 3 0 0 0 3 3h8.36l3 2.73A1 1 0 0 0 20 21a1.1 1.1 0 0 0 .4-.08A1 1 0 0 0 21 20V8a3 3 0 0 0-3-3"
@@ -90,6 +93,16 @@
 			class="flex z-10 flex-col font-semibold text-sm overflow-hidden border shadow w-100 h-auto absolute -translate-x-94 -translate-y-1.5 rounded-lg
             dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
 		>
+			<div class=" p-1 flex flex-col">
+				{#if !interactable && (captured == '' || !captured) }
+					<p class="{completeStyle} italic opac">No comment provided</p>
+				{:else if !interactable}
+					<p class={completeStyle}>{captured}</p>
+				{:else}
+					<textarea placeholder="Leave comment here..." class={textStyle} bind:value={live}
+					></textarea>
+				{/if}
+			</div>
 			<!--
 			<div class="border-inherit border-b p-1 flex flex-col">
 				
@@ -138,16 +151,6 @@
 				</button>
 			</div>
 		-->
-			<div class=" p-1 flex flex-col">
-				{#if completed == true && comment == ''}
-					<p class="{completeStyle} italic opac">No comment provided</p>
-				{:else if completed == true}
-					<p class={completeStyle}>{comment}</p>
-				{:else}
-					<textarea placeholder="Leave comment here..." class={textStyle} bind:value={comment}
-					></textarea>
-				{/if}
-			</div>
 		</div>
 	{/if}
 </div>

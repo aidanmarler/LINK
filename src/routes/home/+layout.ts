@@ -40,7 +40,11 @@ export const load: LayoutLoad = async ({ parent, depends }) => {
 	printTime('loaded session, profile, document');
 
 	// ! catch not logged in
-	if (!session || !profile) redirect(302, '/login');
+	if (!session || !profile) {
+		console.warn(session, profile)
+		if (!profile && session) await supabase.auth.signOut();
+		redirect(302, '/login');}
+
 
 	depends('app:data');
 	loading.active = false;

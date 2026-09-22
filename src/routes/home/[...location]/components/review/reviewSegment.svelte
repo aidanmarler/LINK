@@ -1,15 +1,14 @@
 <script lang="ts">
-	import { card, } from '$lib/styles';
+	import { card } from '$lib/styles';
 	import type {
 		ForwardTranslationRow,
-		
 		ReviewComment,
 		TranslationReviewRow
 	} from '$lib/supabase/types';
 	import { getEarliestEvent } from '$lib/supabase/utils';
 	import { typeLabels } from '$lib/types';
-	import { quintInOut } from 'svelte/easing';
-	import { draw, fade } from 'svelte/transition';
+
+	import { fade } from 'svelte/transition';
 	import CommentViewer from '../commentViewer.svelte';
 	import CompletionIndicator from '../completionIndicator.svelte';
 	import type { Database } from '$lib/supabase/database.types';
@@ -74,56 +73,36 @@
 	<div class="flex p-0.5">
 		<!-- Open/Close Button-->
 		<button
-			class=" flex md:ml-4 group hover:underline cursor-pointer"
+			class=" {completed ? ' opacity-60  ' : ''} 
+			{open ? '' : 'bg-stone-500/15 hover:shadow transition-shadow duration-10 shadow-stone-500/30'} 
+			flex group items-center text-stone-600 px-2 ml-1.5 rounded-full dark:text-stone-400 hover:underline cursor-pointer"
 			onclick={() => {
 				open = !open;
 			}}
 		>
 			<div
-				class="w-4 p-0.5 h-4 rounded-full
-					group-hover:bg-white group-hover:fill-stone-600 group-hover:stroke-stone-600 stroke-stone-500
-					dark:group-hover:bg-stone-800 dark:group-hover:fill-stone-400 dark:group-hover:stroke-stone-400 dark:stroke-stone-300"
-			>
-				{#if open}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class=" h-full w-full"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-					>
-						<path
-							in:draw={{ duration: 200, easing: quintInOut }}
-							fill="none"
-							stroke-width="4"
-							stroke-linecap="round"
-							d="M19 12.998H5v"
-						/>
-					</svg>{:else}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class=" h-full w-full"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-					>
-						<path
-							in:draw={{ duration: 100, easing: quintInOut }}
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z"
-						/>
-					</svg>{/if}
-			</div>
+				class="
+				{completed && open
+					? 'border-stone-500/0 bg-stone-500/40 '
+					: completed && !open
+						? 'border-stone-500/40 bg-stone-500/10 '
+						: !completed && open
+							? 'bg-sky-500/50 border-sky-500/0'
+							: 'bg-sky-500/10 border-sky-500/40'}
 
-			<span class="text-sm font-semibold italic text-stone-600">{typeLabels[label]}</span>
+					w-2 h-2 flex border-2 items-center rounded-full
+					 mr-1 p-0.5
+					 "
+			></div>
+
+			<span class="text-sm font-semibold italic">Review {typeLabels[label]}</span>
 		</button>
 		<!--Skip Button-->
 		<!--Completion Indicator-->
 		<CompletionIndicator
 			{completed}
 			{inProgress}
+			editing={false}
 			skipped={false}
 			{saving}
 			completedText={'reviewed'}
@@ -145,8 +124,9 @@
 			<div
 				in:fade={{ duration: 200 }}
 				class="rounded border-2 border-inherit w-full h-full z-0 flex flex-wrap {completed
-					? 'opacity-70'
-					: '  '} {card.translate.complete}"
+					? ' opacity-70 '
+					: ''} 
+					{completed ? card.translate.complete : card.translate.incomplete} "
 			>
 				<!--Original Segment-->
 				<h3 class="w-full border-b border-inherit px-2">
@@ -180,7 +160,7 @@
 												selectedTranslation = optionId; // Select
 											}
 										}}
-										class="accent-green-600 disabled:accent-amber-300 {completed
+										class=" disabled:accent-amber-300 {completed
 											? ' '
 											: 'cursor-pointer'}"
 									/>
@@ -203,7 +183,11 @@
 							<!-- Add comment button-->
 							<div class="w-6 -right-[25.5px] top-0 opacity-100 absolute p-0.5 h-5">
 								{#if !completed}
-									<CommentViewer bind:completed bind:comment={comments[optionId]} />
+									<CommentViewer
+										interactable={!completed}
+										bind:live={comments[optionId]}
+										captured={'Test'}
+									/>
 								{/if}
 							</div>
 						</div>
@@ -236,7 +220,7 @@
 										selectedTranslation = 'new'; // Select
 									}
 								}}
-								class="accent-green-600 disabled:accent-amber-300 {completed
+								class="disabled:accent-amber-300 {completed
 									? ' '
 									: 'cursor-pointer'}"
 							/>

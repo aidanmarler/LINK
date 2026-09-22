@@ -42,7 +42,7 @@ export async function pushFolderToGitHub(
 			const blob = await blobRes.json();
 
 			return {
-				path, // e.g. "ARCH3.0/English/ARCH.csv"
+				path, // e.g. "ARCH1.2.0/English/ARCH.csv"
 				mode: '100644', // standard file mode (matches what you pull)
 				type: 'blob',
 				sha: blob.sha

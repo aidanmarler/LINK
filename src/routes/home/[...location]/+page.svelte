@@ -146,6 +146,7 @@
 		<!-- Here we show the Composite form for intereacting with the segements at this level -->
 
 		{#if data.currentNode.segmentIds.length > 0}
+		
 			{#key currentPath}
 				<section
 					in:fly|global={{ x: 10, duration: 200, delay: 100 }}

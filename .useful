@@ -1,0 +1,1 @@
+supabase gen types typescript --linked > src/lib/supabase/database.types.ts

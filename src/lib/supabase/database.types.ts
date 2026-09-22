@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       accepted_translations: {
@@ -196,6 +221,7 @@ export type Database = {
           id: number
           location: string[] | null
           segment: string
+          segment_hash: string | null
           type: Database["public"]["Enums"]["SegmentType"]
         }
         Insert: {
@@ -204,6 +230,7 @@ export type Database = {
           id?: number
           location?: string[] | null
           segment: string
+          segment_hash?: string | null
           type: Database["public"]["Enums"]["SegmentType"]
         }
         Update: {
@@ -212,6 +239,7 @@ export type Database = {
           id?: number
           location?: string[] | null
           segment?: string
+          segment_hash?: string | null
           type?: Database["public"]["Enums"]["SegmentType"]
         }
         Relationships: []
@@ -225,7 +253,7 @@ export type Database = {
           language: string | null
           name: string | null
           profession: string | null
-          selected_preset: string | null
+          selected_preset: string
         }
         Insert: {
           clinical_expertise?: boolean | null
@@ -235,7 +263,7 @@ export type Database = {
           language?: string | null
           name?: string | null
           profession?: string | null
-          selected_preset?: string | null
+          selected_preset?: string
         }
         Update: {
           clinical_expertise?: boolean | null
@@ -245,7 +273,7 @@ export type Database = {
           language?: string | null
           name?: string | null
           profession?: string | null
-          selected_preset?: string | null
+          selected_preset?: string
         }
         Relationships: []
       }
@@ -344,7 +372,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      find_similar_segments: {
+        Args: {
+          batch_size?: number
+          match_count?: number
+          match_threshold?: number
+          max_batches?: number
+          min_accepted_score?: number
+          p_segment_id: number
+          p_user_id: string
+        }
+        Returns: {
+          accepted_translation_id: number
+          accepted_translation_step: Database["public"]["Enums"]["TranslationStep"]
+          forward_translation_id: number
+          forward_translation_text: string
+          score: number
+          segment_id: number
+          segment_text: string
+        }[]
+      }
+      get_valid_and_user_suggestion: {
+        Args: {
+          p_language: Database["public"]["Enums"]["Language"]
+          p_min_score: number
+          p_segment_id: number
+          p_user_id: string
+        }
+        Returns: {
+          user_forward_id: number
+          user_forward_text: string
+          valid_accepted_id: number
+          valid_accepted_score: number
+          valid_accepted_step: Database["public"]["Enums"]["TranslationStep"]
+          valid_forward_id: number
+          valid_forward_text: string
+          valid_forward_user: string
+        }[]
+      }
     }
     Enums: {
       LabelType: "form" | "section"
@@ -378,12 +443,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -407,11 +472,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -432,11 +497,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -457,11 +522,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -474,11 +539,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -488,6 +553,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       LabelType: ["form", "section"],

@@ -17,7 +17,9 @@ export const load: LayoutLoad = async () => {
 		.select('*')
 		.eq('id', session.user.id)
 		.single();
+		
 	if (!profile) {
+		await supabase.auth.signOut();
 		return {
 			session: session,
 			profile: null,
