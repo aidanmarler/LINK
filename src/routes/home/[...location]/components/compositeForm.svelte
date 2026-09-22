@@ -134,7 +134,7 @@
 	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
 		loading.active = true;
 
-		console.log('changeCount: ', changeCount);
+		//console.log('changeCount: ', changeCount);
 
 		if (changeCount > 0) {
 			loading.message = 'Submitting...';

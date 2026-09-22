@@ -56,10 +56,10 @@ const nextSibling = (path: LocationNode[], forward: boolean): LocationNode | und
 
 function traverse(path: LocationNode[], forward: boolean): LocationNode[] | undefined {
 	const node = path[path.length - 1];
-	console.log("trying:", node.name);
+	//console.log("trying:", node.name);
 
 	if (node.segmentIds.length > 0) {
-		console.log("success!", node.name);
+		//console.log("success!", node.name);
 		return path;
 	}
 
@@ -80,7 +80,7 @@ function traverse(path: LocationNode[], forward: boolean): LocationNode[] | unde
 
 export function initializeTraversal(locationTree: LocationNode, startingLocation: string[], forward: boolean) {
 	const path = initalizePath(locationTree, startingLocation);
-	console.log("Initialized traverse!", path.map(n => n.name), forward);
+	//console.log("Initialized traverse!", path.map(n => n.name), forward);
 
 	// don't let the starting node itself count as a hit — start the search
 	// from its first child / next sibling instead
@@ -129,7 +129,7 @@ export function findNextSegment(
 			// * get segment slug
 			const slug = getSegmentSlug(+id, locationTree, startingRoute);
 
-			console.log('label', segment, locationTree);
+			//console.log('label', segment, locationTree);
 
 			// == Searching is Over! == //
 			return [slug, target, 'label'] as const;

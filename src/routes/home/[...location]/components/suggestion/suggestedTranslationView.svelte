@@ -81,73 +81,77 @@
 			{:then suggestionResult}
 				{#if suggestionResult.length == 0}
 					<p class=" px-2 italic opacity-70">No suggested translations.</p>
-				{/if}
-				{@const suggestion = Object.values(suggestionResult)}
-				<div class=" bg-conic-60 from-sky-500 to-green-600">
-					<div class="flex w-full bg-stone-200/95 backdrop-blur-3xl p-1 px-1.5 flex-col">
-						{#each suggestion as s}
-							{@const label = stepLabel(s.accepted_translation_step)}
-							{@const score = Math.round(s.score * 100)}
-							{@const conf = suggestionConfidence(score, label)}
-							<div class="p-0.5 flex w-full">
-								<button
-									onclick={() => onSuggest(s.forward_translation_text)}
-									class=" {borderColor(
-										conf
-									)} bg-stone-100 w-full px-1 p-0.5 border-2 flex-col active:bg-white shadow-none flex font-normal hover:bg-stone-100 cursor-pointer opacity-80 hover:opacity-100 rounded-lg hover:shadow"
-								>
-									<div
-										class="flex italic border-b border-stone-400/50 text-stone-700/90 font-semibold flex-row text-sm"
+				{:else}
+					{@const suggestion = Object.values(suggestionResult)}
+					<div class=" bg-conic-60 from-sky-500 to-green-600">
+						<div class="flex w-full bg-stone-200/95 backdrop-blur-3xl p-1 px-1.5 flex-col">
+							{#each suggestion as s}
+								{@const label = stepLabel(s.accepted_translation_step)}
+								{@const score = Math.round(s.score * 100)}
+								{@const conf = suggestionConfidence(score, label)}
+								<div class="p-0.5 flex w-full">
+									<button
+										onclick={() => onSuggest(s.forward_translation_text)}
+										class=" {borderColor(
+											conf
+										)} bg-stone-100 w-full px-1 p-0.5 border-2 flex-col active:bg-white shadow-none flex font-normal hover:bg-stone-100 cursor-pointer opacity-80 hover:opacity-100 rounded-lg hover:shadow"
 									>
-										{@render symbol()}
-										<p
-											title="Percent match with original text"
-											class="pl-1 pr-2 rounded-sm hover:bg-stone-200 cursor-context-menu"
+										<div
+											class="flex italic border-b border-stone-400/50 text-stone-700/90 font-semibold flex-row text-sm"
 										>
-											<b class={matchColor(score)}>{score}%</b> match
-										</p>
-										—
+											{@render symbol()}
+											<p
+												title="Percent match with original text"
+												class="pl-1 pr-2 rounded-sm hover:bg-stone-200 cursor-context-menu"
+											>
+												<b class={matchColor(score)}>{score}%</b> match
+											</p>
+											—
 
-										<p
-											title={label == 'Accepted'
-												? 'Translation was accepted as correct.'
-												: 'Translation has not yet been accepted as correct.'}
-											class="px-2 rounded-sm hover:bg-stone-200 cursor-context-menu flex items-center {stepColor(
-												label
-											)}"
-										>
-											{#if label == 'Accepted'}
-												<svg
-													class="w-5 h-full px-0.5 stroke-sky-600 fill-sky-600"
-													xmlns="http://www.w3.org/2000/svg"
-													width="24"
-													height="24"
-													viewBox="0 0 12 12"
-													stroke-width="0.5"
-												>
-													<path
-														fill-rule="evenodd"
-														d="M10.78 2.62a.75.75 0 0 1 0 1.06L4.683 9.777a.75.75 0 0 1-1.069-.009L1.211 7.284a.75.75 0 0 1 1.078-1.043l1.873 1.936L9.72 2.62a.75.75 0 0 1 1.06 0"
-														clip-rule="evenodd"
-													/>
-												</svg>
-											{:else}
-												<span
-													class="w-2.5 h-2.5 mr-0.5 border-yellow-700 border-2 rounded-sm bg-yellow-700/0"
-												></span>
-											{/if}
+											<p
+												title={label == 'Accepted'
+													? 'Translation was accepted as correct.'
+													: 'Translation has not yet been accepted as correct.'}
+												class="px-2 rounded-sm hover:bg-stone-200 cursor-context-menu flex items-center {stepColor(
+													label
+												)}"
+											>
+												{#if label == 'Accepted'}
+													<svg
+														class="w-5 h-full px-0.5 stroke-sky-600 fill-sky-600"
+														xmlns="http://www.w3.org/2000/svg"
+														width="24"
+														height="24"
+														viewBox="0 0 12 12"
+														stroke-width="0.5"
+													>
+														<path
+															fill-rule="evenodd"
+															d="M10.78 2.62a.75.75 0 0 1 0 1.06L4.683 9.777a.75.75 0 0 1-1.069-.009L1.211 7.284a.75.75 0 0 1 1.078-1.043l1.873 1.936L9.72 2.62a.75.75 0 0 1 1.06 0"
+															clip-rule="evenodd"
+														/>
+													</svg>
+												{:else}
+													<span
+														class="w-2.5 h-2.5 mr-0.5 border-yellow-700 border-2 rounded-sm bg-yellow-700/0"
+													></span>
+												{/if}
 
-											{label}
+												{label}
+											</p>
+										</div>
+										<p class=" text-sm text-left px-1">
+											{s.segment_text}
 										</p>
-									</div>
-									<p class="text-black text-left px-1">
-										{s.forward_translation_text}
-									</p>
-								</button>
-							</div>
-						{/each}
+										<p class="text-black text-left px-1">
+											{s.forward_translation_text}
+										</p>
+									</button>
+								</div>
+							{/each}
+						</div>
 					</div>
-				</div>
+				{/if}
 			{/await}
 		</div>
 	{/if}
