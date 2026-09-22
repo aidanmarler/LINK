@@ -73,7 +73,7 @@
 			onclick={() => {
 				menuOpen = !menuOpen;
 			}}
-			class="opacity-60 hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
+			class="opacity-60 hover:shadow transition-shadow duration-10 shadow-stone-500/20 active:shadow-none active:bg-white hover:bg-stone-50 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer"
 			title="Add a comment"
 			aria-label="Add comment"
 		>

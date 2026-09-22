@@ -17,15 +17,15 @@
 		completedText: string;
 		//state: 'complete' | 'skipped' | 'inProgress' | 'saving';
 	} = $props();
+
+	const basicStyle =
+		' h-5 flex items-center rounded-full ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default ';
 </script>
 
 <!--Completion Indicator-->
 
 {#if saving}
-	<div
-		title="saving"
-		class=" flex items-center rounded-full border ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default border-yellow-700 bg-yellow-700/10 text-yellow-700"
-	>
+	<div title="saving" class=" {basicStyle} border-yellow-700 bg-yellow-700/10 text-yellow-700">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			class="w-5 h-full p-0.5 stroke-yellow-700 fill-yellow-700"
@@ -48,10 +48,7 @@
 		saving...
 	</div>
 {:else if editing}
-	<div
-		title="Will save"
-		class="h-5 flex items-center rounded-full border ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default border-yellow-800 bg-yellow-800/10 text-yellow-700"
-	>
+	<div title="Will save" class="{basicStyle} border-yellow-800 bg-yellow-800/10 text-yellow-700">
 		<svg
 			class="w-5 h-full px-0.5 stroke-yellow-800 fill-yellow-700/0"
 			xmlns="http://www.w3.org/2000/svg"
@@ -68,10 +65,7 @@
 		editing
 	</div>
 {:else if skipped && completed}
-	<div
-		title="Skipped"
-		class=" flex items-center rounded-full border ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default border-stone-800 bg-stone-800/10 text-stone-800"
-	>
+	<div title="Skipped" class=" {basicStyle} border-stone-800 bg-stone-800/10 text-stone-800">
 		<svg
 			class="w-5 px-0.5 h-full stroke-stone-800 fill-stone-800 dark:stroke-stone-500 dark:fill-stone-500"
 			xmlns="http://www.w3.org/2000/svg"
@@ -86,11 +80,27 @@
 		</svg>
 		<span>skipped</span>
 	</div>
+
+{:else if completed && completedText == 'reviewed'}
+	<div title="Complete" class="{basicStyle} border-sky-800 bg-sky-800/10 text-sky-800">
+		<svg
+			class="w-5 h-full px-0.5 stroke-sky-800 fill-sky-800"
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 12 12"
+			stroke-width="0.5"
+		>
+			<path
+				fill-rule="evenodd"
+				d="M10.78 2.62a.75.75 0 0 1 0 1.06L4.683 9.777a.75.75 0 0 1-1.069-.009L1.211 7.284a.75.75 0 0 1 1.078-1.043l1.873 1.936L9.72 2.62a.75.75 0 0 1 1.06 0"
+				clip-rule="evenodd"
+			/>
+		</svg>
+		<span>{completedText}</span>
+	</div>
 {:else if completed}
-	<div
-		title="Complete"
-		class=" flex items-center rounded-full border ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default border-green-800 bg-green-800/10 text-green-800"
-	>
+	<div title="Complete" class="{basicStyle} border-green-800 bg-green-800/10 text-green-800">
 		<svg
 			class="w-5 h-full px-0.5 stroke-green-800 fill-green-800"
 			xmlns="http://www.w3.org/2000/svg"
@@ -108,10 +118,7 @@
 		<span>{completedText}</span>
 	</div>
 {:else if inProgress && !skipped}
-	<div
-		title="Will save"
-		class="h-5 flex items-center rounded-full border ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default border-yellow-800 bg-yellow-800/10 text-yellow-700"
-	>
+	<div title="Will save" class=" {basicStyle} border-yellow-800 bg-yellow-800/10 text-yellow-700">
 		<svg
 			class="w-5 h-full px-0.5 stroke-yellow-800 fill-yellow-700/0"
 			xmlns="http://www.w3.org/2000/svg"
@@ -129,10 +136,7 @@
 		unsaved
 	</div>
 {:else if skipped}
-	<div
-		title="Will skip"
-		class="h-5 flex items-center rounded-full border ml-1 pl-1 pr-2 text-sm font-bold opacity-70 cursor-default border-yellow-800 bg-yellow-800/10 text-yellow-700"
-	>
+	<div title="Will skip" class="{basicStyle} border-yellow-800 bg-yellow-800/10 text-yellow-700">
 		<svg
 			class="w-5 px-0.5 h-full stroke-2 stroke-yellow-800 fill-yellow-800/0"
 			xmlns="http://www.w3.org/2000/svg"

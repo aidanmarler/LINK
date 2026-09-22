@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { card } from '$lib/styles';
 	import { typeLabels } from '$lib/types';
-	import { quintInOut } from 'svelte/easing';
-	import { draw, fade } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 
 	import CommentViewer from '../commentViewer.svelte';
 	import CompletionIndicator from '../completionIndicator.svelte';
@@ -39,6 +38,7 @@
 
 	let suggestionOpen = $state(false);
 	let suggestionCount: number | undefined = $state(undefined);
+	let suggestionConfidence: 0 | 1 | 2 = $state(0);
 	let textArea: HTMLTextAreaElement | undefined = $state(undefined);
 	const onSuggest = (suggestion: string) => {
 		if (!textArea) return;
@@ -69,48 +69,26 @@
 				<!-- Open/Close Button -->
 				<button
 					class=" {!interactable ? ' opacity-50  ' : ''} 
-					flex group bg-green-500/20 hover:bg-green-500/30 text-stone-600 rounded-md dark:text-stone-400 px-2 hover:underline cursor-pointer"
+					{open ? '' : 'bg-stone-500/10 hover:shadow transition-shadow duration-10 shadow-stone-500/50'} 
+					flex group items-center text-stone-600 px-2 -ml-2 rounded-full dark:text-stone-400 hover:underline cursor-pointer"
 					onclick={() => {
 						open = !open;
 					}}
 				>
 					<div
-						class="w-4 p-0.5 h-4 rounded-full
-					  stroke-stone-500
-					  dark:stroke-stone-400"
-					>
-						{#if open}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class=" h-full w-full"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-							>
-								<path
-									in:draw={{ duration: 200, easing: quintInOut }}
-									fill="none"
-									stroke-width="4"
-									stroke-linecap="round"
-									d="M19 12.998H5v"
-								/>
-							</svg>{:else}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class=" h-full w-full"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-							>
-								<path
-									in:draw={{ duration: 100, easing: quintInOut }}
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z"
-								/>
-							</svg>{/if}
-					</div>
+						class="
+				{completed && open
+							? 'border-stone-500/0 bg-stone-500/40 '
+							: completed && !open
+								? 'border-stone-500/40 bg-stone-500/10 '
+								: !completed && open
+									? 'bg-green-700/50 border-green-700/0'
+									: 'bg-green-700/10 border-green-700/40'}
+
+					w-2 h-2 flex border-2 items-center rounded-full
+					 mr-1 p-0.5
+					 "
+					></div>
 
 					<span class="text-sm font-semibold italic">Translate {typeLabels[label]}</span>
 				</button>
@@ -131,7 +109,7 @@
 				{#if interactable && open}
 					<button
 						in:fade={{ duration: 100 }}
-						title="Skip translating this segment"
+						title="See {suggestionCount ?? 0} suggested translations"
 						class="  flex items-center mr-1 px-2.5 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
 						 {suggestionOpen
 							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
@@ -141,11 +119,20 @@
 						}}
 					>
 						<span class="text-sm font-bold"
-							><b>{suggestionCount ? suggestionCount : '...'}</b> Suggestions</span
-						>
+							><b>{suggestionCount != undefined ? suggestionCount : '...'}</b>
+							{suggestionCount != undefined
+								? 'Suggestion' + (suggestionCount != 1 ? 's' : '')
+								: 'loading'}
+						</span>
 						<div class="w-5 py-0.75 h-full">
 							<svg
-								class="w-full h-full opacity-full text-amber-500"
+								class="w-full h-full opacity-full {!suggestionCount || suggestionCount == 0
+									? ''
+									: suggestionConfidence == 2
+										? 'text-sky-500'
+										: suggestionConfidence == 1
+											? 'text-green-700'
+											: 'text-yellow-700'}"
 								xmlns="http://www.w3.org/2000/svg"
 								width="18"
 								height="24"
@@ -192,6 +179,7 @@
 							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
 						onclick={() => {
 							newData.skipped = !newData.skipped;
+							if (newData.skipped) suggestionOpen = false;
 						}}
 					>
 						<span class="text-sm font-bold">Skip Translation</span>
@@ -223,6 +211,7 @@
 							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
 						onclick={() => {
 							editing = !editing;
+							if (!editing) suggestionOpen = false;
 						}}
 					>
 						<span class="text-sm font-bold">Edit</span>
@@ -266,7 +255,7 @@
 		{#if open}
 			<div
 				in:fade={{ duration: 200 }}
-				class="rounded-md border-2 w-full z-4 flex flex-col {!interactable
+				class="rounded-md border-2 overflow-clip w-full z-4 flex flex-col {!interactable
 					? 'opacity-70'
 					: '  '} {!interactable ? card.translate.complete : card.translate.incomplete}"
 			>
@@ -295,22 +284,22 @@
 				<SuggestedTranslationView
 					{id}
 					{profileId}
-					open={suggestionOpen}
+					bind:open={suggestionOpen}
 					{onSuggest}
+					bind:confidence={suggestionConfidence}
 					bind:count={suggestionCount}
 				/>
 			</div>
-		{/if}
-
-		<!--Comment button-->
-		<div class="flex flex-col">
-			<div class="w-6 flex flex-col p-0.5 h-5">
-				<CommentViewer
-					{interactable}
-					captured={submittedData.comment}
-					bind:live={newData.comment}
-				/>
+			<!--Comment button-->
+			<div class="flex flex-col">
+				<div class="w-6 flex flex-col p-0.5 h-5">
+					<CommentViewer
+						{interactable}
+						captured={submittedData.comment}
+						bind:live={newData.comment}
+					/>
+				</div>
 			</div>
-		</div>
+		{/if}
 	</div>
 </div>

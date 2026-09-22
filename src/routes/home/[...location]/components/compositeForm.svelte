@@ -107,8 +107,8 @@
 
 	//let allSuggestions = $derived.by(() => getSuggestedTranslations(forwardIds, profile.id));
 
-	let profileId = $derived(profile.id)
-	
+	let profileId = $derived(profile.id);
+
 	onMount(async () => {
 		/* 
 			@Aidan:
@@ -162,13 +162,19 @@
 	{pageTitle}
 </h1>
 <p class="font-normal flex text-md px-20 justify-center text-stone-700 dark:text-stone-300">
-	<span class="{fsegments == 0 ? 'opacity-30' : 'bg-green-500/30'} px-4 mr-1 rounded-lg">
-		<span class=" rounded-full">Translate <b>{fsegments}</b></span>
-		<span class=""></span> segment{fsegments == 1 ? '' : 's'}
+	<span class=" {fsegments == 0 ? 'opacity-30' : ''} gap-1 inline-flex items-center px-4 mr-1">
+		<span
+			class=" mr-0.5 rounded-full w-2 h-2 {fsegments == 0 ? 'bg-stone-500/40 ' : 'bg-green-700/40 '}"
+		></span>
+		Translate <b>{fsegments}</b>
+		<!--segment{fsegments == 1 ? '' : 's'}-->
 	</span>
-	<span class="{rsegments == 0 ? 'opacity-30' : 'bg-sky-500/30'} px-4 ml-1 rounded-lg">
-		<span class=" rounded-full">Review <b>{rsegments}</b></span>
-		<span class=""></span> segment{rsegments == 1 ? '' : 's'}
+	<span class="{rsegments == 0 ? 'opacity-30' : ''} gap-1 inline-flex items-center px-4 ml-1">
+		<span class="mr-0.5 rounded-full w-2 h-2 {rsegments == 0 ? 'bg-stone-500/40 ' : 'bg-sky-500/40'}"
+		></span>
+		Review <b>{rsegments}</b>
+
+		<!--segment{rsegments == 1 ? '' : 's'}-->
 	</span>
 </p>
 <br />

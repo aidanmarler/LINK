@@ -4,6 +4,13 @@
 
 .suggestion-close {
   transition-property: max-height, border-top-width;
-  transition-duration: 300ms, 0s;
-  transition-delay: 0s, 300ms;
+  transition-duration: 200ms, 0s;
+  transition-timing-function: ease;
+  transition-delay: 0s, 150ms;
+}
+
+.suggestion-open {
+  transition-property: max-height;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
 }
