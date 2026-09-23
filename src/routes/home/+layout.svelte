@@ -28,7 +28,7 @@
 				{#each breadCrumbs as crumb, i (crumb)}
 					<a
 						data-sveltekit-preload-code="eager"
-						class="cursor-pointer hover:underline mr-1"
+						class="cursor-pointer hover:underline active:text-stone-500 mr-1"
 						href={crumb.href}
 					>
 						{crumb.name}

@@ -49,7 +49,11 @@ export async function getSuggestedTranslation(
 	const result = await supabase.rpc('find_similar_segments', {
 		p_segment_id: id,
 		p_user_id: profileId,
-		min_accepted_score: 2
+		min_accepted_score: 2,
+		//batch_size: 10,
+		match_count: 5,
+		match_threshold: 0.3,
+		//max_batches: 10
 	});
 	return result.data ?? [];
 }

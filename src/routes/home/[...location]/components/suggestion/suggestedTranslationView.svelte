@@ -71,7 +71,7 @@
 <div
 	class="{open
 		? 'border-t-2 max-h-50 suggestion-open '
-		: 'max-h-0 suggestion-close '} overflow-scroll
+		: 'max-h-0 suggestion-close '} overflow-scroll rounded-b-md
 		"
 >
 	{#if open}
@@ -91,6 +91,7 @@
 								{@const conf = suggestionConfidence(score, label)}
 								<div class="p-0.5 flex w-full">
 									<button
+										title="Use this translation"
 										onclick={() => onSuggest(s.forward_translation_text)}
 										class=" {borderColor(
 											conf
@@ -140,10 +141,13 @@
 												{label}
 											</p>
 										</div>
-										<p class=" text-sm text-left px-1">
+										<p class=" text-sm text-left text-stone-700 italic ">
+											<span title="English segment" class=" rounded-sm hover:bg-stone-200 px-1 cursor-context-menu">
 											{s.segment_text}
+											</span>
+											
 										</p>
-										<p class="text-black text-left px-1">
+										<p class="text-black text-[17px] text-left px-1">
 											{s.forward_translation_text}
 										</p>
 									</button>

@@ -25,7 +25,7 @@
 	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset);
 	let routes = ['arc', 'lists'];
 	const start_style =
-		'text-4xl font-bold hover:shadow-sm px-8 py-4 cursor-pointer rounded-xl';
+		'text-4xl font-bold px-8 py-4 cursor-pointer rounded-2xl border-6';
 </script>
 
 {#if profile}
@@ -62,7 +62,7 @@
 							goto(slug, { state: { form: nextSegmentTuple[1] } });
 						}}
 						class="{button.green.default} {button.green
-							.hover}  opacity-90 border-[3px] hover:opacity-100 {start_style}"
+							.hover} opacity-90 border-[3px] hover:opacity-100 {start_style}"
 					>
 						START
 					</button>

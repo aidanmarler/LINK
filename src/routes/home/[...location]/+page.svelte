@@ -146,13 +146,19 @@
 		<!-- Here we show the Composite form for intereacting with the segements at this level -->
 
 		{#if data.currentNode.segmentIds.length > 0}
-		
 			{#key currentPath}
 				<section
 					in:fly|global={{ x: 10, duration: 200, delay: 100 }}
 					out:fly|global={{ x: -10, duration: 100 }}
 				>
-					<CompositeForm segmentMap={newPageSegments} {profile} {onsubmit} />
+					<CompositeForm
+						segmentMap={newPageSegments}
+						{profile}
+						{onsubmit}
+						relatedReviewsProm={data.relatedReviews}
+						relatedTranslationsProm={data.relatedTranslations}
+						
+					/>
 				</section>
 			{/key}
 		{/if}

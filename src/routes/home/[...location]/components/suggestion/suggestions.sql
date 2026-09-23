@@ -56,8 +56,7 @@ begin
   where u.original_id = p_segment_id
     and u.language = p_language
     and u.user_id = p_user_id
-    and v_forward_id is distinct from u.id
-    and (v_forward_time is null or u.created_at > v_forward_time)
+    and (v_forward_time is null or ( v_forward_id is distinct from u.id and u.created_at > v_forward_time))
   order by u.created_at desc
   limit 1;
 
@@ -98,11 +97,11 @@ $get_valid$;
 create or replace function find_similar_segments(
   p_segment_id int8,
   p_user_id uuid,
-  match_threshold float default 0.7,
+  match_threshold float default 0.2,
   match_count int2 default 3,
-  min_accepted_score int2 default 2,
-  batch_size int2 default 5,
-  max_batches int2 default 5
+  min_accepted_score int2 default 0,
+  batch_size int2 default 10,
+  max_batches int2 default 10
 )
 returns table (
   segment_id int8,
@@ -111,7 +110,8 @@ returns table (
   forward_translation_id int8,
   forward_translation_text text,
   accepted_translation_id int8,
-  accepted_translation_step "TranslationStep"
+  accepted_translation_step "TranslationStep",
+  user_owned boolean
 )
 language plpgsql
 as $find_similar$

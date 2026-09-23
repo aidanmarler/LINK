@@ -247,3 +247,31 @@ export async function getRelatedReviews(
 	}
 	return relatedReviews;
 }
+
+export async function getRelatedInformation(
+	original_ids: number[],
+	language: TranslationLanguage
+): Promise<RelatedTranslations> {
+	const relatedTranslations: RelatedTranslations = {};
+	const RelatedTranslationsList: ForwardTranslationRow[] = await pullRowsForOriginalId(
+		'forward_translations',
+		original_ids,
+		language
+	);
+
+	// map list to relatedTranslations type (id -> text -> row)
+	for (const ft of RelatedTranslationsList) {
+		if (!ft.translation) continue;
+		const id = ft.original_id;
+		const trans = ft.translation;
+
+		if (relatedTranslations[id]) {
+			if (relatedTranslations[id][trans]) {
+				relatedTranslations[id][trans].push(ft);
+			} else {
+				relatedTranslations[id][trans] = [ft];
+			}
+		} else relatedTranslations[id] = { [trans]: [ft] };
+	}
+	return relatedTranslations;
+}

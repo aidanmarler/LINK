@@ -6,13 +6,13 @@
 		TranslationReviewRow
 	} from '$lib/supabase/types';
 	import { onMount } from 'svelte';
-	import type { Profile, TranslationLanguage } from '$lib/types';
+	import type { Profile } from '$lib/types';
 	import { button } from '$lib/styles';
 	import { sortSegmentMap } from '$lib/utils/utils';
 	import TranslateSegment from './forward/translateSegment.svelte';
 	import PlaceholderSegment from './placeholderSegment.svelte';
 	import { loading } from '../../../components/loading/loadingState.svelte';
-	import { getRelatedReviews, getRelatedTranslations } from './review/reviewForm';
+	//import { getRelatedReviews, getRelatedTranslations } from './review/reviewForm';
 	import {
 		blankPageTranslations,
 		blankTranslationVariables,
@@ -26,16 +26,19 @@
 	} from './compositeForm';
 	import ReviewSegment from './review/reviewSegment.svelte';
 	import { invalidate } from '$app/navigation';
-	//import { getSuggestedTranslations } from './suggestion/suggestion';
 
 	let {
 		segmentMap,
 		profile,
-		onsubmit
+		onsubmit,
+		relatedReviewsProm,
+		relatedTranslationsProm
 	}: {
 		segmentMap: SegmentMap;
 		profile: Profile;
 		onsubmit: (shouldContinue: boolean, forward: boolean) => Promise<void>;
+		relatedReviewsProm: Promise<Record<number, TranslationReviewRow[]>>;
+		relatedTranslationsProm: Promise<RelatedTranslations>;
 	} = $props();
 
 	let saving: boolean = $state(false);
@@ -44,6 +47,9 @@
 	let pageTranslations: PageTranslations = $state(blankPageTranslations());
 	let relatedTranslations: RelatedTranslations = $state({});
 	let relatedReviews: Record<number, TranslationReviewRow[]> = $state({});
+
+	//let combined = Promise.all([relatedTranslationsProm, relatedReviewsProm]);
+
 	let errors: Record<number, string> = $state({});
 	let segmentsEditing: Record<number, boolean> = $state({});
 
@@ -111,10 +117,9 @@
 
 	onMount(async () => {
 		/* 
-			@Aidan:
-				pull this data on page load or with hover function, not on component mount.
-		*/
-
+			@ pull this data on page load or with hover function, not on component mount.
+		
+		
 		// pull related translations
 		relatedTranslations = await getRelatedTranslations(
 			Object.keys(segmentMap).map(Number),
@@ -123,20 +128,45 @@
 		relatedReviews = await getRelatedReviews(
 			Object.keys(segmentMap).map(Number),
 			profile.language as TranslationLanguage
-		);
+		);*/
+
+		//[pageTranslations, segmentsEditing] = initPageTranslations(segmentMap, relatedReviews);
+		/*
+		console.time('related-old');
+		[relatedTranslations, relatedReviews] = await Promise.all([
+			getRelatedTranslations(
+				Object.keys(segmentMap).map(Number),
+				profile.language as TranslationLanguage
+			),
+			getRelatedReviews(
+				Object.keys(segmentMap).map(Number),
+				profile.language as TranslationLanguage
+			)
+		]);
+		console.timeEnd('related-old');
+*/
+
+		loading.active = true;
+		loading.message = 'Pulling related data...';
+		console.time('related-new');
+		[relatedTranslations, relatedReviews] = await Promise.all([
+			relatedTranslationsProm,
+			relatedReviewsProm
+		]);
+		console.timeEnd('related-new');
 
 		[pageTranslations, segmentsEditing] = initPageTranslations(segmentMap, relatedReviews);
 
 		// pull other reviews for these segments
 		initializeReviewCommentsToPush(pageTranslations);
+		loading.active = false;
 	});
 
 	async function handleSubmit(shouldContinue: boolean, forward: boolean) {
-		loading.active = true;
-
 		//console.log('changeCount: ', changeCount);
 
 		if (changeCount > 0) {
+			loading.active = true;
 			loading.message = 'Submitting...';
 			// Handle organizing and submitting changes to SupaBase
 			await handlePageTranslationSubmission(pageSubmissions, profile, changed);
@@ -144,6 +174,7 @@
 			loading.message = 'Reloading...';
 			// Reload data
 			await invalidate('app:data');
+			loading.active = false;
 		}
 
 		for (const k of Object.keys(segmentsEditing)) {
@@ -153,9 +184,24 @@
 		// Tell page to move through tree
 		if (shouldContinue) await onsubmit(shouldContinue, forward);
 
-		loading.active = false;
 		return;
 	}
+
+	/*
+	function getNextSlug(forward: boolean){
+		const segs = initializeTraversal(resolvedData.locationTree, data.pathSegments, forward);
+		if (!segs) return null;
+		const nextSegment = segs.reverse()[0];
+		if (!nextSegment)  return null;
+		const nextSlug = getSegmentSlug(
+			nextSegment?.segmentIds[0],
+			resolvedData.locationTree,
+			'/home'
+		);
+		return nextSlug;
+	}
+
+	function warmContinue(){}*/
 </script>
 
 <h1 class="font-semibold text-3xl text-center my-4 ml-5 text-stone-600 dark:text-stone-400">
@@ -164,13 +210,16 @@
 <p class="font-normal flex text-md px-20 justify-center text-stone-700 dark:text-stone-300">
 	<span class=" {fsegments == 0 ? 'opacity-30' : ''} gap-1 inline-flex items-center px-4 mr-1">
 		<span
-			class=" mr-0.5 rounded-full w-2 h-2 {fsegments == 0 ? 'bg-stone-500/40 ' : 'bg-green-700/40 '}"
+			class=" mr-0.5 rounded-full w-2 h-2 {fsegments == 0
+				? 'bg-stone-500/40 '
+				: 'bg-green-700/40 '}"
 		></span>
 		Translate <b>{fsegments}</b>
 		<!--segment{fsegments == 1 ? '' : 's'}-->
 	</span>
 	<span class="{rsegments == 0 ? 'opacity-30' : ''} gap-1 inline-flex items-center px-4 ml-1">
-		<span class="mr-0.5 rounded-full w-2 h-2 {rsegments == 0 ? 'bg-stone-500/40 ' : 'bg-sky-500/40'}"
+		<span
+			class="mr-0.5 rounded-full w-2 h-2 {rsegments == 0 ? 'bg-stone-500/40 ' : 'bg-sky-500/40'}"
 		></span>
 		Review <b>{rsegments}</b>
 
@@ -295,6 +344,7 @@
 <div class="w-full mt-2 justify-between px-3 m-auto flex">
 	<!-- Back -->
 	<button
+		data-sveltekit-preload-data="hover"
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(true, false);
@@ -347,6 +397,7 @@
 
 	<!-- Save & Continue -->
 	<button
+		data-sveltekit-preload-data="hover"
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(true, true);

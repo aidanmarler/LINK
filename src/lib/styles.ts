@@ -47,7 +47,7 @@ export const button = {
 	simple: {
 		active:
 			'  cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white rounded-sm hover:border-stone-500 hover:underline ',
-		inactive: ' opacity-80 font-medium rounded-sm bg-stone-300 dark:bg-stone-700 '
+		inactive: ' opacity-80 font-medium rounded-sm bg-stone-300 dark:bg-stone-700  '
 	},
 	giro: {
 		active:
@@ -57,19 +57,19 @@ export const button = {
 	green: {
 		default: ' border-green-900 bg-green-700/20 dark:border-green-800 dark:bg-green-900/50 ',
 		hover:
-			' hover:bg-green-600/50 hover:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 '
+			' hover:bg-green-600/50 hover:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 shadow-stone-500/50 hover:shadow active:shadow-none active:bg-green-600/60  '
 	},
 	rose: {
 		default: ' border-rose-900 bg-rose-700/20 dark:border-rose-800 dark:bg-rose-900/50 ',
 		hover:
-			' hover:bg-rose-600/50 hover:border-rose-800 dark:hover:bg-rose-900 dark:hover:border-rose-600 '
+			' hover:bg-rose-600/50 hover:border-rose-800 dark:hover:bg-rose-900 dark:hover:border-rose-600  '
 	},
 	stanley:
 		style.border_interactive +
 		' border cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white hover:underline ',
-	stone: 'border-stone-900 bg-stone-500/30 dark:border-stone-800 dark:bg-stone-900/50 ',
+	stone: 'border-stone-900 bg-stone-600/35 dark:border-stone-800 dark:bg-stone-900/50 ',
 	stoneHover:
-		' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-100 hover:border-stone-800 '
+		' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-400/35 hover:border-stone-800 shadow-stone-500/50 hover:shadow active:shadow-none active:bg-stone-400/10 '
 
 	//'border border-stone-800 dark:border-stone-600 hover:border-stone-900 hover:dark:border-stone-400' +
 	//'  cursor-pointer hover:bg-stone-100/20 dark:hover:bg-stone-900 hover:text-black dark:hover:text-white '

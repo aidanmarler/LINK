@@ -255,7 +255,7 @@
 		{#if open}
 			<div
 				in:fade={{ duration: 200 }}
-				class="rounded-md border-2 overflow-clip w-full z-4 flex flex-col {!interactable
+				class="rounded-md border-2 w-full z-4 flex flex-col {!interactable
 					? 'opacity-70'
 					: '  '} {!interactable ? card.translate.complete : card.translate.incomplete}"
 			>
