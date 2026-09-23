@@ -24,8 +24,7 @@
 
 	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset);
 	let routes = ['arc', 'lists'];
-	const start_style =
-		'text-4xl font-bold px-8 py-4 cursor-pointer rounded-2xl border-6';
+	const start_style = 'text-4xl font-bold px-8 py-4 cursor-pointer rounded-2xl border-6';
 </script>
 
 {#if profile}
@@ -176,5 +175,20 @@
 				</div>
 			</div>
 		{/each}
+		{#await data.dataPromise}
+			<div class="loading">
+				<p>Loading...</p>
+			</div>
+		{:then loadedData}
+			<h3>Translated Segments</h3>
+			{#each Object.entries(loadedData.segmentMap).filter(([_k, v]) => v.forwardTranslation != null) as s}
+				<p>{s[1].originalSegment.location}</p>
+			{/each}
+
+			<h3>Reviewed Segments</h3>
+			{#each Object.entries(loadedData.segmentMap).filter(([_k, v]) => v.translationReview != null) as s}
+				<p>{s[1].originalSegment.location}</p>
+			{/each}
+		{/await}
 	</div>
 {/if}

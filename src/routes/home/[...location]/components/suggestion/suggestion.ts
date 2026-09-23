@@ -51,8 +51,8 @@ export async function getSuggestedTranslation(
 		p_user_id: profileId,
 		min_accepted_score: 2,
 		//batch_size: 10,
-		match_count: 5,
-		match_threshold: 0.3,
+		match_count: 3,
+		match_threshold: 0.5,
 		//max_batches: 10
 	});
 	return result.data ?? [];
