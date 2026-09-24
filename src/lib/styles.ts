@@ -43,6 +43,8 @@ export const style = {
 		' border-stone-700 dark:border-stone-600 hover:border-stone-600 hover:dark:border-stone-400 '
 };
 
+export const information = "cursor-context-menue hover:bg-stone"
+
 export const button = {
 	simple: {
 		active:

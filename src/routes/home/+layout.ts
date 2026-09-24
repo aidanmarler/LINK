@@ -15,6 +15,7 @@ import { pullOriginalRowsById, pullRowsForOriginalId } from '$lib/supabase/utils
 import { supabase } from '../../supabaseClient';
 import { redirect } from '@sveltejs/kit';
 import { loading } from '../components/loading/loadingState.svelte';
+import { setDocument, setLanguage } from './global.svelte';
 
 export const ssr = false; // Force client-side for authentication
 
@@ -41,12 +42,15 @@ export const load: LayoutLoad = async ({ parent, depends }) => {
 
 	// ! catch not logged in
 	if (!session || !profile) {
-		console.warn(session, profile)
+		console.warn(session, profile);
 		if (!profile && session) await supabase.auth.signOut();
-		redirect(302, '/login');}
-
+		redirect(302, '/login');
+	}
 
 	depends('app:data');
+	setLanguage(profile.language as TranslationLanguage);
+	setDocument(profile.selected_preset);
+	
 	loading.active = false;
 	return {
 		profile,
@@ -108,9 +112,9 @@ async function loadDataProgressively(
 
 	// = ( 3 ) = Build location tree and slug mapping
 	const locationTree = buildLocationTree(original_segments || []);
-	console.log("locationTree",locationTree);
+	console.log('locationTree', locationTree);
 	//const slugMapping = createSlugMapping(original_segments || []);
-	//const locationList = 
+	//const locationList =
 
 	// * Add progress to segmentMap
 	(translation_progress || []).forEach((t) => {
@@ -158,7 +162,7 @@ async function loadDataProgressively(
 	return {
 		segmentMap,
 		locationTree,
-		
+
 		//slugMapping,
 		documents
 	};

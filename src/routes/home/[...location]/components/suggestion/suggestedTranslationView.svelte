@@ -102,7 +102,7 @@
 										>
 											{@render symbol()}
 											<p
-												title="Percent match with original text"
+												title="{score}% match with original text"
 												class="pl-1 pr-2 rounded-sm hover:bg-stone-200 cursor-context-menu"
 											>
 												<b class={matchColor(score)}>{score}%</b> match

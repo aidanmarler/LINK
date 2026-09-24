@@ -9,6 +9,7 @@
 	import { onMount } from 'svelte';
 	import type { TranslationVariables } from '../compositeForm';
 	import SuggestedTranslationView from '../suggestion/suggestedTranslationView.svelte';
+	import { globalVariables } from '../../../global.svelte';
 
 	let {
 		id,
@@ -68,9 +69,10 @@
 			<div class="flex w-1/2">
 				<!-- Open/Close Button -->
 				<button
+					title="Translate the following segment into {globalVariables.language}"
 					class=" {!interactable ? ' opacity-50  ' : ''} 
-					{open ? '' : 'bg-stone-500/10 hover:shadow transition-shadow duration-10 shadow-stone-500/50'} 
-					flex group items-center text-stone-600 px-2 -ml-2 rounded-full dark:text-stone-400 hover:underline cursor-pointer"
+					{open ? 'cursor-context-menu' : 'bg-stone-500/10 hover:shadow transition-shadow duration-10 shadow-stone-500/50 cursor-pointer'} 
+					flex group items-center text-stone-600 px-2 -ml-2 rounded-full dark:text-stone-400 hover:underline "
 					onclick={() => {
 						open = !open;
 					}}

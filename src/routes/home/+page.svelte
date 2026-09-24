@@ -1,30 +1,17 @@
 <script lang="ts">
-	import { button, style } from '$lib/styles.js';
-	import { fade, fly } from 'svelte/transition';
-	import { goto } from '$app/navigation';
-	import CompletionChart from './[...location]/completionChart.svelte';
-	import { findNextSegment } from '$lib/utils/nextSegment';
+	import { button } from '$lib/styles.js';
+	import { fade, fly, scale } from 'svelte/transition';
+	import { findNextSegment, getSegmentSlug } from '$lib/utils/nextSegment';
 	import DocumentSelect from './documentSelect.svelte';
 	import Welcome from './welcome.svelte';
-	import Instructions from './instructions.svelte';
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
-	let presetsOpen = $derived(!profile.selected_preset);
-
-	/*
-	onMount(async()=>{
-		const loadedData = await data.dataPromise 
-		const nextSegment = initializeTraversal(loadedData.locationTree, ['root'], true)
-		const lastSegment = initializeTraversal(loadedData.locationTree, ['root'], true)
-
-		console.log("nextSegment: ",nextSegment)
-		console.log("lastSegment: ",lastSegment)
-	})*/
-
 	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset);
-	let routes = ['arc', 'lists'];
-	const start_style = 'text-4xl font-bold px-8 py-4 cursor-pointer rounded-2xl border-6';
+	const start_style =
+		'flex max-w-80 justify-center w-full pt-5 pb-3 flex-col text-5xl font-semibold rounded-3xl text-center bg-linear-15 from-green-800/80 to-green-400/50 shadow-lg shadow-stone-500/50 ';
+	const start_interaction =
+		' cursor-pointer hover:from-green-800/80 duration-50 hover:to-green-400/90 hover:shadow-stone-500/90 active:opacity-70 hover:text-black transition-all hover:opacity-100 opacity-90 ';
 </script>
 
 {#if profile}
@@ -38,41 +25,108 @@
 	<div
 		in:fly|global={{ y: 20, duration: 500, delay: 100 }}
 		out:fly|global={{ y: 10, duration: 100 }}
-		class="w-full"
+		class="w-full justify-center items-center"
 	>
 		<Welcome {profile} />
 
-		<!--Start button-->
-		<div class="  w-full flex my-5 justify-center">
-			{#await data.dataPromise}
-				<button class="{button.green}  opacity-40 border-[3px] {start_style}"> START </button>
-			{:then loadedData}
-				{@const nextSegmentTuple = findNextSegment(
-					loadedData.locationTree,
-					loadedData.segmentMap,
-					'/home',
-					'forward'
-				)}
-				{@const slug = nextSegmentTuple?.[0]}
-				{#if slug}
-					<button
-						title={'Next segment ' + slug}
-						onclick={() => {
-							goto(slug, { state: { form: nextSegmentTuple[1] } });
-						}}
-						class="{button.green.default} {button.green
-							.hover} opacity-90 border-[3px] hover:opacity-100 {start_style}"
+		<!--buttons div-->
+		<div class=" w-full flex my-5 items-center flex-col justify-center">
+			<div class="bg-amber-200/0 max-w-3xl w-full justify-center">
+				<div class=" flex w-full justify-center  flex-col">
+					{#await data.dataPromise}
+						<div class="{start_style} mx-auto opacity-60 cursor-wait">
+							<span class="w-full">START</span>
+							<span class="text-lg font-medium italic pt-1"> {presetName} </span>
+						</div>
+					{:then loadedData}
+						{@const nextSegmentTuple = findNextSegment(
+							loadedData.locationTree,
+							loadedData.segmentMap,
+							'/home',
+							'forward'
+						)}
+						{@const slug = nextSegmentTuple?.[0]}
+						{#if slug}
+							<a
+								title={'Next segment ' + slug}
+								href={slug}
+								class="  mx-auto {start_interaction} {start_style}"
+							>
+								<span class="w-full">START</span>
+								<span class="text-lg font-medium italic pt-1"> {presetName} </span>
+							</a>
+						{:else}
+							<div class="  opacity-40 {start_style}">No more segments to translate!</div>
+						{/if}
+					{/await}
+				</div>
+
+				<div class="w-full mt-2 mb-3 flex justify-center">
+					{#await data.dataPromise}
+						<p class="cursor-wait opacity-60">
+							<span class="text-stone-800">Document:</span>
+							<span class="font-semibold">{presetName} ▾</span>
+						</p>
+					{:then loadedData}
+						<DocumentSelect {profile} documents={loadedData.documents} />
+					{/await}
+				</div>
+
+				<div class="w-full flex justify-center">
+					<a
+						title="Go to Tutorial"
+						href="/home/tutorial"
+						class="w-full border-2 items-center px-3 flex bg-stone-500/50 text-xl justify-between font-semibold max-w-80 py-1 rounded-lg {button.stone} {button.stoneHover}"
 					>
-						START
-					</button>
-				{:else}
-					<div class="  opacity-40 border-[3px] {start_style}">No more segments to translate!</div>
-				{/if}
-			{/await}
+						<span>How it works</span>
+						<span>→</span>
+					</a>
+				</div>
+			</div>
 		</div>
 
-		<Instructions language={profile.language ?? ''} />
+		{#await data.dataPromise}
+			<div class="loading"></div>
+		{:then loadedData}
+			<div class="max-w-2xl mt-20 mx-auto" transition:fade>
+				<h3 class="font-semibold  text-2xl">Translated Segments</h3>
+				<div
+					class="border-0 shadow-inner shadow-stone-500/30 z-10 rounded-lg max-h-30 overflow-auto"
+				>
+					{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.forwardTranslation != null) as [id, v]}
+						{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
+						<a
+							class="px-2 flex text-sky-800 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
+							href={slug}
+						>
+							<!--
+							<span>
+								{#if v.originalSegment.location}
+									{v.originalSegment.location.reverse()[1]}
+								{/if}
+							</span>-->
+							<span>{v.originalSegment.segment}</span>
+						</a>
+					{/each}
+				</div>
 
+				<h3 class="font-semibold text-2xl mt-10">Reviewed Segments</h3>
+				<div
+					class="border-0 shadow-inner shadow-stone-500/30 z-10 rounded-lg max-h-30 overflow-auto"
+				>
+					{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.translationReview != null) as [id, v]}
+						{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
+						<a
+							class="px-2 flex text-sky-800 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
+							href={slug}
+						>
+							<span>{v.originalSegment.segment}</span>
+						</a>
+					{/each}
+				</div>
+			</div>
+		{/await}
+		<!--
 		<fieldset
 			class=" bg-stone-200 border {presetsOpen
 				? 'shadow-md border-stone-700'
@@ -108,6 +162,7 @@
 				</p>
 			</legend>
 
+			
 			<div
 				class="transition-all overflow-auto duration-400
 							{presetsOpen ? 'max-h-220 ' : 'max-h-0 '} "
@@ -122,8 +177,10 @@
 					</div>
 				{/if}
 			</div>
-		</fieldset>
+		
+		</fieldset>	-->
 
+		<!--
 		{#each routes as route}
 			<div class="w-full mt-5">
 				<div class="w-full">
@@ -175,20 +232,6 @@
 				</div>
 			</div>
 		{/each}
-		{#await data.dataPromise}
-			<div class="loading">
-				<p>Loading...</p>
-			</div>
-		{:then loadedData}
-			<h3>Translated Segments</h3>
-			{#each Object.entries(loadedData.segmentMap).filter(([_k, v]) => v.forwardTranslation != null) as s}
-				<p>{s[1].originalSegment.location}</p>
-			{/each}
-
-			<h3>Reviewed Segments</h3>
-			{#each Object.entries(loadedData.segmentMap).filter(([_k, v]) => v.translationReview != null) as s}
-				<p>{s[1].originalSegment.location}</p>
-			{/each}
-		{/await}
+		-->
 	</div>
 {/if}
