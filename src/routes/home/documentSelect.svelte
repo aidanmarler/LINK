@@ -98,7 +98,7 @@
 		onclick={() => {
 			menuOpen = !menuOpen;
 		}}
-		class=" cursor-pointer border-inherit w-full px-5 hover:underline rounded-full {button.stoneHover} text-center"
+		class=" cursor-pointer border-inherit w-full px-5 hover:underline rounded-full {button.stone} {button.stoneHover} text-center"
 		title="Change current document"><span class="text-stone-800">Document:</span> <span  class="font-semibold">{presetName} ▾</span></button
 	>
 	{#if menuOpen}

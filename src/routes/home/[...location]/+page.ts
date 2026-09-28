@@ -9,7 +9,7 @@ export const ssr = false; // Force client-side for authentication
 export const load: PageLoad = async ({ params, parent }) => {
 	console.time('parent-wait');
 	const parentData = await parent();
-	
+
 	// Wait for the data promise to resolve
 	const { locationTree, segmentMap } = await parentData.dataPromise;
 	console.timeEnd('parent-wait');
@@ -45,13 +45,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		});
 	}
 
+	const toReview = Object.entries(segmentMap)
+		.filter(
+			([_i, v]) => v.translationProgress && v.translationProgress.translation_step == 'review'
+		)
+		.map(([k]) => Number(k));
+
 	// pull related translations
 	const relatedTranslations = getRelatedTranslations(
-		Object.keys(segmentMap).map(Number),
+		toReview,
 		parentData.profile.language as TranslationLanguage
 	);
+
 	const relatedReviews = getRelatedReviews(
-		Object.keys(segmentMap).map(Number),
+		toReview,
 		parentData.profile.language as TranslationLanguage
 	);
 

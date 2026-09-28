@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { button } from '$lib/styles.js';
-	import { fade, fly, scale } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
 	import { findNextSegment, getSegmentSlug } from '$lib/utils/nextSegment';
 	import DocumentSelect from './documentSelect.svelte';
 	import Welcome from './welcome.svelte';
@@ -9,7 +9,7 @@
 	let profile = $derived(data.profile);
 	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset);
 	const start_style =
-		'flex max-w-80 justify-center w-full pt-5 pb-3 flex-col text-5xl font-semibold rounded-3xl text-center bg-linear-15 from-green-800/80 to-green-400/50 shadow-lg shadow-stone-500/50 ';
+		'flex max-w-80 justify-center w-full pt-5 pb-3 flex-col text-5xl font-semibold rounded-xl  text-center bg-linear-15 from-green-800/80 to-green-400/50 shadow-lg shadow-stone-500/50 ';
 	const start_interaction =
 		' cursor-pointer hover:from-green-800/80 duration-50 hover:to-green-400/90 hover:shadow-stone-500/90 active:opacity-70 hover:text-black transition-all hover:opacity-100 opacity-90 ';
 </script>
@@ -61,7 +61,7 @@
 					{/await}
 				</div>
 
-				<div class="w-full mt-2 mb-3 flex justify-center">
+				<div class="w-full mt-4 mb-10 flex justify-center">
 					{#await data.dataPromise}
 						<p class="cursor-wait opacity-60">
 							<span class="text-stone-800">Document:</span>
@@ -76,7 +76,7 @@
 					<a
 						title="Go to Tutorial"
 						href="/home/tutorial"
-						class="w-full border-2 items-center px-3 flex bg-stone-500/50 text-xl justify-between font-semibold max-w-80 py-1 rounded-lg {button.stone} {button.stoneHover}"
+						class="w-full border-2 items-center px-3 flex text-xl justify-between font-semibold max-w-80 py-1 rounded-lg {button.stone} {button.stoneHover}"
 					>
 						<span>How it works</span>
 						<span>→</span>

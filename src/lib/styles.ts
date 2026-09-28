@@ -69,7 +69,7 @@ export const button = {
 	stanley:
 		style.border_interactive +
 		' border cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white hover:underline ',
-	stone: 'border-stone-900 bg-stone-600/35 dark:border-stone-800 dark:bg-stone-900/50 ',
+	stone: 'border-stone-900 bg-stone-500/35 dark:border-stone-800 dark:bg-stone-900/50 ',
 	stoneHover:
 		' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-400/35 hover:border-stone-800 shadow-stone-500/50 hover:shadow active:shadow-none active:bg-stone-400/10 '
 
