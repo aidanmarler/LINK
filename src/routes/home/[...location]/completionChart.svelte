@@ -49,19 +49,19 @@
 		{
 			key: 'forwardNeeded' as keyof LocationCompletion,
 			label: 'Forward Needed',
-			bgClass: 'bg-pink-900/40 dark:bg-pink-700/30',
+			bgClass: 'bg-stone-500/40 dark:bg-stone-600/40',
 			opacity: 'opacity-70'
 		},
 		{
 			key: 'reviewNeeded' as keyof LocationCompletion,
 			label: 'Review Needed',
-			bgClass: 'bg-pink-900/40 dark:bg-pink-700/30',
+			bgClass: 'bg-stone-500/40 dark:bg-stone-600/40',
 			opacity: 'opacity-70'
 		},
 		{
 			key: 'backwardNeeded' as keyof LocationCompletion,
 			label: 'Backward Needed',
-			bgClass: 'bg-pink-900/40 dark:bg-pink-700/30',
+			bgClass: 'bg-stone-500/40 dark:bg-stone-600/40',
 			opacity: 'opacity-70'
 		}
 	];
@@ -86,34 +86,33 @@
 				? 'text-md'
 				: 'text-xs'} font-normal"
 		>
-			{#if complete > 0}
-				<div class=" mx-0.5 flex flex-row rounded-md">
-					<div
-						class=" bg-green-700/80 dark:bg-green-500/80 rounded-md {options.large
-							? 'mt-1 h-3 w-3'
-							: 'h-2 w-2'}"
-					></div>
-					<p class="-mt-1 px-1">
-						{complete} Complete
+			<div class=" mx-0.5 flex items-center flex-row rounded-md">
+				<div
+					class=" bg-green-700/80 dark:bg-green-500/80 rounded-md {options.large
+						? 'h-3 w-3'
+						: 'h-2 w-2'}"
+				></div>
+				<p class="text-sm pl-2">
+					<b>{complete} </b> complete<span class=""> </span> of {total}
 
-						{#if complete == total}<span
-								class="bg-stone-950/25 dark:bg-stone-50/25 rounded-full p-[1.5px]"
-							>
-								⭐
-							</span>{/if}
-					</p>
-				</div>
-			{/if}
-			{#if total - complete > 0}
+					{#if complete == total}<span
+							class="bg-stone-950/25 dark:bg-stone-50/25 rounded-full p-[1.5px]"
+						>
+							⭐
+						</span>{/if}
+				</p>
+			</div>
+
+			<!--{#if total - complete > 0}
 				<div class="mx-0.5 flex flex-row rounded-md">
 					<div
-						class="bg-pink-900/40 dark:bg-pink-700/30 rounded-md {options.large
+						class="bg-stone-500/40 dark:bg-stone-600/40 rounded-md {options.large
 							? 'mt-1 h-3 w-3'
 							: 'h-2 w-2'}"
 					></div>
 					<p class="-mt-1 px-1">{total - complete} Incomplete</p>
 				</div>
-			{/if}
+			{/if}-->
 		</div>
 	{/if}
 </div>

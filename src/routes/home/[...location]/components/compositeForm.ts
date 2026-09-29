@@ -442,6 +442,10 @@ export async function handlePageTranslationSubmission(
 	if (page.forwardEdit.length > 0) tasks.push(UpdateForwardTranslations(page.forwardEdit));
 	await Promise.all(tasks);
 	
+	/*
+	AIDAN: here we go, this is where I need to be.
+	*/
+
 	// @ these should be both handled by 'Update PAT (Progress Accepted Translation) on submission'
 	if (page.forwardPush.length > 0)
 		await UpdateProgress_ForwardSubmission(page.forwardPush, 'review');

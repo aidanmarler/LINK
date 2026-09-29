@@ -76,10 +76,10 @@ export const button = {
 	stoneHover:
 		' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-400/35 hover:border-stone-800 hover:shadow active:shadow-none active:bg-stone-400/15 ' +
 		shadow.color,
-	stone_alt: {
-		default: 'border-stone-900 bg-stone-300/35 dark:border-stone-800 dark:bg-stone-900/50 ',
+	soft: {
+		default: 'border-2 border-stone-400/50 dark:border-stone-800 ',
 		hover:
-			' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-400/35 hover:border-stone-800 hover:shadow active:shadow-none active:bg-stone-400/15 ' +
+			'  hover:bg-stone-100/50 hover:border-stone-400 dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:shadow active:shadow-none active:bg-stone-400/15 ' +
 			shadow.color
 	}
 

@@ -116,36 +116,6 @@
 	let profileId = $derived(profile.id);
 
 	onMount(async () => {
-		/* 
-			@ pull this data on page load or with hover function, not on component mount.
-		
-		
-		// pull related translations
-		relatedTranslations = await getRelatedTranslations(
-			Object.keys(segmentMap).map(Number),
-			profile.language as TranslationLanguage
-		);
-		relatedReviews = await getRelatedReviews(
-			Object.keys(segmentMap).map(Number),
-			profile.language as TranslationLanguage
-		);*/
-
-		//[pageTranslations, segmentsEditing] = initPageTranslations(segmentMap, relatedReviews);
-		/*
-		console.time('related-old');
-		[relatedTranslations, relatedReviews] = await Promise.all([
-			getRelatedTranslations(
-				Object.keys(segmentMap).map(Number),
-				profile.language as TranslationLanguage
-			),
-			getRelatedReviews(
-				Object.keys(segmentMap).map(Number),
-				profile.language as TranslationLanguage
-			)
-		]);
-		console.timeEnd('related-old');
-*/
-
 		loading.active = true;
 		loading.message = 'Pulling related data...';
 		console.time('related-new');
@@ -168,6 +138,7 @@
 		if (changeCount > 0) {
 			loading.active = true;
 			loading.message = 'Submitting...';
+			
 			// Handle organizing and submitting changes to SupaBase
 			await handlePageTranslationSubmission(pageSubmissions, profile, changed);
 
@@ -348,15 +319,6 @@
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(true, false);
-			/*
-			DEPtranslationsToPush = {};
-			Object.entries(segmentMap).forEach(([id, segmentData]) => {
-				if (!segmentData.forwardTranslation) {
-					if (!DEPtranslationsToPush[+id]) {
-						DEPtranslationsToPush[+id] = { translation: '', comment: '', skipped: false };
-					}
-				}
-			});*/
 			saving = false;
 		}}
 		class="text-lg border-[3px] transition-transform duration-100 right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm cursor-pointer px-4 rounded-xl
@@ -374,18 +336,6 @@
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(false, false);
-			/*
-			DEPtranslationsToPush = {};
-			Object.entries(segmentMap).forEach(([id, segmentData]) => {
-				//console.log('id...', id);
-				if (!segmentData.forwardTranslation) {
-					const numId = Number(id);
-					if (!DEPtranslationsToPush[numId]) {
-						DEPtranslationsToPush[numId] = { translation: '', comment: '', skipped: false };
-					}
-					//console.log(numId, translationsToPush);
-				}
-			});*/
 			saving = false;
 		}}
 		class="{button.stone}  text-lg right-0 font-semibold {canSave
@@ -401,15 +351,6 @@
 		onclick={async () => {
 			saving = true;
 			await handleSubmit(true, true);
-			/*
-			DEPtranslationsToPush = {};
-			Object.entries(segmentMap).forEach(([id, segmentData]) => {
-				if (!segmentData.forwardTranslation) {
-					if (!DEPtranslationsToPush[+id]) {
-						DEPtranslationsToPush[+id] = { translation: '', comment: '', skipped: false };
-					}
-				}
-			});*/
 			saving = false;
 		}}
 		class="border-[3px] text-lg transition-transform duration-100 right-0 font-semibold opacity-90 hover:opacity-100 hover:shadow-sm cursor-pointer px-4 rounded-xl

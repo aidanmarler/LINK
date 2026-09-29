@@ -14,10 +14,10 @@
 
 <a
 	title="See {node.slug}"
-	class="w-full cursor-pointer {button.stone_alt.hover} p-2 rounded-lg"
+	class="w-full group cursor-pointer {button.soft.hover} {button.soft.default} p-2 rounded-lg"
 	href={currentPath + '/' + node.slug}
 >
-	<div class="flex">
+	<div class="  group-hover:underline flex">
 		<p class="w-full text-center">
 			{#if !hasGrandchildren && !hasChildren}📋{/if}
 			{makeFolderLabel(node.name)}
