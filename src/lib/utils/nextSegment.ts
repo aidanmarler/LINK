@@ -118,12 +118,12 @@ export function findNextSegment(
 			// - if no forward translation, this is the next to go to
 			if (target == 'forward') {
 				if (segment.forwardTranslation) continue;
-				if (segment.translationProgress.translation_step !== 'forward') continue;
+				if (segment.translationProgress?.translation_step !== 'forward') continue;
 			}
 			// - if no forward translation, this is the next to go to
 			else if (target == 'review') {
 				if (segment.translationReview) continue;
-				if (segment.translationProgress.translation_step !== 'review') continue;
+				if (segment.translationProgress?.translation_step !== 'review') continue;
 			}
 
 			// * get segment slug

@@ -47,6 +47,13 @@ export function sortSegmentMap(original: SegmentMap): [number, SegmentData][] {
 
 // env key helper
 export const env = (key: string) =>
-  typeof import.meta !== 'undefined' && import.meta.env
-    ? import.meta.env[key]
-    : process.env[key];
+	typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env[key] : process.env[key];
+
+// For making a document label from a selected preset
+export const generateDocumentName = (selected_preset: string) => {
+	return (
+		(selected_preset.split('_')[1] ?? selected_preset) +
+		(selected_preset.includes('CRF') ? ' CRF' : '') +
+		(selected_preset == 'ARC' ? ' Database' : '')
+	);
+};

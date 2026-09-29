@@ -4,10 +4,11 @@
 	import { findNextSegment, getSegmentSlug } from '$lib/utils/nextSegment';
 	import DocumentSelect from './documentSelect.svelte';
 	import Welcome from './welcome.svelte';
+	import { generateDocumentName } from '$lib/utils/utils';
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
-	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset);
+	let presetName = $derived(generateDocumentName(profile.selected_preset ?? ''));
 	const start_style =
 		'flex max-w-80 justify-center w-full pt-5 pb-3 flex-col text-5xl font-semibold rounded-xl  text-center bg-linear-15 from-green-800/80 to-green-400/50 shadow-lg shadow-stone-500/50 ';
 	const start_interaction =
@@ -32,7 +33,7 @@
 		<!--buttons div-->
 		<div class=" w-full flex my-5 items-center flex-col justify-center">
 			<div class="bg-amber-200/0 max-w-3xl w-full justify-center">
-				<div class=" flex w-full justify-center  flex-col">
+				<div class=" flex w-full justify-center flex-col">
 					{#await data.dataPromise}
 						<div class="{start_style} mx-auto opacity-60 cursor-wait">
 							<span class="w-full">START</span>
@@ -89,7 +90,7 @@
 			<div class="loading"></div>
 		{:then loadedData}
 			<div class="max-w-2xl mt-20 mx-auto" transition:fade>
-				<h3 class="font-semibold  text-2xl">Translated Segments</h3>
+				<h3 class="font-semibold text-2xl">Translated Segments</h3>
 				<div
 					class="border-0 shadow-inner shadow-stone-500/30 z-10 rounded-lg max-h-30 overflow-auto"
 				>

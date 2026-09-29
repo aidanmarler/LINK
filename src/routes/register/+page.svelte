@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
 	import type { AvailableLanguage } from '../../lib/types';
-	import { button_green, form_element } from '$lib/styles';
+	import { button, form_element } from '$lib/styles';
 	import ThemeManager from '../components/themeManager.svelte';
 	import { goto } from '$app/navigation';
 
@@ -188,7 +188,7 @@
 			<button
 				type="submit"
 				title="Register Account"
-				class="w-full block max-w-60 m-auto text-xl font-semibold mt-8 rounded-xl border-2 cursor-pointer p-1 {button_green}"
+				class="w-full block max-w-60 m-auto text-xl font-semibold mt-8 rounded-xl border-3 cursor-pointer p-1 {button.green.default} {button.green.hover}"
 			>
 				Create Account
 			</button>
@@ -200,7 +200,7 @@
 		<div class="w-full">
 			<a
 				data-sveltekit-preload-code="eager"
-				class="w-full max-w-60 m-auto block text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
+				class="w-full max-w-60 m-auto block text-center rounded-xl cursor-pointer mb-2 p-0.5 {button.stoneHover} border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
 				href="/login"
 			>
 				Login

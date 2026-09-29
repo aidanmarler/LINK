@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { button_green } from '$lib/styles';
+	import { button } from '$lib/styles';
 	import ThemeManager from './components/themeManager.svelte';
 
 	const buttonStyle =
@@ -30,13 +30,14 @@
 			<p class="font-bold text-stone-700 dark:text-stone-300 w-full text-center mt-15"></p>
 			<a
 				data-sveltekit-preload-code="eager"
-				class="w-full block max-w-80 m-auto text-3xl font-semibold rounded-xl border-2 cursor-pointer p-1 text-center {button_green}"
+				class="w-full block max-w-80 m-auto text-3xl font-semibold rounded-xl border-3 cursor-pointer p-2 text-center {button
+					.green.default} {button.green.hover}"
 				href="/login"
 			>
 				Login
 			</a>
 			<p class="font-bold text-stone-700 dark:text-stone-300 w-full text-center mt-3"></p>
-			<a data-sveltekit-preload-code="eager" class="{buttonStyle} text-md" href="/register">
+			<a data-sveltekit-preload-code="eager" class="{button.stoneHover} {buttonStyle} text-md" href="/register">
 				Create Account
 			</a>
 		</div>

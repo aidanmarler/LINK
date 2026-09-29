@@ -3,7 +3,7 @@
 	import { supabase } from '../../supabaseClient';
 	//import type { AuthSession } from '@supabase/supabase-js';
 	import ThemeManager from '../components/themeManager.svelte';
-	import { button_green, card_static, form_element } from '$lib/styles';
+	import { button, card_static, form_element } from '$lib/styles';
 	import { checkAdminStatus } from '$lib/supabase/auth';
 	import { goto } from '$app/navigation';
 	import { loading } from '../components/loading/loadingState.svelte';
@@ -16,7 +16,7 @@
 
 	onMount(async () => {
 		loading.active = false;
-		const profile = await data.profile
+		const profile = await data.profile;
 		console.log('login loaded profile:', profile);
 		if (profile) window.location.href = '/home';
 		/*
@@ -109,7 +109,8 @@
 				<label>
 					<button
 						type="submit"
-						class="w-full block max-w-60 mt-3 mb-1 m-auto text-2xl font-semibold rounded-xl border-2 cursor-pointer p-1 {button_green}"
+						class="w-full block max-w-60 mt-3 mb-1 m-auto text-2xl font-semibold rounded-xl border-3 cursor-pointer p-1 {button
+							.green.default} {button.green.hover}"
 					>
 						Login
 					</button>
@@ -117,11 +118,11 @@
 			</form>
 		</div>
 	</div>
-	<div class="flex-wrap border-inherit text-lg p-4">
-		<p class="font-semibold w-full text-center">New User?</p>
+	<div class="flex-wrap border-inherit text-lg p-4 mt-3">
+		<p class="font-medium w-full mb-1 text-center">New User?</p>
 		<a
 			data-sveltekit-preload-code="eager"
-			class="w-full max-w-60 m-auto block text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2 hover:bg-stone-50 border-stone-500 dark:hover:bg-stone-900 dark:hover:border-stone-300 hover:border-stone-600"
+			class="w-full max-w-60 m-auto block text-center rounded-xl cursor-pointer mb-2 p-0.5 border-2  border-stone-500  {button.stoneHover}"
 			href="/register"
 		>
 			Create Account

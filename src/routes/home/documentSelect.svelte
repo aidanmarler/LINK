@@ -3,6 +3,7 @@
 	import { button } from '$lib/styles';
 	import { fly } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
+	import { generateDocumentName } from '$lib/utils/utils';
 
 	let {
 		documents,
@@ -48,13 +49,20 @@
 			if (d.version !== archVersion) continue;
 
 			const splitName = d.title.split('_');
+
+			if (d.title.includes("Mpox Pregnancy and ")) continue;
 			if (splitName.length == 1) {
 				returnValue.main.add(d.title);
 			}
 			if (splitName.length === 2) {
 				const [category, item] = splitName;
 				// Create missing entry
-				if (!returnValue.sub.has(category)) returnValue.sub.set(category, new Set<string>());
+				if (!returnValue.sub.has(category)) {
+					if (category.includes('Disease CRF'))
+						returnValue.sub = new Map([[category, new Set<string>()], ...returnValue.sub]);
+					else returnValue.sub.set(category, new Set<string>());
+				}
+
 				returnValue.sub.get(category).add(item);
 			}
 		}
@@ -89,78 +97,73 @@
 		};
 	});
 
-	let presetName = $derived(profile.selected_preset?.split('_')[1] ?? profile.selected_preset + "CRF");
-	//let presetName = $derived(profile.selected_preset?.replace('_', ' '));
+	let presetName = $derived(generateDocumentName(profile.selected_preset ?? ''));
 </script>
 
-<div class="items-center border-inherit flex" bind:this={menuContainer}>
+{#snippet documentOption(
+	toolTip: string,
+	title: string,
+	selected: boolean,
+	preset: string,
+	visualLabel: string
+)}
+	<button
+		title={toolTip}
+		class=" px-1.5 flex justify-between rounded-md items-center w-full active:bg-stone-100
+						{selected ? ' opacity-70 bg-stone-400/50 ' : '  cursor-pointer hover:bg-stone-200 '}"
+		onclick={() => handlePresetChange(preset)}
+	>
+		<span class="font-semibold">
+			{title}
+		</span>
+		<span class="text-sm italic text-stone-700"> {visualLabel} </span>
+	</button>
+{/snippet}
+
+<div class=" relative items-center border-inherit flex" bind:this={menuContainer}>
 	<button
 		onclick={() => {
 			menuOpen = !menuOpen;
 		}}
 		class=" cursor-pointer border-inherit w-full px-5 hover:underline rounded-full {button.stone} {button.stoneHover} text-center"
-		title="Change current document"><span class="text-stone-800">Document:</span> <span  class="font-semibold">{presetName} ▾</span></button
+		title="Change current document"
+		><span class="text-stone-800">Document:</span>
+		<span class="font-semibold">{presetName} ▾</span></button
 	>
 	{#if menuOpen}
 		<div
-			transition:fly={{ y: 10, duration: 100 }}
-			class=" bg-stone-300 border-2 mt-8 absolute shadow-lg p-2 max-w-80 shadow-stone-00/50 -translate-x-19 translate-y-1/2 z-30 rounded-xl  border-inherit font-normal"
+			transition:fly={{ y: 10, duration: 150 }}
+			class=" bg-stone-300 border-2 border-stone-700 left-1/2 mr-1 -translate-1/2 mt-8 flex flex-col absolute shadow-lg p-1 w-90 max-w-90 shadow-stone-500/50 translate-y-1/2 z-30 rounded-lg font-normal"
 		>
 			<!-- Main documents (ARC)-->
 			<div class="items-center justify-center w-full flex">
 				{#each ordedDocuments.main as title}
 					{@const selected = title == profile.selected_preset}
 					{@const toolTip = selected ? '' : 'Review ' + title}
-					<button
-						title={toolTip}
-						class="px-3 border-2 mr-1 text-lg text-left {selected
-							? button.giro.inactive
-							: button.giro.active}"
-						onclick={() => handlePresetChange(title)}
-					>
-						{title}
-					</button>
+
+					{@render documentOption(toolTip, title, selected, title, 'Whole database')}
 				{/each}
 			</div>
 			<!-- Main documents (ARC)-->
 			{#each ordedDocuments.sub as [label, section]}
-				<div class="flex text-center items-center justify-center">
+				<div class="items-center justify-center w-full flex-col flex">
 					{#if label == 'ARChetype Disease CRF'}
-						<div class="justify-center mt-2 items-center text-center text-lg">
-							{#each section as title}
-								{@const selected = label + '_' + title == profile.selected_preset}
-								{@const toolTip = selected ? '' : 'Review ' + label + ': ' + title}
-								<button
-									title={toolTip}
-									class="px-3 border-2 mr-1 mb-1 text-left {selected
-										? button.giro.inactive
-										: button.giro.active}"
-									onclick={() => handlePresetChange(label + '_' + title)}
-								>
-									{title}
-								</button>
-							{/each}
-						</div>
-					{:else}
-						<div class="flex align-middle items-center">
-							{label}:
-						</div>
+						<hr class="w-full text-stone-400" />
+						{#each section as title}
+							{@const selected = label + '_' + title == profile.selected_preset}
+							{@const toolTip = selected ? '' : 'Review ' + label + ': ' + title}
+							{@const visualLabel = label.replace('ARChetype ', '')}
 
-						<div class=" p-1 rounded-md border-inherit gap-0.5 font-normal">
-							{#each section as title}
-								{@const selected = label + '_' + title == profile.selected_preset}
-								{@const toolTip = selected ? '' : 'Review ' + label + ': ' + title}
-								<button
-									title={toolTip}
-									class="px-3 border-2 mr-1 mb-1 text-left {selected
-										? button.giro.inactive
-										: button.giro.active}"
-									onclick={() => handlePresetChange(label + '_' + title)}
-								>
-									{title}
-								</button>
-							{/each}
-						</div>
+							{@render documentOption(toolTip, title, selected, label + '_' + title, visualLabel)}
+						{/each}
+					{:else}
+						<hr class="w-full text-stone-400" />
+						{#each section as title}
+							{@const selected = label + '_' + title == profile.selected_preset}
+							{@const toolTip = selected ? '' : 'Review ' + label + ': ' + title}
+							{@const visualLabel = label.replace('ARChetype ', '')}
+							{@render documentOption(toolTip, title, selected, label + '_' + title, visualLabel)}
+						{/each}
 					{/if}
 				</div>
 			{/each}

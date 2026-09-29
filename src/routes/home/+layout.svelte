@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { fade, fly, scale } from 'svelte/transition';
+	import { fly, scale } from 'svelte/transition';
 	import { makeFolderLabel } from '$lib/utils/utils';
 	import KabobMenu from '../components/kabobMenu.svelte';
 
@@ -26,7 +26,7 @@
 		<div class="w-full flex h-10 justify-between">
 			<nav class="text-lg pt-1 font-medium flex">
 				{#each breadCrumbs as crumb, i (crumb.href)}
-					<span class="inline-flex items-center" transition:fly={{ x: -3 }}>
+					<span class="inline-flex items-center" transition:fly={{ x: -3, duration: 150 }}>
 						<a
 							data-sveltekit-preload-code="eager"
 							class="cursor-pointer hover:underline active:text-stone-500 mr-1"
@@ -35,7 +35,7 @@
 							{crumb.name}
 						</a>
 						{#if i < breadCrumbs.length - 1}
-							<span transition:fly={{ x: -3 }}> >&nbsp</span>
+							<span transition:fly={{ x: -3, duration: 150 }}> >&nbsp</span>
 						{/if}
 					</span>
 				{/each}
