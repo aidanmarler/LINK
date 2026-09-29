@@ -1,3 +1,5 @@
+export const shadow = { color: 'shadow-stone-500/50 dark:shadow-black/60', soft: 'shadow-stone-500/25 dark:shadow-black/30' };
+
 const cardLight: string = ' bg-stone-200 border-stone-600 ';
 const cardDark: string = ' dark:bg-stone-950 dark:border-stone-600 font-medium ';
 
@@ -43,7 +45,7 @@ export const style = {
 		' border-stone-700 dark:border-stone-600 hover:border-stone-600 hover:dark:border-stone-400 '
 };
 
-export const information = "cursor-context-menue hover:bg-stone"
+export const information = 'cursor-context-menue hover:bg-stone';
 
 export const button = {
 	simple: {
@@ -59,7 +61,8 @@ export const button = {
 	green: {
 		default: ' border-green-900 bg-green-700/20 dark:border-green-800 dark:bg-green-900/50 ',
 		hover:
-			' hover:bg-green-600/50 hover:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 shadow-stone-500/50 hover:shadow active:shadow-none active:bg-green-600/60  '
+			' hover:bg-green-600/50 hover:border-green-800 dark:hover:bg-green-900 dark:hover:border-green-600 hover:shadow active:shadow-none active:bg-green-600/60  ' +
+			shadow.color
 	},
 	rose: {
 		default: ' border-rose-900 bg-rose-700/20 dark:border-rose-800 dark:bg-rose-900/50 ',
@@ -71,7 +74,14 @@ export const button = {
 		' border cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-900 hover:shadow-xs hover:text-black dark:hover:text-white hover:underline ',
 	stone: 'border-stone-900 bg-stone-500/35 dark:border-stone-800 dark:bg-stone-900/50 ',
 	stoneHover:
-		' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-400/35 hover:border-stone-800 shadow-stone-500/50 hover:shadow active:shadow-none active:bg-stone-400/15 '
+		' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-400/35 hover:border-stone-800 hover:shadow active:shadow-none active:bg-stone-400/15 ' +
+		shadow.color,
+	stone_alt: {
+		default: 'border-stone-900 bg-stone-300/35 dark:border-stone-800 dark:bg-stone-900/50 ',
+		hover:
+			' dark:hover:bg-stone-900 dark:hover:border-stone-600 hover:bg-stone-400/35 hover:border-stone-800 hover:shadow active:shadow-none active:bg-stone-400/15 ' +
+			shadow.color
+	}
 
 	//'border border-stone-800 dark:border-stone-600 hover:border-stone-900 hover:dark:border-stone-400' +
 	//'  cursor-pointer hover:bg-stone-100/20 dark:hover:bg-stone-900 hover:text-black dark:hover:text-white '
@@ -79,7 +89,8 @@ export const button = {
 
 export const card = {
 	translate: {
-		complete: ' shadow-sm shadow-stone-700/0 border font-medium border-stone-600  dark:border-stone-700 dark:bg-stone-950 ',
+		complete:
+			' shadow-sm shadow-stone-700/0 border font-medium border-stone-600  dark:border-stone-700 dark:bg-stone-950 ',
 		incomplete:
 			' shadow-sm shadow-stone-700/20 border font-medium dark:border-stone-700 dark:bg-stone-950 '
 	}

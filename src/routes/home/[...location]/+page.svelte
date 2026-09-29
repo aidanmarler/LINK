@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { button } from '$lib/styles';
 	import type { SegmentMap } from '$lib/supabase/types.js';
 	import type { Profile } from '$lib/types.js';
 	import { getSegmentSlug, initializeTraversal } from '$lib/utils/nextSegment';
 	import { fly } from 'svelte/transition';
-	import CompletionChart from './completionChart.svelte';
 
-	import { makeFolderLabel } from '$lib/utils/utils';
-	import type { LocationNode } from '$lib/utils/locationTree';
 	import CompositeForm from './components/compositeForm.svelte';
+	import NodeButton from './components/NodeButton.svelte';
 
 	let { data } = $props();
 
@@ -53,30 +50,6 @@
 	}
 </script>
 
-{#snippet nodeButton(node: LocationNode, currentPath: string)}
-	{@const hasGrandchildren =
-		node.children.size > 0 && [...node.children.values()].some((n) => n.children.size > 0)}
-	{@const hasChildren = node.children.size > 0}
-	<button
-		title="See {node.slug}"
-		class="w-full cursor-pointer {button.stanley}  p-2 rounded-lg"
-		onclick={() => {
-			goto(currentPath + '/' + node.slug);
-		}}
-	>
-		<div class="flex">
-			<p class="w-full text-center">
-				{#if !hasGrandchildren && !hasChildren}📋{/if}
-				{makeFolderLabel(node.name)}
-			</p>
-		</div>
-
-		<div class="w-full px-2">
-			<CompletionChart completion={node.completion} options={{ showKey: true }} />
-		</div>
-	</button>
-{/snippet}
-
 {#await data.dataPromise}
 	<div>Loading...</div>
 {:then resolvedData}
@@ -119,22 +92,22 @@
 				>
 					{#if formChildren && formChildren.length > 0}
 						<div class="grid p-2 gap-2 sm:grid-cols-2">
-							{#each formChildren as child}
-								{@render nodeButton(child, currentPath)}
+							{#each formChildren as node}
+								<NodeButton {node} {currentPath} />
 							{/each}
 						</div>
 					{/if}
 					{#if sectionChildren && sectionChildren.length > 0}
 						<div class="grid p-2 gap-2 sm:grid-cols-2">
-							{#each sectionChildren as child}
-								{@render nodeButton(child, currentPath)}
+							{#each sectionChildren as node}
+								<NodeButton {node} {currentPath} />
 							{/each}
 						</div>
 					{/if}
 					{#if nodeChildren && [...nodeChildren].length > 0}
 						<div class="grid p-2 gap-2 sm:grid-cols-2">
-							{#each nodeChildren as child}
-								{@render nodeButton(child, currentPath)}
+							{#each nodeChildren as node}
+								<NodeButton {node} {currentPath} />
 							{/each}
 						</div>
 					{/if}
@@ -157,7 +130,6 @@
 						{onsubmit}
 						relatedReviewsProm={data.relatedReviews}
 						relatedTranslationsProm={data.relatedTranslations}
-						
 					/>
 				</section>
 			{/key}

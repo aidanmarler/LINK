@@ -1,18 +1,20 @@
 <script lang="ts">
-	import { button } from '$lib/styles.js';
+	import { button, shadow } from '$lib/styles.js';
 	import { fade, fly } from 'svelte/transition';
 	import { findNextSegment, getSegmentSlug } from '$lib/utils/nextSegment';
 	import DocumentSelect from './documentSelect.svelte';
 	import Welcome from './welcome.svelte';
 	import { generateDocumentName } from '$lib/utils/utils';
+	import NodeButton from './[...location]/components/NodeButton.svelte';
 
 	let { data } = $props();
 	let profile = $derived(data.profile);
 	let presetName = $derived(generateDocumentName(profile.selected_preset ?? ''));
 	const start_style =
-		'flex max-w-80 justify-center w-full pt-5 pb-3 flex-col text-5xl font-semibold rounded-xl  text-center bg-linear-15 from-green-800/80 to-green-400/50 shadow-lg shadow-stone-500/50 ';
+		'flex max-w-80 justify-center w-full pt-5 pb-3 flex-col text-5xl font-semibold rounded-xl  text-center bg-linear-15 from-green-800/80 to-green-400/50 shadow-lg  ' +
+		shadow.color;
 	const start_interaction =
-		' cursor-pointer hover:from-green-800/80 duration-50 hover:to-green-400/90 hover:shadow-stone-500/90 active:opacity-70 hover:text-black transition-all hover:opacity-100 opacity-90 ';
+		' cursor-pointer hover:from-green-800/80 duration-50 hover:to-green-400/90 hover:shadow-stone-500/90 dark:hover:shadow-black/90 active:opacity-70 hover:text-black dark:hover:text-white transition-all hover:opacity-100 opacity-90 ';
 </script>
 
 {#if profile}
@@ -89,15 +91,18 @@
 		{#await data.dataPromise}
 			<div class="loading"></div>
 		{:then loadedData}
-			<div class="max-w-2xl mt-20 mx-auto" transition:fade>
-				<h3 class="font-semibold text-2xl">Translated Segments</h3>
+			<div
+				class="max-w-2xl bg-stone-300/50 dark:bg-stone-900/50 rounded-xl p-4 px-8 shadow {shadow.color} mt-20 mx-auto"
+				transition:fly={{ y: 15 }}
+			>
+				<h3 class="font-medium text-lg">Translated Segments</h3>
 				<div
-					class="border-0 shadow-inner shadow-stone-500/30 z-10 rounded-lg max-h-30 overflow-auto"
+					class="border-0 shadow-inner mb-5 z-10 rounded-lg max-h-30 overflow-auto {shadow.soft}"
 				>
 					{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.forwardTranslation != null) as [id, v]}
 						{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
 						<a
-							class="px-2 flex text-sky-800 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
+							class="px-2 flex text-sky-800 dark:text-sky-500 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
 							href={slug}
 						>
 							<!--
@@ -111,128 +116,30 @@
 					{/each}
 				</div>
 
-				<h3 class="font-semibold text-2xl mt-10">Reviewed Segments</h3>
+				<h3 class="font-medium text-lg">Reviewed Segments</h3>
 				<div
-					class="border-0 shadow-inner shadow-stone-500/30 z-10 rounded-lg max-h-30 overflow-auto"
+					class="border-0 mb-5 shadow-inner z-10 rounded-lg max-h-30 overflow-auto {shadow.soft}"
 				>
 					{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.translationReview != null) as [id, v]}
 						{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
 						<a
-							class="px-2 flex text-sky-800 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
+							class="px-2 flex text-sky-800 dark:text-sky-500 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
 							href={slug}
 						>
 							<span>{v.originalSegment.segment}</span>
 						</a>
 					{/each}
 				</div>
-			</div>
-		{/await}
-		<!--
-		<fieldset
-			class=" bg-stone-200 border {presetsOpen
-				? 'shadow-md border-stone-700'
-				: 'border-stone-400'} w-full rounded-lg mb-15"
-		>
-			<legend class="ml-3 px-1 text-lg flex"
-				><button
-					onclick={() => (presetsOpen = !presetsOpen)}
-					class="font-bold flex hover:shadow-xs hover:underline object-center text-2xl px-1 pr-3 hover:bg-stone-100 rounded-lg cursor-pointer"
-					><svg
-						class="{presetsOpen
-							? 'rotate-90'
-							: ''} stroke-stone-900 dark:stroke-stone-200 duration-200 transition-transform h-8 w-8 p-1"
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-					>
-						<path
-							fill="none"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="3"
-							d="m9 5l6 7l-6 7"
-						/>
-					</svg>
-					Form to Translate
-				</button>
-				<p
-					class="h-full align-bottom origin-bottom object-bottom mt-0.5 px-2 font-serif italic bg-stone-300 rounded-xl mx-1"
-				>
-					{presetName}
-				</p>
-			</legend>
 
-			
-			<div
-				class="transition-all overflow-auto duration-400
-							{presetsOpen ? 'max-h-220 ' : 'max-h-0 '} "
-			>
-				{#if presetsOpen}
-					<div class={style.border}>
-						{#await data.dataPromise}
-							<p>loading...</p>
-						{:then loadedData}
-							<DocumentSelect {profile} documents={loadedData.documents} />
-						{/await}
-					</div>
-				{/if}
-			</div>
-		
-		</fieldset>	-->
-
-		<!--
-		{#each routes as route}
-			<div class="w-full mt-5">
-				<div class="w-full">
-					<button
-						onclick={() => {
-							goto('/home/' + route);
-						}}
-						title="See {route == 'arc' ? 'ARC Questions' : 'Listed Options'}"
-						data-sveltekit-preload-code="eager"
-						class=" text-stone-800 dark:text-stone-300 w-full {button.stanley}
-							rounded-t-lg flex justify-between items-end p-2 px-4 border-inherit text-xl cursor-pointer hover:underline font-semibold"
-					>
-						<p data-sveltekit-preload-code="eager" class="text-3xl font-semibold">
-							{route == 'arc' ? 'ARC Questions' : 'Listed Options'}
-						</p>
-					</button>
-					<div class="p-3 rounded-b-lg border-x border-b border-inherit text-lg {style.border}">
-						{#await data.dataPromise}
-							<div class="loading">
-								<p>Loading...</p>
-							</div>
-						{:then loadedData}
-							{@const locationNode = loadedData.locationTree.children.get(route)}
-							{#if locationNode != undefined}
-								<CompletionChart
-									completion={locationNode.completion}
-									options={{ showKey: true, large: true }}
-								/>
-							{/if}
-						{:catch error}
-							<div class="error">
-								<p>Failed to load data: {error.message}</p>
-								<button onclick={() => window.location.reload()}>Retry</button>
-							</div>
-						{/await}
-
-						{#if route == 'arc'}
-							<a
-								class={style.href}
-								target="_blank"
-								href="https://github.com/ISARICResearch/ARC/blob/main/README.md">ARC</a
-							> is a repository of medical questionnaire Questions, Answers, Definitions, and Completion
-							Guides.
-						{:else if route == 'lists'}
-							Listed options are options that can be selected when filling out one of these medical
-							questionnaires.
-						{/if}
-					</div>
+				<h3 class="font-medium text-lg">Explore</h3>
+				<div class="grid gap-x-2 sm:grid-cols-2">
+					{#each loadedData.locationTree.children as [_label, node]}
+						<NodeButton {node} currentPath={'/home'} />
+					{/each}
 				</div>
 			</div>
-		{/each}
-		-->
+		{/await}
+
+		{#await data.dataPromise}{/await}
 	</div>
 {/if}
