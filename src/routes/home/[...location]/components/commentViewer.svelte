@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { shadow } from '$lib/styles';
 	import { fly } from 'svelte/transition';
 
 	let {
@@ -74,8 +75,8 @@
 				menuOpen = !menuOpen;
 			}}
 			class="opacity-60 hover:shadow transition-shadow duration-10 -translate-y-1.5 rounded-full t-0 p-1 hover:opacity-100 w-8 h-8 cursor-pointer active:shadow-none 
-			 shadow-stone-500/20 active:bg-white hover:bg-stone-50
-			dark:shadow-stone-50/20 dark:hover:bg-stone-700  dark:active:bg-stone-700/75
+			  active:bg-white hover:bg-stone-50
+			 {shadow.color} dark:hover:bg-stone-700  dark:active:bg-stone-700/75
 			"
 			title="Add a comment"
 			aria-label="Add comment"
@@ -94,7 +95,7 @@
 		<div
 			transition:fly={{ x: 15, duration: 75 }}
 			class="flex z-10 flex-col font-semibold text-sm overflow-hidden border shadow w-100 h-auto absolute -translate-x-94 -translate-y-1.5 rounded-lg
-            dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 dark:shadow-black shadow-stone-400"
+            dark:bg-stone-950 dark:border-stone-600 bg-stone-200 border-stone-700 {shadow.color}"
 		>
 			<div class=" p-1 flex flex-col">
 				{#if !interactable && (captured == '' || !captured) }

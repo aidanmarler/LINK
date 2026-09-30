@@ -112,7 +112,7 @@
 					<button
 						in:fade={{ duration: 100 }}
 						title="See {suggestionCount ?? 0} suggested translations"
-						class="  flex items-center mr-1 px-2.5 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
+						class="  flex items-center mr-1 px-2.5 active:opacity-60 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
 						 {suggestionOpen
 							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
 							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
@@ -177,8 +177,8 @@
 						title="Skip translating this segment"
 						class="  flex items-center px-2.5 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
 						 {newData.skipped
-							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
-							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "
+							? ' opacity-80 hover:opacity-100 active:opacity-60 text-stone-200 hover:text-stone-100 bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
+							: 'text-stone-800 dark:text-stone-400  active:opacity-60  opacity-50 hover:opacity-100'} "
 						onclick={() => {
 							newData.skipped = !newData.skipped;
 							if (newData.skipped) suggestionOpen = false;
@@ -207,7 +207,7 @@
 					<button
 						in:fade={{ duration: 100 }}
 						title="Edit submitted translation"
-						class=" ml-1 flex items-center pl-2.5 pr-1 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
+						class=" ml-1 flex items-center pl-2.5 active:opacity-60 pr-1 rounded-t-md group border-2 border-b-0 text-sm border-stone-800 dark:border-stone-400 cursor-pointer
 						 {editing
 							? ' opacity-80 hover:opacity-100 text-stone-200 hover:text-stone-100 hover: bg-stone-800 dark:text-stone-950 dark:bg-stone-400'
 							: 'text-stone-800 dark:text-stone-400  opacity-50 hover:opacity-100'} "

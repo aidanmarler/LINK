@@ -446,6 +446,8 @@ export async function UpdatePATOnSubmission(
 	*/
 }
 
+export async function UpdateProgressAndAcceptedTranslations() {}
+
 export function getAcceptedTranslation(
 	at: AcceptedTranslationRow | null,
 	ft_array: ForwardTranslationRow[],
@@ -542,3 +544,134 @@ export function getAcceptedTranslation(
 
 	return new_at;
 }
+
+export const getBestTranslation = (
+	ft_array: ForwardTranslationRow[],
+	tr_array: TranslationReviewRow[]
+) => {
+	// Group translations by their text (normalized)
+	const translationGroups: Record<
+		string,
+		{ translations: ForwardTranslationRow[]; reviews: TranslationReviewRow[] }
+	> = {};
+	for (const ft of ft_array) {
+		const text = ft.translation?.trim() ?? '';
+		if (text == '') continue; // never want blank to be tallied
+		if (!translationGroups[text]) translationGroups[text] = { translations: [], reviews: [] };
+		translationGroups[text].translations.push(ft);
+	}
+	for (const r of tr_array) {
+		// get review's translation row
+		const ft = ft_array.find((t) => t.id == r.translation_id);
+		if (!ft) continue;
+		// get translation row text
+		const text = ft.translation?.trim() ?? '';
+		if (text == '') continue; // never want blank to be tallied
+		if (!translationGroups[text]) translationGroups[text] = { translations: [], reviews: [] };
+		translationGroups[text].reviews.push(r);
+	}
+
+	const userVotes: Record<
+		string,
+		{ users: Set<string>; machineVote: boolean; mostRecent: string | null }
+	> = {};
+
+	// % tally scores
+	for (const text of Object.keys(translationGroups)) {
+		userVotes[text] = { users: new Set(), machineVote: false, mostRecent: null };
+		// + add ft users, get if a machine votes
+		for (const ft of translationGroups[text].translations) {
+			// * store time if most recent
+			if (userVotes[text].mostRecent == null) userVotes[text].mostRecent = ft.created_at;
+			else if (new Date(ft.created_at).getTime() > new Date(userVotes[text].mostRecent).getTime())
+				userVotes[text].mostRecent = ft.created_at;
+			// * store if has machine vote, else store user vote
+			if (!ft.user_id) userVotes[text].machineVote = true;
+			else userVotes[text].users.add(ft.user_id);
+		}
+		// + add review users
+		for (const r of translationGroups[text].reviews) {
+			// * store time if most recent
+			if (userVotes[text].mostRecent == null) userVotes[text].mostRecent = r.created_at;
+			else if (new Date(r.created_at).getTime() > new Date(userVotes[text].mostRecent).getTime())
+				userVotes[text].mostRecent = r.created_at;
+			userVotes[text].users.add(r.reviewer_id);
+		}
+	}
+
+	// i- init winning translation metrics
+	let winningText: string | null = null;
+	let winningVotes = 0;
+	let winningHasMachineVote = false;
+	let winningDate: string | null = null;
+	let runnerUpVotes = 0;
+	// % for each text option
+	for (const text of Object.keys(userVotes)) {
+		const score = userVotes[text].users.size;
+		const machine = userVotes[text].machineVote;
+		const date = userVotes[text].mostRecent;
+		// if no winner yet, set as best
+		if (!winningText) {
+			winningText = text;
+			winningVotes = score;
+			winningHasMachineVote = machine;
+			winningDate = date;
+			continue;
+		}
+		// if better, set as best
+		if (score > winningVotes) {
+			runnerUpVotes = winningVotes;
+			winningText = text;
+			winningVotes = score;
+			winningHasMachineVote = machine;
+			winningDate = date;
+			continue;
+		}
+		const tie = score == winningVotes;
+		if (!tie) continue;
+		// if equal with machine tie-breaker, set as best
+		const machineTieBreaker = machine && !winningHasMachineVote;
+		if (machineTieBreaker) {
+			winningText = text;
+			winningVotes = score;
+			winningHasMachineVote = machine;
+			winningDate = date;
+			continue;
+		}
+		// if this has a date and the other somehow doesn't push this
+		if (date && !winningDate) {
+			winningText = text;
+			winningVotes = score;
+			winningHasMachineVote = machine;
+			winningDate = date;
+			continue;
+		}
+		// if this is more recent than winner, set as best
+		if (date && winningDate) {
+			const timeTieBreaker = new Date(date).getTime() > new Date(winningDate).getTime();
+			if (timeTieBreaker) {
+				winningText = text;
+				winningVotes = score;
+				winningHasMachineVote = machine;
+				winningDate = date;
+				continue;
+			}
+		}
+	}
+
+	// What do we care about? What is the best translation (ft id), and is is strong enough to move to adjudication?
+	/*
+		Move to adjudication if: the winner has +4 votes over second place.
+		Move to adjucication if: the winner has 4 votes and everything has 0. 
+	*/
+	const moveToAdjuication = winningVotes >= runnerUpVotes + 4;
+
+	console.log('translationGroups', translationGroups, userVotes, winningVotes, moveToAdjuication);
+
+	if (!winningText) return null;
+	return {
+		ft: translationGroups[winningText].translations[0],
+		score: winningVotes,
+		canAdjudicate: moveToAdjuication
+	};
+};

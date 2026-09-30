@@ -1,7 +1,3 @@
-import {
-	UpdatePATOnSubmission,
-	UpdateProgress_ForwardSubmission
-} from '$lib/supabase/translationProgress';
 import type {
 	ForwardTranslationInsert,
 	ForwardTranslationRow,
@@ -16,6 +12,7 @@ import {
 	UpdateForwardTranslations
 } from '$lib/supabase/utils';
 import type { Profile, TranslationLanguage } from '$lib/types';
+import { updateProgressAcceptedForSegments } from '$lib/utils/repairTranslations';
 import _ from 'lodash';
 
 // MARK: - Types
@@ -240,6 +237,7 @@ export function transformPageForSubmission(
 			const submitted = segment[1].forwardTranslation;
 			if (!submitted) continue;
 			//console.log('comment', submitted.comment, d.comment);
+			/*
 			if (submitted.translation != d.translation) {
 				console.log('translation', 'og: ' + submitted.translation, 'new: ' + d.translation);
 			}
@@ -248,7 +246,7 @@ export function transformPageForSubmission(
 			}
 			if (submitted.skipped != d.skipped) {
 				console.log('skipped', submitted.skipped, d.skipped);
-			}
+			}*/
 			const editRow: ForwardTranslationRow = { ...submitted };
 			if (d.skipped) {
 				editRow.skipped = true;
@@ -433,7 +431,9 @@ export async function handlePageTranslationSubmission(
 	profile: Profile,
 	changed: Set<number>
 ) {
+	console.time('composite-submission');
 	console.log('PageSubmissions:', page);
+	console.log('changed:', changed);
 
 	// Insert new translations to supabase ForwardTranslations table
 	const tasks: Promise<unknown>[] = [];
@@ -441,15 +441,21 @@ export async function handlePageTranslationSubmission(
 	if (page.reviewPush.length > 0) tasks.push(InsertTranslationReviews(page.reviewPush));
 	if (page.forwardEdit.length > 0) tasks.push(UpdateForwardTranslations(page.forwardEdit));
 	await Promise.all(tasks);
-	
+
+	await updateProgressAcceptedForSegments([...changed], profile.language as TranslationLanguage);
+
 	/*
 	AIDAN: here we go, this is where I need to be.
 	*/
 
 	// @ these should be both handled by 'Update PAT (Progress Accepted Translation) on submission'
+
+	/*
 	if (page.forwardPush.length > 0)
 		await UpdateProgress_ForwardSubmission(page.forwardPush, 'review');
 
 	if (page.reviewPush.length > 0)
 		await UpdatePATOnSubmission([...changed], profile.language as TranslationLanguage, 'review');
+	*/
+	console.time('composite-submission');
 }

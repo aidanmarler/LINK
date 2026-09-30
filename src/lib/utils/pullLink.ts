@@ -1,4 +1,7 @@
-import { pullOriginalSegments } from '$lib/supabase/originalTranslations';
+import {
+	pullAllOriginalSegments,
+	pullSomeOriginalSegments
+} from '$lib/supabase/originalTranslations';
 import type {
 	AcceptedTranslationRow,
 	ForwardTranslationRow,
@@ -7,6 +10,7 @@ import type {
 	TranslationReviewRow
 } from '$lib/supabase/types';
 import { pullRowsForOriginalId } from '$lib/supabase/utils';
+import type { TranslationLanguage } from '$lib/types';
 
 export type LinkSegments = Record<
 	number, // original_id
@@ -31,11 +35,27 @@ export type LinkTranslationsRecord = Record<
 export type LinkStructure = [LinkSegments, LinkTranslationsRecord];
 
 // == == Pull LINK for version == == //
-// @ optional "version" and "set" later (when we have a new database to store each )
+//       optional "version" and "preset" (for when we have a new database to store each )
 export const pullLink = async (version: string): Promise<LinkStructure> => {
 	// = ( 1 ) = pull original segmentsfi
 	console.log('Pulling LINK; get original segments');
-	const originalSegmentList = await pullOriginalSegments(version);
+	const originalSegmentList = await pullAllOriginalSegments(version);
+	return await getLinkStructure(originalSegmentList);
+};
+
+export const pullPartialLink = async (
+	ids: number[],
+	language: TranslationLanguage
+): Promise<LinkStructure> => {
+	console.log('Pulling LINK; get original segments for ' + language, ids);
+	const originalSegmentList = await pullSomeOriginalSegments(ids);
+	return await getLinkStructure(originalSegmentList, language);
+};
+
+const getLinkStructure = async (
+	originalSegmentList: OriginalSegmentRow[],
+	language?: TranslationLanguage
+) => {
 	// * map to id
 	const originalSegments: Record<number, OriginalSegmentRow> = Object.fromEntries(
 		originalSegmentList.map((segment) => [segment.id, segment])
@@ -46,10 +66,10 @@ export const pullLink = async (version: string): Promise<LinkStructure> => {
 	const segmentIds: number[] = Object.keys(originalSegments).map(Number);
 	const [translation_progress, forward_translations, translation_reviews, accepted_translations] =
 		await Promise.all([
-			pullRowsForOriginalId<TranslationProgressRow>('translation_progress', segmentIds),
-			pullRowsForOriginalId<ForwardTranslationRow>('forward_translations', segmentIds),
-			pullRowsForOriginalId<TranslationReviewRow>('translation_reviews', segmentIds),
-			pullRowsForOriginalId<AcceptedTranslationRow>('accepted_translations', segmentIds)
+			pullRowsForOriginalId<TranslationProgressRow>('translation_progress', segmentIds, language),
+			pullRowsForOriginalId<ForwardTranslationRow>('forward_translations', segmentIds, language),
+			pullRowsForOriginalId<TranslationReviewRow>('translation_reviews', segmentIds, language),
+			pullRowsForOriginalId<AcceptedTranslationRow>('accepted_translations', segmentIds, language)
 		]);
 
 	// + Init link for export
