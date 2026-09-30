@@ -91,55 +91,59 @@
 		{#await data.dataPromise}
 			<div class="loading"></div>
 		{:then loadedData}
-			<div
-				class="max-w-2xl bg-stone-300/50 dark:bg-stone-900/50 rounded-xl p-4 px-8 shadow {shadow.color} mt-20 mx-auto"
-				transition:fly={{ y: 15 }}
-			>
-				<h3 class="font-medium text-lg">Translated Segments</h3>
+			{@const started =
+				loadedData.locationTree.completion.forwardComplete +
+					loadedData.locationTree.completion.reviewComplete >
+				0}
+			{#if started}
 				<div
-					class="border-0 shadow-inner mb-5 z-10 rounded-lg max-h-30 overflow-auto {shadow.soft}"
+					class="max-w-2xl bg-stone-300/50 dark:bg-stone-900/50 rounded-xl p-4 px-8 shadow {shadow.color} mt-20 mx-auto"
+					transition:fly={{ y: 15 }}
 				>
-					{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.forwardTranslation != null) as [id, v]}
-						{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
-						<a
-							class="px-2 flex text-sky-800 dark:text-sky-500 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
-							href={slug}
-						>
-							<!--
+					<h3 class="font-medium text-lg">Translated Segments</h3>
+					<div
+						class="border-0 shadow-inner mb-5 z-10 rounded-lg max-h-30 overflow-auto {shadow.soft}"
+					>
+						{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.forwardTranslation != null) as [id, v]}
+							{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
+							<a
+								class="px-2 flex text-sky-800 dark:text-sky-500 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
+								href={slug}
+							>
+								<!--
 							<span>
 								{#if v.originalSegment.location}
 									{v.originalSegment.location.reverse()[1]}
 								{/if}
 							</span>-->
-							<span>{v.originalSegment.segment}</span>
-						</a>
-					{/each}
-				</div>
+								<span>{v.originalSegment.segment}</span>
+							</a>
+						{/each}
+					</div>
 
-				<h3 class="font-medium text-lg">Reviewed Segments</h3>
-				<div
-					class="border-0 mb-5 shadow-inner z-10 rounded-lg max-h-30 overflow-auto {shadow.soft}"
-				>
-					{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.translationReview != null) as [id, v]}
-						{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
-						<a
-							class="px-2 flex text-sky-800 dark:text-sky-500 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
-							href={slug}
-						>
-							<span>{v.originalSegment.segment}</span>
-						</a>
-					{/each}
-				</div>
+					<h3 class="font-medium text-lg">Reviewed Segments</h3>
+					<div
+						class="border-0 mb-5 shadow-inner z-10 rounded-lg max-h-30 overflow-auto {shadow.soft}"
+					>
+						{#each Object.entries(loadedData.segmentMap).filter(([_id, v]) => v.translationReview != null) as [id, v]}
+							{@const slug = getSegmentSlug(+id, loadedData.locationTree, '/home')}
+							<a
+								class="px-2 flex text-sky-800 dark:text-sky-500 z-0 hover:underline border-b border-stone-400 hover:bg-stone-100 active:bg-stone-300"
+								href={slug}
+							>
+								<span>{v.originalSegment.segment}</span>
+							</a>
+						{/each}
+					</div>
 
-				<h3 class="font-medium text-lg">Explore</h3>
-				<div class="grid gap-x-2 sm:grid-cols-2">
-					{#each loadedData.locationTree.children as [_label, node]}
-						<NodeButton {node} currentPath={'/home'} />
-					{/each}
+					<h3 class="font-medium text-lg">Explore</h3>
+					<div class="grid gap-2 sm:grid-cols-2">
+						{#each loadedData.locationTree.children as [_label, node]}
+							<NodeButton {node} currentPath={'/home'} />
+						{/each}
+					</div>
 				</div>
-			</div>
+			{/if}
 		{/await}
-
-		{#await data.dataPromise}{/await}
 	</div>
 {/if}
