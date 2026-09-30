@@ -17,7 +17,7 @@
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange((event, session) => {
-			console.log(event);
+			console.log("onAuthStateChange",event);
 
 			if (event === 'INITIAL_SESSION') {
 				currentSession = session;

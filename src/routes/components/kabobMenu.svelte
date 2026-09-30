@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
-	import { goto } from '$app/navigation';
 
 	let menuContainer: HTMLDivElement;
 	let menuOpen = $state(false);
@@ -72,8 +71,6 @@
 					title="Logout"
 					onclick={() => {
 						supabase.auth.signOut();
-						// load href="/login"
-						goto('/login');
 					}}
 				>
 					<img class="dark:invert w-9 p-1" alt="Menu" src="/interaction/logout.svg" />

@@ -448,6 +448,7 @@ async function HandleNewAcceptedTranslations(translations: ForwardTranslationRow
 
 export async function AddArcVersionToLink(version: string) {
 	const startT = performance.now();
+	console.log('AddArcVersionToLink:', version);
 	// = (1) = get all of Arc Translations for this version
 	const arcTranslations = await pullArcTranslations(version);
 	const arcT = arcTranslations['ARCH' + version];
@@ -461,9 +462,7 @@ export async function AddArcVersionToLink(version: string) {
 		linkSegments
 	);
 
-
 	//const segments = [...Object.values(existingSegments), ...newSegments];
-
 
 	//return;
 
@@ -491,7 +490,6 @@ export async function AddArcVersionToLink(version: string) {
 	console.log('allSegments', allSegments);
 	console.log('existingSegments', Object.keys(existingSegments));
 	console.log('newSegments', newSegments);
-	
 
 	// @ AIDAN LOOK HERE: we need to get all original ids that are in arcT['English'] to push into the documents.
 	// go to CreateDocumentInserts... it will show you the way
