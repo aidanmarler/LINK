@@ -70,7 +70,7 @@ const constructUpsertPAT = (link: LinkStructure): UpsertPAT => {
 			const ft = obj.forwardTranslations ?? [];
 			const tr = obj.translationReviews ?? [];
 			const best_ft = getBestTranslation(ft, tr);
-			console.log("best_ft", best_ft);
+			console.log('best_ft', best_ft);
 
 			// = 2 => Update translation progress
 
@@ -85,7 +85,7 @@ const constructUpsertPAT = (link: LinkStructure): UpsertPAT => {
 			if (shouldReview) calculatedStep = 'review';
 			if (best_ft?.canAdjudicate) calculatedStep = 'adjudication';
 
-			console.log("calculatedStep", calculatedStep);
+			console.log('calculatedStep', calculatedStep);
 
 			// * create a new progress if missing
 			const noProgress = obj.translationProgress == undefined;
@@ -153,10 +153,21 @@ const constructUpsertPAT = (link: LinkStructure): UpsertPAT => {
 const pushUpsertPAT = async (upserts: UpsertPAT) => {
 	if (upserts.progress.length > 0) {
 		console.log('progressUpsert', upserts.progress);
-		const { error: progressError } = await supabase
-			.from('translation_progress')
-			.upsert(upserts.progress, { onConflict: 'id' });
-		if (progressError) console.error('Error upserting translation progresses', progressError);
+		const inserts = upserts.progress.filter(
+			(r): r is TranslationProgressInsert => r.id === undefined
+		);
+		const updates = upserts.progress.filter((r): r is TranslationProgressRow => r.id !== undefined);
+
+		if (inserts.length > 0) {
+			const { error } = await supabase.from('translation_progress').insert(inserts);
+			if (error) return error;
+		}
+		if (updates.length > 0) {
+			const { error } = await supabase
+				.from('translation_progress')
+				.upsert(updates, { onConflict: 'id' });
+			if (error) return error;
+		}
 	}
 
 	if (upserts.accepted.length > 0) {
