@@ -31,7 +31,6 @@
 		class="w-full justify-center items-center"
 	>
 		<Welcome {profile} />
-
 		<!--buttons div-->
 		<div class=" w-full flex my-5 items-center flex-col justify-center">
 			<div class="bg-amber-200/0 max-w-3xl w-full justify-center">

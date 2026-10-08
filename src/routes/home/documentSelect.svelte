@@ -4,6 +4,7 @@
 	import { fly } from 'svelte/transition';
 	import { supabase } from '../../supabaseClient';
 	import { generateDocumentName } from '$lib/utils/utils';
+	import Info from './info.svelte';
 
 	let {
 		documents,
@@ -50,7 +51,7 @@
 
 			const splitName = d.title.split('_');
 
-			if (d.title.includes("Mpox Pregnancy and ")) continue;
+			if (d.title.includes('Mpox Pregnancy and ')) continue;
 			if (splitName.length == 1) {
 				returnValue.main.add(d.title);
 			}
@@ -110,12 +111,15 @@
 	<button
 		title={toolTip}
 		class=" px-1.5 flex justify-between rounded-md items-center w-full active:bg-stone-100 dark:active:bg-stone-black
-						{selected ? ' opacity-70 bg-stone-400/50 ' : '  cursor-pointer hover:bg-stone-200 dark:hover:bg-stone-950 '}"
+						{selected
+			? ' opacity-70 bg-stone-400/50 '
+			: '  cursor-pointer hover:bg-stone-200 dark:hover:bg-stone-950 '}"
 		onclick={() => handlePresetChange(preset)}
 	>
 		<span class="font-semibold">
 			{title}
 		</span>
+
 		<span class="text-sm italic text-stone-700 dark:text-stone-500"> {visualLabel} </span>
 	</button>
 {/snippet}
@@ -167,6 +171,19 @@
 					{/if}
 				</div>
 			{/each}
+
+			<p
+				title="ARC is in version {archVersion}"
+				class="w-full flex font-semibold  items-center justify-center italic cursor-context-menu text-center text-sm text-stone-700 dark:text-stone-500"
+			>
+				<span class="h-4 w-4 mr-0.5">
+					<Info />
+				</span>
+
+				<span>
+					ARC v{archVersion}
+				</span>
+			</p>
 		</div>
 	{/if}
 </div>
