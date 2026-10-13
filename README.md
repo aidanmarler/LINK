@@ -1,9 +1,13 @@
-# Moved to ISARIC!
-Created in collaboration with ISARIC, the official version of link is now hosted with them.
-Access the new repository at [github.com/ISARICResearch/LINK](https://github.com/ISARICResearch/LINK).
+# October 2026: LINK moved to ISARIC
+Created in collaboration with ISARIC, the official version of LINK is now hosted with them.
+
+Access LINK's repository at [github.com/ISARICResearch/LINK](https://github.com/ISARICResearch/LINK).
+
 Use LINK at [link.isaric.org](link.isaric.org).
 
-# LINK
+
+
+# OutdatedLINK
 Welcome to **LINK**, the Language Integration Network Kit!
 
 Proudly presented by [CONAGIO](contagio.network) and [ISARIC](isaric.org), LINK is our tool for verifying automatic machine translations of the [ARC](https://github.com/ISARICResearch/ARC) database. 
