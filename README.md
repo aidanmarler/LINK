@@ -1,9 +1,9 @@
 # October 2026: LINK moved to ISARIC
 Created in collaboration with ISARIC, the official version of LINK is now hosted with them.
 
-Access LINK's repository at [github.com/ISARICResearch/LINK](https://github.com/ISARICResearch/LINK).
+Access LINK's repository at [github.com/ISARICResearch/LINK](https://github.com/ISARICResearch/LINK)
 
-Use LINK at [link.isaric.org](link.isaric.org).
+Use LINK at [link.isaric.org](https://link.isaric.org)
 
 
 
