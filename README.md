@@ -1,3 +1,8 @@
+# Moved to ISARIC!
+Created in collaboration with ISARIC, the official version of link is now hosted with them.
+Access the new repository at [github.com/ISARICResearch/LINK](https://github.com/ISARICResearch/LINK).
+Use LINK at [link.isaric.org](link.isaric.org).
+
 # LINK
 Welcome to **LINK**, the Language Integration Network Kit!
 
