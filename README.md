@@ -7,7 +7,7 @@ Use LINK at [link.isaric.org](link.isaric.org).
 
 
 
-# OutdatedLINK
+# Unofficial LINK
 Welcome to **LINK**, the Language Integration Network Kit!
 
 Proudly presented by [CONAGIO](contagio.network) and [ISARIC](isaric.org), LINK is our tool for verifying automatic machine translations of the [ARC](https://github.com/ISARICResearch/ARC) database. 
